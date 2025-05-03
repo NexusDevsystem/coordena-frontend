@@ -1,0 +1,49 @@
+:root {
+  --overlay-duration: 0.6s;
+}
+
+/* Overlay de transição */
+.theme-overlay {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 0;
+  height: 0;
+  background: var(--overlay-color);
+  border-radius: 50%;
+  z-index: 9999;
+  pointer-events: none;
+  animation: expand-overlay var(--overlay-duration) forwards;
+}
+
+@keyframes expand-overlay {
+  to {
+    width: 200vmax;
+    height: 200vmax;
+    top: calc(50% - 100vmax);
+    right: calc(50% - 100vmax);
+  }
+}
+
+/* Corrige cabeçalho em dark mode para o FullCalendar */
+.dark .fc .fc-col-header {
+  background-color: #1f2937; /* gray-800 */
+}
+
+.dark .fc .fc-col-header th {
+  border-color: #374151; /* gray-700 */
+}
+
+.dark .fc .fc-col-header-cell-cushion {
+  color: #d1d5db; /* gray-300 */
+}
+
+/* Se você também usar a grade de listas em mobile, cor das linhas: */
+.dark .fc .fc-list-head {
+  background-color: #1f2937;
+}
+
+.dark .fc .fc-list-heading td {
+  color: #d1d5db;
+  border-color: #374151;
+}
