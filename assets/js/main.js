@@ -41,7 +41,10 @@ const ThemeToggle = (() => {
 // MÓDULO DE API
 // ----------------------
 const Api = (() => {
-  const BASE = 'http://localhost:4000/api/reservas';
+  // usa localhost em dev e o domínio público no Render em prod
+  const BASE = window.location.hostname.includes('localhost')
+    ? 'http://localhost:10000/api/reservas'
+    : 'https://coordena-backend.onrender.com/api/reservas';
 
   async function fetchEvents() {
     const res = await fetch(BASE);
@@ -89,11 +92,8 @@ const CalendarModule = (() => {
     const el = document.getElementById('calendar');
     if (!el) return console.error('#calendar não encontrado');
 
-    // pega a altura real do container (600px definido em CSS)
     const containerHeight = el.clientHeight;
-
-    // detecta mobile/tablet pela largura
-    const isMobile = window.innerWidth < 640; // breakpoint sm
+    const isMobile = window.innerWidth < 640;
 
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
@@ -111,13 +111,12 @@ const CalendarModule = (() => {
       })),
       dateClick: onDateClick,
       eventClick: onEventClick,
-      height: containerHeight,     // usa altura do container
-      allDaySlot: false            // remove o slot "all-day"
+      height: containerHeight,
+      allDaySlot: false
     });
 
     calendar.render();
 
-    // re-render ao redimensionar
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       const newView = nowMobile ? 'listWeek' : 'dayGridMonth';
@@ -147,8 +146,7 @@ const CalendarModule = (() => {
 
   function remove(id) {
     events = events.filter(e => e._id !== id);
-    const obj = calendar.getEventById(id);
-    obj?.remove();
+    calendar.getEventById(id)?.remove();
   }
 
   return { init, add, update, remove, getEvents: () => events };
@@ -211,18 +209,18 @@ const FormModule = (() => {
     e.preventDefault();
     const f = selectors.fields;
     const payload = {
-      date:       f.data.value,
-      start:      f.start.value,
-      end:        f.end.value,
-      resource:   f.recurso.value,
-      sala:       f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-      type:       f.type.value,
-      responsible:f.resp.value,
-      department: f.dept.value,
-      status:     f.status.value,
-      description:f.desc.value,
-      time:       `${f.start.value}-${f.end.value}`,
-      title:      f.salaContainer.classList.contains('hidden')
+      date:        f.data.value,
+      start:       f.start.value,
+      end:         f.end.value,
+      resource:    f.recurso.value,
+      sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+      type:        f.type.value,
+      responsible: f.resp.value,
+      department:  f.dept.value,
+      status:      f.status.value,
+      description: f.desc.value,
+      time:        `${f.start.value}-${f.end.value}`,
+      title:       f.salaContainer.classList.contains('hidden')
                     ? f.type.value
                     : `${f.type.value} - ${f.sala.value}`
     };
@@ -235,7 +233,6 @@ const FormModule = (() => {
           CalendarModule.update(currentId, saved);
         } else {
           saved = await Api.createEvent(payload);
-          // adiciona novo evento em tempo real
           CalendarModule.add({
             id:    saved._id,
             title: `${saved.title} (${saved.time})`,
