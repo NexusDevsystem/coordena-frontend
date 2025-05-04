@@ -29,10 +29,9 @@
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
 
-  <!-- Background images -->
+  <!-- Background -->
   <div class="absolute inset-0 bg-[url('../assets/img/background.png')] dark:bg-[url('../assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"></div>
 
-  <!-- Login card -->
   <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
     <!-- Logo -->
     <div class="flex justify-center">
@@ -40,23 +39,19 @@
     </div>
     <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Entrar no Coordena+</h2>
 
-    <!-- Note o id no form -->
-    <form id="login-form" action="#" method="POST" class="space-y-4">
-      <!-- E-mail -->
+    <form id="login-form" class="space-y-4">
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E‑mail</label>
         <input type="email" id="email" name="email" required
                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
-      <!-- Senha -->
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
         <input type="password" id="password" name="password" required
                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
-      <!-- Remember + Forgot -->
       <div class="flex items-center justify-between text-sm">
         <label class="inline-flex items-center text-gray-700 dark:text-gray-300">
           <input type="checkbox" class="form-checkbox h-4 w-4 text-primary transition" />
@@ -65,7 +60,6 @@
         <a href="#" class="text-primary hover:underline">Esqueceu a senha?</a>
       </div>
 
-      <!-- Botão Entrar -->
       <div>
         <button type="submit"
                 class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">
@@ -73,7 +67,6 @@
         </button>
       </div>
 
-      <!-- Signup link -->
       <p class="text-center text-sm text-gray-600 dark:text-gray-400">
         Não tem conta?
         <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
@@ -95,20 +88,20 @@
     </svg>
   </button>
 
-  <!-- include o auth.js e inicializa o login -->
+  <!-- scripts -->
   <script src="../assets/js/auth.js"></script>
   <script>
-    // aplica tema
-    const btn = document.getElementById('theme-toggle');
-    const root = document.documentElement;
-    const saved = localStorage.getItem('theme') || 'light';
-    if (saved === 'dark') root.classList.add('dark');
-    btn.addEventListener('click', () => {
-      root.classList.toggle('dark');
-      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+    // tema
+    const btn2 = document.getElementById('theme-toggle');
+    const root2 = document.documentElement;
+    const saved2 = localStorage.getItem('theme') || 'light';
+    if (saved2 === 'dark') root2.classList.add('dark');
+    btn2.addEventListener('click', () => {
+      root2.classList.toggle('dark');
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // captura submit e faz login
+    // login via Auth e redirect
     document.getElementById('login-form')
       .addEventListener('submit', async e => {
         e.preventDefault();
@@ -117,13 +110,11 @@
             document.getElementById('email').value,
             document.getElementById('password').value
           );
-          // após login bem‑sucedido, redireciona
           window.location.href = 'agendamento.html';
         } catch (err) {
           alert(err.message);
         }
       });
   </script>
-
 </body>
 </html>

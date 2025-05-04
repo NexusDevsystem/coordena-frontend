@@ -39,8 +39,7 @@
     </div>
     <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Crie sua conta no Coordena+</h2>
 
-    <!-- Note o id no form -->
-    <form id="register-form" action="#" method="POST" class="space-y-4">
+    <form id="register-form" class="space-y-4">
       <div>
         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
         <input type="text" id="name" name="name" required
@@ -93,10 +92,10 @@
     </svg>
   </button>
 
-  <!-- include o auth.js e captura submit -->
+  <!-- scripts -->
   <script src="../assets/js/auth.js"></script>
   <script>
-    // aplica tema
+    // tema
     const btn = document.getElementById('theme-toggle');
     const root = document.documentElement;
     const saved = localStorage.getItem('theme') || 'light';
@@ -106,22 +105,19 @@
       localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // trata o registro
+    // cadastro via Auth e redirect
     document.getElementById('register-form')
       .addEventListener('submit', async e => {
         e.preventDefault();
         const pwd = document.getElementById('password').value;
         const cpwd = document.getElementById('confirm-password').value;
-        if (pwd !== cpwd) {
-          return alert('As senhas não coincidem.');
-        }
+        if (pwd !== cpwd) return alert('As senhas não coincidem.');
         try {
           await Auth.register({
             name: document.getElementById('name').value,
             email: document.getElementById('email').value,
             password: pwd
           });
-          alert('Cadastro realizado com sucesso!');
           window.location.href = 'login.html';
         } catch (err) {
           alert(err.message);

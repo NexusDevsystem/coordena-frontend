@@ -10,17 +10,22 @@ const Auth = (() => {
     function getToken() {
       return localStorage.getItem('token');
     }
+  
     async function login(email, password) {
       const res = await fetch(`${API}/login`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({email, password})
+        body: JSON.stringify({ email, password })
       });
       if (!res.ok) throw new Error('Credenciais inválidas');
+  
       const { token } = await res.json();
       saveToken(token);
+      // login OK → redireciona para a home (index)
+      window.location.assign('/');
       return token;
     }
+  
     async function register(data) {
       const res = await fetch(`${API}/register`, {
         method: 'POST',
@@ -31,26 +36,30 @@ const Auth = (() => {
         const err = await res.json();
         throw new Error(err.message || 'Erro no cadastro');
       }
-      // já retorna token para logar automaticamente
+  
       const { token } = await res.json();
       saveToken(token);
+      // registro OK → redireciona para o login
+      window.location.assign('/login');
       return token;
     }
+  
     function logout() {
       localStorage.removeItem('token');
-      window.location = 'login.html';
+      window.location.assign('/login');
     }
+  
     function getCurrentUser() {
       const t = getToken();
       if (!t) return null;
       try {
         const [, payload] = t.split('.');
-        const data = JSON.parse(atob(payload));
-        return data;
+        return JSON.parse(atob(payload));
       } catch {
         return null;
       }
     }
+  
     return { login, register, logout, getCurrentUser, getToken };
   })();
   window.Auth = Auth;
