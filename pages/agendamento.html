@@ -25,9 +25,8 @@
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
           class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-gray-800 dark:text-gray-200"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- ícone -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
                m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
@@ -38,7 +37,7 @@
 
   <!-- Quick Access -->
   <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-50">
-    <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 hover:scale-110 transform transition duration-200">
+    <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
       <!-- ícone casa -->
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,15 +53,15 @@
     </button>
   </div>
 
-  <main class="pt-24 pb-8 mx-auto max-w-full px-8 space-y-8">
+  <main class="pt-24 pb-8 mx-auto max-w-full px-4 space-y-8">
     <h1 class="text-3xl font-semibold text-center">Agendamento de Recursos</h1>
     <div class="flex justify-center">
       <button id="open-form-modal"
-              class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-md transition transform hover:scale-105">
+              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
       </button>
     </div>
-    <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 transition-colors duration-300">
+    <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         Calendário de Reservas
       </h2>
@@ -72,131 +71,108 @@
 
   <!-- Modal: Formulário de Agendamento -->
   <div id="form-modal"
-       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-lg relative">
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div
+      class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6"
+    >
       <button id="form-close"
-              class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
+              class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-10">
         ✕
       </button>
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         Novo Agendamento
       </h3>
 
-      <form id="agendamento-form" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-        <!-- 1ª linha -->
+      <form id="agendamento-form" class="space-y-4">
+        <!-- Data -->
         <div>
-          <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Data
-          </label>
+          <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
           <input type="date" id="data"
-                 class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                        focus:ring-2 focus:ring-blue-400 transition"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
-        </div>
-        <div>
-          <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Início
-          </label>
-          <input type="time" id="start"
-                 class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                        focus:ring-2 focus:ring-blue-400 transition"
-                 min="07:00" max="22:00" step="60"
-                 required>
-        </div>
-        <div>
-          <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Término
-          </label>
-          <input type="time" id="end"
-                 class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                        focus:ring-2 focus:ring-blue-400 transition"
-                 min="07:00" max="22:00" step="60"
-                 required>
-        </div>
-        <div>
-          <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Recurso
-          </label>
-          <select id="recurso"
-                  class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                         focus:ring-2 focus:ring-blue-400 transition"
-                  required>
-            <option value="">Selecione...</option>
-            <option>Laboratório</option>
-            <option>Sala de Aula</option>
-            <option>Auditório</option>
-          </select>
-        </div>
-        <div>
-          <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tipo de Evento
-          </label>
-          <select id="tipo-evento"
-                  class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                         focus:ring-2 focus:ring-blue-400 transition"
-                  required>
-            <option value="">Selecione...</option>
-            <option>Aula</option>
-            <option>Reunião</option>
-            <option>Palestra</option>
-            <option>Workshop</option>
-          </select>
         </div>
 
-        <!-- 2ª linha: sala -->
-        <div id="sala-container"
-             class="hidden sm:col-start-4 sm:col-span-2">
-          <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Qual Sala?
-          </label>
+        <!-- Início / Término (coluna única em mobile) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
+            <input type="time" id="start"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   min="07:00" max="22:00" step="60" required>
+          </div>
+          <div>
+            <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
+            <input type="time" id="end"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   min="07:00" max="22:00" step="60" required>
+          </div>
+        </div>
+
+        <!-- Recurso / Tipo de Evento -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
+            <select id="recurso"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    required>
+              <option value="">Selecione...</option>
+              <option>Laboratório</option>
+              <option>Sala de Aula</option>
+              <option>Auditório</option>
+            </select>
+          </div>
+          <div>
+            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
+            <select id="tipo-evento"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    required>
+              <option value="">Selecione...</option>
+              <option>Aula</option>
+              <option>Reunião</option>
+              <option>Palestra</option>
+              <option>Workshop</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sala (condicional) -->
+        <div id="sala-container" class="hidden">
+          <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                         focus:ring-2 focus:ring-blue-400 transition">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
 
-        <!-- 3ª linha: responsável -->
-        <div class="sm:col-span-5">
-          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Responsável
-          </label>
+        <!-- Responsável -->
+        <div>
+          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                        focus:ring-2 focus:ring-blue-400 transition"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
 
-        <!-- 4ª linha: Curso e Matéria (com espaçamento ajustado) -->
-        <div class="sm:col-span-5 flex gap-4">
-          <div class="flex-1">
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Curso
-            </label>
+        <!-- Curso / Matéria -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                          focus:ring-2 focus:ring-blue-400 transition"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: Engenharia" required>
           </div>
-          <div class="flex-1">
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Matéria
-            </label>
+          <div>
+            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                          focus:ring-2 focus:ring-blue-400 transition"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: História" required>
           </div>
         </div>
 
-        <!-- 5ª linha: status -->
-        <div class="sm:col-span-5">
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Status da Reserva
-          </label>
+        <!-- Status -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                         focus:ring-2 focus:ring-blue-400 transition"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
@@ -204,20 +180,16 @@
           </select>
         </div>
 
-        <!-- 6ª linha: descrição -->
-        <div class="sm:col-span-5">
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Descrição (opcional)
-          </label>
+        <!-- Descrição -->
+        <div>
+          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           focus:ring-2 focus:ring-blue-400 transition"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
 
-        <!-- Botão confirmar -->
+        <!-- Botão Confirmar -->
         <button type="submit"
-                class="sm:col-span-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2
-                       transition transform hover:scale-105 duration-200">
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
           Confirmar
         </button>
       </form>
