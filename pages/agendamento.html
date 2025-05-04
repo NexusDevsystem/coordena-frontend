@@ -19,6 +19,19 @@
     rel="stylesheet"
   />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <!-- Light / Dark Backgrounds -->
+  <style>
+    body {
+      background-image: url("../assets/img/background.png");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .dark body {
+      background-image: url("../assets/img/backgrounddark.png");
+    }
+  </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
@@ -92,7 +105,7 @@
                  required>
         </div>
 
-        <!-- Início / Término (coluna única em mobile) -->
+        <!-- Início / Término -->
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>

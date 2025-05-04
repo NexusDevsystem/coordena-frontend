@@ -14,6 +14,19 @@
 
   <!-- Estilos customizados -->
   <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- Background styling for light/dark -->
+  <style>
+    body {
+      background-image: url("assets/img/background.png");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .dark body {
+      background-image: url("assets/img/backgrounddark.png");
+    }
+  </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
@@ -85,10 +98,11 @@
 
   <!-- Toggle Dark/Light Logic -->
   <script>
-    const btn = document.getElementById('theme-toggle');
-    const root = document.documentElement;
-    const saved = localStorage.getItem('theme') || 'light';
+    const btn      = document.getElementById('theme-toggle');
+    const root     = document.documentElement;
+    const saved    = localStorage.getItem('theme') || 'light';
     root.classList.toggle('dark', saved === 'dark');
+
     btn.addEventListener('click', () => {
       const next = root.classList.contains('dark') ? 'light' : 'dark';
       root.classList.toggle('dark', next === 'dark');
