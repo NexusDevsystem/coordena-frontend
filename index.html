@@ -15,6 +15,9 @@
   <!-- Estilos customizados -->
   <link rel="stylesheet" href="assets/css/styles.css" />
 
+  <!-- Auth logic -->
+  <script src="assets/js/auth.js"></script>
+
   <!-- Background styling for light/dark -->
   <style>
     body {
@@ -30,9 +33,16 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
+  <script>
+    // Protege esta página: se não estiver logado, redireciona ao login
+    if (!Auth.getCurrentUser()) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
-          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
     <svg xmlns="http://www.w3.org/2000/svg"
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,11 +54,22 @@
     </svg>
   </button>
 
+  <!-- Logout -->
+  <button id="logout-btn"
+          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-50">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-6 w-6 text-white"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+    </svg>
+  </button>
+
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
       <!-- Aba Agendamento -->
-      <a href="/pages/agendamento.html"
+      <a href="pages/agendamento.html"
          class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -96,17 +117,21 @@
     Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
   </footer>
 
-  <!-- Toggle Dark/Light Logic -->
   <script>
-    const btn      = document.getElementById('theme-toggle');
-    const root     = document.documentElement;
+    // Dark/Light Toggle
+    const themeBtn = document.getElementById('theme-toggle');
+    const rootEl   = document.documentElement;
     const saved    = localStorage.getItem('theme') || 'light';
-    root.classList.toggle('dark', saved === 'dark');
+    if (saved === 'dark') rootEl.classList.add('dark');
+    themeBtn.addEventListener('click', () => {
+      rootEl.classList.toggle('dark');
+      localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
+    });
 
-    btn.addEventListener('click', () => {
-      const next = root.classList.contains('dark') ? 'light' : 'dark';
-      root.classList.toggle('dark', next === 'dark');
-      localStorage.setItem('theme', next);
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.logout();
+      window.location.href = 'login.html';
     });
   </script>
 </body>

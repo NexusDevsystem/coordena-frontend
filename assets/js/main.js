@@ -46,8 +46,18 @@ const Api = (() => {
     ? 'http://localhost:10000/api/reservas'
     : 'https://coordena-backend.onrender.com/api/reservas';
 
+  function authHeaders(isJson = false) {
+    const headers = {
+      'Authorization': `Bearer ${Auth.getToken() || ''}`
+    };
+    if (isJson) headers['Content-Type'] = 'application/json';
+    return headers;
+  }
+
   async function fetchEvents() {
-    const res = await fetch(BASE);
+    const res = await fetch(BASE, {
+      headers: authHeaders(false)
+    });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
@@ -55,7 +65,7 @@ const Api = (() => {
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(true),
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Falha ao criar reserva');
@@ -65,7 +75,7 @@ const Api = (() => {
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(true),
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Falha ao atualizar reserva');
@@ -73,7 +83,10 @@ const Api = (() => {
   }
 
   async function deleteEvent(id) {
-    const res = await fetch(`${BASE}/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${BASE}/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(false)
+    });
     if (!res.ok) throw new Error('Falha ao excluir reserva');
   }
 
@@ -129,16 +142,13 @@ const CalendarModule = (() => {
     });
   }
 
-  // recebe o objeto raw que a API retornou, incluindo _id, date, start, end...
   function add(ev) {
-    // registra no FullCalendar
     calendar.addEvent({
       id:    ev._id,
       title: `${ev.title} (${ev.time})`,
       start: `${ev.date}T${ev.start}`,
       end:   `${ev.date}T${ev.end}`
     });
-    // armazena para detalhe/edição
     events.push(ev);
   }
 

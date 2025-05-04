@@ -32,12 +32,22 @@
       background-image: url("../assets/img/backgrounddark.png");
     }
   </style>
+
+  <!-- Auth library -->
+  <script src="../assets/js/auth.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
+  <script>
+    // Redireciona para login se não autenticado
+    if (!Auth.getCurrentUser()) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
-          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
     <!-- ícone -->
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -48,8 +58,17 @@
     </svg>
   </button>
 
+  <!-- Logout -->
+  <button id="logout-btn"
+          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-50">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+    </svg>
+  </button>
+
   <!-- Quick Access -->
-  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-50">
+  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
     <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
       <!-- ícone casa -->
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,12 +103,12 @@
 
   <!-- Modal: Formulário de Agendamento -->
   <div id="form-modal"
-       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
     <div
       class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6"
     >
       <button id="form-close"
-              class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-10">
+              class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">
         ✕
       </button>
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
@@ -210,7 +229,7 @@
   </div>
 
   <!-- Modal de Detalhes (sem alterações) -->
-  <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
       <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
@@ -233,5 +252,12 @@
   </footer>
 
   <script src="../assets/js/main.js"></script>
+  <script>
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.logout();
+      window.location.href = 'login.html';
+    });
+  </script>
 </body>
 </html>
