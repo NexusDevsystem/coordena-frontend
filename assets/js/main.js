@@ -109,9 +109,9 @@ const CalendarModule = (() => {
         start: `${e.date}T${e.start}`,
         end:   `${e.date}T${e.end}`
       })),
-      dateClick: onDateClick,
+      dateClick:  onDateClick,
       eventClick: onEventClick,
-      height: containerHeight,
+      height:     containerHeight,
       allDaySlot: false
     });
 
@@ -174,6 +174,7 @@ const FormModule = (() => {
       type:          document.getElementById('tipo-evento'),
       resp:          document.getElementById('responsavel'),
       dept:          document.getElementById('departamento'),
+      curso:         document.getElementById('curso'),    // campo Matéria
       status:        document.getElementById('status'),
       desc:          document.getElementById('descricao')
     };
@@ -185,17 +186,28 @@ const FormModule = (() => {
     selectors.fields.salaContainer.classList.add('hidden');
 
     if (evData) {
-      selectors.fields.data.value    = evData.date;
-      selectors.fields.start.value   = evData.start;
-      selectors.fields.end.value     = evData.end;
-      selectors.fields.recurso.value = evData.resource;
-      selectors.fields.recurso.dispatchEvent(new Event('change'));
-      selectors.fields.sala.value    = evData.sala || '';
-      selectors.fields.type.value    = evData.type;
-      selectors.fields.resp.value    = evData.responsible;
-      selectors.fields.dept.value    = evData.department;
-      selectors.fields.status.value  = evData.status;
-      selectors.fields.desc.value    = evData.description;
+      const f = selectors.fields;
+      f.data.value    = evData.date;
+      f.start.value   = evData.start;
+      f.end.value     = evData.end;
+      f.recurso.value = evData.resource;
+      f.recurso.dispatchEvent(new Event('change'));
+      f.sala.value    = evData.sala || '';
+      f.type.value    = evData.type;
+      f.resp.value    = evData.responsible;
+
+      // separa department e curso a partir de evData.department
+      if (evData.department?.includes(' / ')) {
+        const [ dept, curso ] = evData.department.split(' / ');
+        f.dept.value  = dept;
+        f.curso.value = curso;
+      } else {
+        f.dept.value  = evData.department || '';
+        f.curso.value = '';
+      }
+
+      f.status.value = evData.status;
+      f.desc.value   = evData.description || '';
     }
 
     selectors.modal.classList.remove('hidden');
@@ -208,6 +220,9 @@ const FormModule = (() => {
   function handleSubmit(e) {
     e.preventDefault();
     const f = selectors.fields;
+    // combina Departamento e Matéria
+    const combined = `${f.dept.value.trim()} / ${f.curso.value.trim()}`;
+
     const payload = {
       date:        f.data.value,
       start:       f.start.value,
@@ -216,13 +231,13 @@ const FormModule = (() => {
       sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
       type:        f.type.value,
       responsible: f.resp.value,
-      department:  f.dept.value,
+      department:  combined,
       status:      f.status.value,
       description: f.desc.value,
       time:        `${f.start.value}-${f.end.value}`,
       title:       f.salaContainer.classList.contains('hidden')
-                    ? f.type.value
-                    : `${f.type.value} - ${f.sala.value}`
+                     ? f.type.value
+                     : `${f.type.value} - ${f.sala.value}`
     };
 
     (async () => {
@@ -304,7 +319,7 @@ const DetailModule = (() => {
     f.resource.textContent = `Recurso: ${ev.resource}`;
     f.type.textContent     = `Evento: ${ev.type}`;
     f.resp.textContent     = `Responsável: ${ev.responsible}`;
-    f.dept.textContent     = `Departamento: ${ev.department}`;
+    f.dept.textContent     = `Departamento / Matéria: ${ev.department}`;
     f.status.textContent   = `Status: ${ev.status}`;
     f.desc.textContent     = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
@@ -364,6 +379,7 @@ onReady(async () => {
       type:        '',
       responsible: '',
       department:  '',
+      curso:       '',
       status:      '',
       description: '',
       time:        ''
