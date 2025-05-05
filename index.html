@@ -37,7 +37,7 @@
   <script>
     // Protege esta página: se não estiver logado, redireciona ao login
     if (!Auth.getToken()) {
-      window.location.href = 'login.html';
+      window.location.href = '/login.html';
     }
   </script>
 
@@ -48,7 +48,10 @@
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 
+               m0 12.02l.7-.7M17.66 6.34l.7-.7 
+               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -59,7 +62,8 @@
          class="h-6 w-6 text-white"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 
+               01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
     </svg>
   </button>
 
@@ -74,8 +78,7 @@
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0
-                     002-2V11H3v8a2 2 0 002 2z" />
+                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
@@ -127,11 +130,10 @@
       localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout
+    // Logout: limpa token e redireciona sempre para /login.html
     document.getElementById('logout-btn').addEventListener('click', () => {
-      // remove token e redireciona
-      Auth.logout();
-      // (o próprio Auth.logout já faz window.location.href = 'login.html')
+      Auth.logout();              // já remove o token
+      window.location.href = '/login.html';
     });
   </script>
 </body>
