@@ -6,41 +6,38 @@
   <title>Agendamento de Recursos</title>
 
   <!-- Favicon -->
-  <link rel="icon" href="../assets/img/logo.png" type="image/png" />
+  <link rel="icon" href="assets/img/logo.png" type="image/png" />
 
   <!-- Tailwind + Dark Mode -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
-  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
 
-  <!-- FullCalendar CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
-    rel="stylesheet"
-  />
+  <!-- FullCalendar CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-  <!-- Light / Dark Backgrounds -->
+  <!-- Background styling -->
   <style>
     body {
-      background-image: url("../assets/img/background.png");
+      background-image: url("assets/img/background.png");
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
     }
     .dark body {
-      background-image: url("../assets/img/backgrounddark.png");
+      background-image: url("assets/img/backgrounddark.png");
     }
   </style>
 
   <!-- Auth library -->
-  <script src="../assets/js/auth.js"></script>
+  <script src="assets/js/auth.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <script>
-    // Redireciona para login se não autenticado
-    if (!Auth.getCurrentUser()) {
+    // Protege esta página: redireciona para login se não autenticado
+    if (!Auth.getToken()) {
       window.location.href = 'login.html';
     }
   </script>
@@ -48,8 +45,9 @@
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
           class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
-    <!-- ícone -->
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-6 w-6 text-gray-800 dark:text-gray-200"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
                m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
@@ -61,26 +59,33 @@
   <!-- Logout -->
   <button id="logout-btn"
           class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-50">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-6 w-6 text-white"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0
+               01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
     </svg>
   </button>
 
   <!-- Quick Access -->
   <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
-    <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
-      <!-- ícone casa -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="index.html"
+       class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-6 w-6 text-white"
+           fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
       </svg>
     </a>
     <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
-      <!-- ícone calendário -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-6 w-6 text-white"
+           fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
+                 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
       </svg>
     </button>
   </div>
@@ -104,9 +109,7 @@
   <!-- Modal: Formulário de Agendamento -->
   <div id="form-modal"
        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
-    <div
-      class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6"
-    >
+    <div class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6">
       <button id="form-close"
               class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">
         ✕
@@ -251,8 +254,56 @@
     Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
   </footer>
 
-  <script src="../assets/js/main.js"></script>
+  <script src="assets/js/main.js"></script>
   <script>
+    // Inicializa FullCalendar
+    document.addEventListener('DOMContentLoaded', function() {
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: fetch => {
+          fetch.start('/api/reservas', {
+            headers: {
+              'Authorization': 'Bearer ' + Auth.getToken()
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            const evs = data.map(r => ({
+              id: r._id,
+              title: r.title,
+              start: `${r.date}T${r.start}`,
+              end:   `${r.date}T${r.end}`
+            }));
+            fetch.success(evs);
+          });
+        }
+      });
+      calendar.render();
+    });
+
+    // Modal open/close
+    const formModal = document.getElementById('form-modal');
+    const openBtn   = document.getElementById('open-form-modal');
+    const closeBtn  = document.getElementById('form-close');
+    openBtn.addEventListener('click', () => formModal.classList.remove('hidden'));
+    closeBtn.addEventListener('click', () => formModal.classList.add('hidden'));
+
+    // Dark/Light Toggle
+    const themeBtn = document.getElementById('theme-toggle');
+    const rootEl   = document.documentElement;
+    const saved    = localStorage.getItem('theme') || 'light';
+    if (saved === 'dark') rootEl.classList.add('dark');
+    themeBtn.addEventListener('click', () => {
+      rootEl.classList.toggle('dark');
+      localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
+    });
+
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();

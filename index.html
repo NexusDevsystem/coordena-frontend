@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
 <head>
@@ -35,7 +36,7 @@
 
   <script>
     // Protege esta página: se não estiver logado, redireciona ao login
-    if (!Auth.getCurrentUser()) {
+    if (!Auth.getToken()) {
       window.location.href = 'login.html';
     }
   </script>
@@ -47,10 +48,7 @@
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-               m0 12.02l.7-.7M17.66 6.34l.7-.7
-               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -69,7 +67,7 @@
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
       <!-- Aba Agendamento -->
-      <a href="pages/agendamento.html"
+      <a href="agendamento.html"
          class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +129,6 @@
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();
-      window.location.href = 'login.html';
     });
   </script>
 </body>
