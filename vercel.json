@@ -1,9 +1,0 @@
-{
-    "cleanUrls": true,
-    "rewrites": [
-      { "source": "/login",    "destination": "/frontend/login.html"    },
-      { "source": "/register", "destination": "/frontend/register.html" },
-      { "source": "/",         "destination": "/pages/index.html"       }
-    ]
-  }
-  
