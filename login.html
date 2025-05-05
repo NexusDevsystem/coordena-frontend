@@ -13,7 +13,16 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: { extend: { colors: { primary: { DEFAULT: '#2563EB', light: '#60A5FA' } } } }
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2563EB',
+              light: '#60A5FA'
+            }
+          }
+        }
+      }
     }
   </script>
   <link rel="stylesheet" href="assets/css/styles.css" />
@@ -60,16 +69,23 @@
       </div>
 
       <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-        Não tem conta? <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
+        Não tem conta?
+        <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
       </p>
     </form>
   </div>
 
   <!-- Dark/Light Toggle -->
-  <button id="theme-toggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <button id="theme-toggle"
+          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-6 w-6 text-gray-800 dark:text-gray-200"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
+               m0 12.02l.7-.7M17.66 6.34l.7-.7
+               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -77,29 +93,29 @@
   <script src="assets/js/auth.js"></script>
   <script>
     // Tema dark/light
-    const btn2   = document.getElementById('theme-toggle');
-    const root2  = document.documentElement;
-    const saved2 = localStorage.getItem('theme') || 'light';
-    if (saved2 === 'dark') root2.classList.add('dark');
+    const btn2 = document.getElementById('theme-toggle')
+    const root2 = document.documentElement
+    const saved2 = localStorage.getItem('theme') || 'light'
+    if (saved2 === 'dark') root2.classList.add('dark')
     btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark');
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-    });
+      root2.classList.toggle('dark')
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light')
+    })
 
     // Login via Auth e redirect
     document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
+      e.preventDefault()
       try {
         await Auth.login(
           document.getElementById('email').value,
           document.getElementById('password').value
-        );
-        // redireciona para a página home dentro de pages/
-        window.location.href = 'pages/index.html';
+        )
+        // Redireciona para o dashboard (home) no root
+        window.location.href = 'index.html'
       } catch (err) {
-        alert(err.message);
+        alert(err.message)
       }
-    });
+    })
   </script>
 </body>
 </html>
