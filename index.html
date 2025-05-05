@@ -74,7 +74,8 @@
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z" />
+                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0
+                     002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
@@ -128,7 +129,9 @@
 
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
+      // remove token e redireciona
       Auth.logout();
+      // (o próprio Auth.logout já faz window.location.href = 'login.html')
     });
   </script>
 </body>
