@@ -11,6 +11,16 @@
   <!-- Tailwind + Dark Mode -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
+
+  <!-- Aplica imediatamente o tema salvo (evita flash) -->
+  <script>
+    const _theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.remove('light');
+    if (_theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
   <link rel="stylesheet" href="../assets/css/styles.css" />
 
   <!-- FullCalendar CSS & JS -->
@@ -211,8 +221,9 @@
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
-            <option value="Rejeitado">Rejeitado</option>
-          </select>
+            <option value="Rejeitado
+
+            </select>
         </div>
 
         <!-- Descrição -->
