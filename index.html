@@ -1,14 +1,22 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Coordena+</title>
 
   <!-- Tailwind + Dark Mode -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
+
+  <!-- Aplica imediatamente o tema salvo (evita flash) -->
+  <script>
+    const _theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.remove('light');
+    if (_theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" href="assets/img/logo.png" type="image/png" />
@@ -19,7 +27,7 @@
   <!-- Auth logic -->
   <script src="assets/js/auth.js"></script>
 
-  <!-- Background styling for light/dark -->
+  <!-- Background styling for light/dark + mobile scroll lock -->
   <style>
     body {
       background-image: url("assets/img/background.png");
@@ -30,6 +38,19 @@
     .dark body {
       background-image: url("assets/img/backgrounddark.png");
     }
+    /* bloqueia scroll somente em telas mobile */
+    @media (max-width: 768px) {
+      html, body {
+        height: 100vh;
+        overflow: hidden;
+      }
+    }
+    /* mantém scroll normal em desktop */
+    @media (min-width: 769px) {
+      body {
+        overflow-y: auto;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
@@ -37,7 +58,7 @@
   <script>
     // Protege esta página: se não estiver logado, redireciona ao login
     if (!Auth.getToken()) {
-      window.location.href = '/login.html';
+      window.location.href = 'login.html';
     }
   </script>
 
@@ -130,10 +151,10 @@
       localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout: limpa token e redireciona sempre para /login.html
+    // Logout: limpa token e redireciona sempre para login.html
     document.getElementById('logout-btn').addEventListener('click', () => {
-      Auth.logout();              // já remove o token
-      window.location.href = '/login.html';
+      Auth.logout();
+      window.location.href = 'login.html';
     });
   </script>
 </body>
