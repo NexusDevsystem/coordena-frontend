@@ -34,12 +34,14 @@
     <form id="login-form" class="space-y-4">
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail</label>
-        <input type="email" id="email" name="email" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <input type="email" id="email" name="email" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-        <input type="password" id="password" name="password" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <input type="password" id="password" name="password" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
       <div class="flex items-center justify-between text-sm">
@@ -51,7 +53,10 @@
       </div>
 
       <div>
-        <button type="submit" class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">Entrar</button>
+        <button type="submit"
+                class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">
+          Entrar
+        </button>
       </div>
 
       <p class="text-center text-sm text-gray-600 dark:text-gray-400">
@@ -63,7 +68,8 @@
   <!-- Dark/Light Toggle -->
   <button id="theme-toggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -71,29 +77,29 @@
   <script src="assets/js/auth.js"></script>
   <script>
     // Tema dark/light
-    const btn2 = document.getElementById('theme-toggle')
-    const root2 = document.documentElement
-    const saved2 = localStorage.getItem('theme') || 'light'
-    if (saved2 === 'dark') root2.classList.add('dark')
+    const btn2   = document.getElementById('theme-toggle');
+    const root2  = document.documentElement;
+    const saved2 = localStorage.getItem('theme') || 'light';
+    if (saved2 === 'dark') root2.classList.add('dark');
     btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark')
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light')
-    })
+      root2.classList.toggle('dark');
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+    });
 
     // Login via Auth e redirect
     document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault()
+      e.preventDefault();
       try {
         await Auth.login(
           document.getElementById('email').value,
           document.getElementById('password').value
-        )
-       window.location.href = 'index.html'
-       window.location.href = 'pages/index.html'
+        );
+        // redireciona para a página home dentro de pages/
+        window.location.href = 'pages/index.html';
       } catch (err) {
-        alert(err.message)
+        alert(err.message);
       }
-    })
+    });
   </script>
 </body>
 </html>
