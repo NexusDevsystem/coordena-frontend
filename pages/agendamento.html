@@ -75,11 +75,11 @@
     // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
-        const openBtn = document.getElementById('open-form-modal');
-        if (openBtn) openBtn.style.display = 'none';
-        const editBtn = document.getElementById('modal-edit');
-        if (editBtn) editBtn.style.display = 'none';
+        const openBtn   = document.getElementById('open-form-modal');
+        const editBtn   = document.getElementById('modal-edit');
         const cancelBtn = document.getElementById('modal-cancel');
+        if (openBtn)   openBtn.style.display   = 'none';
+        if (editBtn)   editBtn.style.display   = 'none';
         if (cancelBtn) cancelBtn.style.display = 'none';
       });
     }
@@ -169,7 +169,6 @@
                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
         </div>
-
         <!-- Início / Término -->
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -185,7 +184,6 @@
                    min="07:00" max="22:00" step="60" required>
           </div>
         </div>
-
         <!-- Recurso / Tipo de Evento -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -212,16 +210,14 @@
             </select>
           </div>
         </div>
-
         <!-- Sala (condicional) -->
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"> 
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
-
         <!-- Responsável -->
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
@@ -229,7 +225,6 @@
                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
-
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -245,7 +240,6 @@
                    placeholder="Ex: História" required>
           </div>
         </div>
-
         <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
@@ -257,14 +251,12 @@
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
-
         <!-- Descrição -->
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
                     class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
-
         <!-- Botão Confirmar -->
         <button type="submit"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
@@ -291,7 +283,7 @@
         <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
       </div>
     </div>
-  </div>  
+  </div>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
     Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
@@ -311,9 +303,7 @@
         },
         events: function(fetchInfo, successCallback, failureCallback) {
           fetch('/api/reservas', {
-            headers: {
-              'Authorization': 'Bearer ' + Auth.getToken()
-            }
+            headers: { 'Authorization': 'Bearer ' + Auth.getToken() }
           })
           .then(res => res.json())
           .then(data => {
@@ -337,11 +327,9 @@
     document.getElementById('form-close').addEventListener('click', () => formModal.classList.add('hidden'));
 
     // Dark/Light Toggle
-    const themeBtn = document.getElementById('theme-toggle');
-    const rootEl   = document.documentElement;
-    themeBtn.addEventListener('click', () => {
-      rootEl.classList.toggle('dark');
-      localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
     // Logout

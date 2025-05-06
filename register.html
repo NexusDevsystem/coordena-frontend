@@ -4,11 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cadastro – Coordena+</title>
-
-  <!-- Favicon -->
-  <link rel="icon" href="assets/img/logo.png" type="image/png" />
-
-  <!-- Tailwind + Dark Mode + extended primary gradient -->
+  <link rel="icon" href="../assets/img/logo.png" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -16,78 +12,82 @@
       theme: { extend: { colors: { primary: { DEFAULT: '#2563EB', light: '#60A5FA' } } } }
     }
   </script>
-  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script>
+    const _theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.remove('light');
+    if (_theme === 'dark') document.documentElement.classList.add('dark');
+  </script>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
-
-  <!-- Background -->
-  <div class="absolute inset-0 bg-[url('assets/img/background.png')] dark:bg-[url('assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"></div>
-
-  <!-- Card -->
   <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
-    <!-- Logo -->
     <div class="flex justify-center">
-      <img src="assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
+      <img src="../assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
     </div>
     <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Crie sua conta no Coordena+</h2>
 
     <form id="register-form" class="space-y-4">
       <div>
         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
-        <input type="text" id="name" name="name" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <input type="text" id="name" name="name" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
+
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E‑mail</label>
-        <input type="email" id="email" name="email" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail</label>
+        <input type="email" id="email" name="email" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
+
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-        <input type="password" id="password" name="password" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <input type="password" id="password" name="password" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
+
       <div>
-        <label for="confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar Senha</label>
-        <input type="password" id="confirm-password" name="confirm-password" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar Senha</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
+
       <div>
-        <button type="submit" class="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary hover:to-primary text-white font-medium rounded-md py-2 transform hover:scale-105 transition">Registrar</button>
+        <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Usuário</label>
+        <select id="role" name="role" required
+                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition">
+          <option value="student">Aluno</option>
+          <option value="professor">Professor</option>
+        </select>
       </div>
-      <p class="text-center text-sm text-gray-600 dark:text-gray-400">Já tem conta? <a href="login.html" class="text-primary hover:underline">Entre aqui</a></p>
+
+      <div>
+        <button type="submit"
+                class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">
+          Registrar
+        </button>
+      </div>
+
+      <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+        Já tem conta? <a href="login.html" class="text-primary hover:underline">Entre aqui</a>
+      </p>
     </form>
   </div>
 
-  <!-- Dark/Light Toggle -->
-  <button id="theme-toggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
-
-  <!-- Scripts -->
-  <script src="assets/js/auth.js"></script>
   <script>
-    // Tema dark/light
-    const btn = document.getElementById('theme-toggle')
-    const root = document.documentElement
-    const saved = localStorage.getItem('theme') || 'light'
-    if (saved === 'dark') root.classList.add('dark')
-    btn.addEventListener('click', () => {
-      root.classList.toggle('dark')
-      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light')
-    })
-
-    // Registro via Auth e redirect
     document.getElementById('register-form').addEventListener('submit', async e => {
       e.preventDefault()
-      const pwd  = document.getElementById('password').value
-      const cpwd = document.getElementById('confirm-password').value
-      if (pwd !== cpwd) return alert('As senhas não coincidem.')
+      const name  = document.getElementById('name').value
+      const email = document.getElementById('email').value
+      const pass  = document.getElementById('password').value
+      const confirm = document.getElementById('confirmPassword').value
+      const role  = document.getElementById('role').value
+
+      if (pass !== confirm) {
+        return alert('As senhas não coincidem')
+      }
+
       try {
-        await Auth.register({
-          name:     document.getElementById('name').value,
-          email:    document.getElementById('email').value,
-          password: pwd
-        })
-        window.location.href = 'login.html'
+        await Auth.register({ name, email, password: pass, role })
       } catch (err) {
         alert(err.message)
       }
