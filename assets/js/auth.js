@@ -14,24 +14,23 @@ const Auth = (() => {
   async function login(email, password) {
     const res = await fetch(`${API}/login`, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) throw new Error('Credenciais inválidas');
 
-    // agora o back já devolve { _id,name,email,role,token }
-    const user = await res.json();
+    const user = await res.json(); // { _id, name, email, role, token }
     saveToken(user.token);
     localStorage.setItem('user', JSON.stringify(user));
-    // login OK → redireciona para a home (index)
-    window.location.assign('/');
+    // login OK → redireciona para a home (index.html)
+    window.location.assign('/index.html');
     return user.token;
   }
 
   async function register(data) {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
     if (!res.ok) {
@@ -39,19 +38,18 @@ const Auth = (() => {
       throw new Error(err.message || 'Erro no cadastro');
     }
 
-    // também recebe { _id,name,email,role,token }
-    const user = await res.json();
+    const user = await res.json(); // { _id, name, email, role, token }
     saveToken(user.token);
     localStorage.setItem('user', JSON.stringify(user));
-    // registro OK → redireciona para o login
-    window.location.assign('/login');
+    // registro OK → redireciona para o login.html (não /login)
+    window.location.assign('/login.html');
     return user.token;
   }
 
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.assign('/login');
+    window.location.assign('/login.html');
   }
 
   function getCurrentUser() {
