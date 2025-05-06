@@ -125,16 +125,17 @@ const CalendarModule = (() => {
     calendar.render();
 
     // ——— Controle de UI por papel ———
+    // somente PROFESSOR vê criação/edição
     const user = Auth.getCurrentUser();
     const role = user?.role?.toString().toLowerCase();
-    if (role === 'aluno' || role === 'student') {
-      // esconde botão de criar
+    if (role !== 'professor') {
+      // esconde o botão de "Novo Agendamento"
       document.getElementById('open-form-modal')?.style.setProperty('display','none');
-      // desabilita seleção direta no calendário
-      calendar.setOption('selectable', false);
-      // esconde botões de editar/cancelar no modal de detalhes
+      // esconde botões "Editar" e "Cancelar" no modal de detalhes
       document.getElementById('modal-edit')?.style.setProperty('display','none');
       document.getElementById('modal-cancel')?.style.setProperty('display','none');
+      // opcionalmente você pode desabilitar seleção direta no calendário
+      calendar.setOption('selectable', false);
     }
 
     window.addEventListener('resize', () => {
