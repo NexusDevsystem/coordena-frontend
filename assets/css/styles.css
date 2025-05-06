@@ -47,3 +47,30 @@
   color: #d1d5db;
   border-color: #374151;
 }
+
+/* ===== Ajustes para inputs, selects e textareas no modal de agendamento em dark mode ===== */
+#form-modal input,
+#form-modal select,
+#form-modal textarea {
+  background-color: #1f2937; /* gray-800 */
+  color: #f3f4f6;            /* gray-100 */
+  border-color: #374151;     /* gray-700 */
+}
+
+#form-modal input::placeholder,
+#form-modal textarea::placeholder {
+  color: #9ca3af; /* gray-400 */
+}
+
+#form-modal input:focus,
+#form-modal select:focus,
+#form-modal textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* azul claro */
+}
+
+/* Garante que as opções do select também apareçam corretamente em dark */
+#form-modal select option {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
