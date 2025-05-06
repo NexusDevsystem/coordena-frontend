@@ -185,7 +185,6 @@
                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
         </div>
-
         <!-- Início / Término -->
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -201,7 +200,6 @@
                    min="07:00" max="22:00" step="60" required>
           </div>
         </div>
-
         <!-- Recurso / Tipo de Evento -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -228,7 +226,6 @@
             </select>
           </div>
         </div>
-
         <!-- Sala (condicional) -->
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
@@ -237,53 +234,48 @@
             <option value="">Selecione...</option>
           </select>
         </div>
-
         <!-- Responsável -->
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
-
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
+            <label for="departamento" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: Engenharia" required>
           </div>
           <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
+            <label for="curso" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg_gray-700 text_gray-900 dark:text_gray-100 focus:ring-2 focus:ring_blue-400"
                    placeholder="Ex: História" required>
           </div>
         </div>
-
         <!-- Status -->
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <label for="status" class="block text-sm	font-medium text_gray-700 dark:text_gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full	mt-1 px-3 py-2	border rounded-md bg-white dark:bg_gray-700 text_gray-900 dark:text_gray-100 focus:ring-2 focus:ring_blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
-
         <!-- Descrição -->
         <div>
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <label for="descricao" class="block text-sm	font-medium text_gray-700 dark:text_gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg_gray-700 text_gray-900 dark:text_gray-100 focus:ring-2 focus:ring_blue-400"></textarea>
         </div>
-
         <!-- Botão Confirmar -->
         <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2	mt-2 transform hover:scale-105 transition">
           Confirmar
         </button>
       </form>
@@ -307,7 +299,7 @@
         <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
       </div>
     </div>
-  </div>  
+  </div>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
     Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
@@ -315,12 +307,17 @@
 
   <script src="../assets/js/main.js"></script>
   <script>
-    // Preenche o nome do usuário na saudação
+    // Após carregar a página, preenche nome e reativa logout
     document.addEventListener('DOMContentLoaded', () => {
       const u = Auth.getCurrentUser();
       if (u?.name) {
         document.getElementById('user-name').textContent = u.name;
       }
+      // Garante que o botão de logout funcione
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        Auth.logout();
+        window.location.href = '../login.html';
+      });
     });
   </script>
 </body>
