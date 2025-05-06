@@ -70,8 +70,16 @@
   </script>
 
   <!-- Saudação com nome do usuário -->
-  <div id="user-info" class="fixed top-4 left-4 text-gray-800 dark:text-gray-200 z-50">
-    Olá, <span id="user-name">—</span>!
+  <div id="user-info"
+       class="fixed top-4 left-4 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
+    <!-- ícone de usuário -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="text-gray-800 dark:text-gray-200 font-medium">Olá, <span id="user-name">—</span>!</span>
   </div>
 
   <!-- Toggle Dark/Light -->
