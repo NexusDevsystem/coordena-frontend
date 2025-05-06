@@ -69,6 +69,11 @@
     }
   </script>
 
+  <!-- Saudação com nome do usuário -->
+  <div id="user-info" class="fixed top-4 left-4 text-gray-800 dark:text-gray-200 z-50">
+    Olá, <span id="user-name">—</span>!
+  </div>
+
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
           class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
@@ -162,6 +167,14 @@
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
+    });
+
+    // Exibe nome do usuário logado
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = Auth.getCurrentUser();
+      if (user?.name) {
+        document.getElementById('user-name').textContent = user.name;
+      }
     });
   </script>
 </body>

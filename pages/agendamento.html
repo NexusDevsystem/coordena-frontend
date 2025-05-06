@@ -85,6 +85,11 @@
     }
   </script>
 
+  <!-- Saudação com nome do usuário -->
+  <div id="user-info" class="fixed top-4 left-4 text-gray-800 dark:text-gray-200 z-50">
+    Olá, <span id="user-name">—</span>!
+  </div>
+
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
           class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
@@ -169,6 +174,7 @@
                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
         </div>
+
         <!-- Início / Término -->
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -184,6 +190,7 @@
                    min="07:00" max="22:00" step="60" required>
           </div>
         </div>
+
         <!-- Recurso / Tipo de Evento -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -210,6 +217,7 @@
             </select>
           </div>
         </div>
+
         <!-- Sala (condicional) -->
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
@@ -218,48 +226,53 @@
             <option value="">Selecione...</option>
           </select>
         </div>
+
         <!-- Responsável -->
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
+
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
+            <label for="departamento" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full	mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: Engenharia" required>
           </div>
           <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
+            <label for="curso" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full	mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: História" required>
           </div>
         </div>
+
         <!-- Status -->
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <label for="status" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
+
         <!-- Descrição -->
         <div>
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <label for="descricao" class="block text-sm	font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full	mt-1 px-3 py-2	border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
+
         <!-- Botão Confirmar -->
         <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
+                class="w-full	bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2	mt-2 transform hover:scale-105 transition">
           Confirmar
         </button>
       </form>
@@ -267,9 +280,9 @@
   </div>
 
   <!-- Modal de Detalhes -->
-  <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
+  <div id="event-modal" class="fixed inset-0	bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
-      <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
+      <button id="modal-close" class="absolute top-3	right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
       <p id="modal-date"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
       <p id="modal-resource" class="mb-1 text-gray-700 dark:text-gray-300"></p>
@@ -279,8 +292,8 @@
       <p id="modal-status"   class="mb-1 text-gray-700 dark:text-gray-300"></p>
       <p id="modal-desc"     class="mb-4 text-gray-700 dark:text-gray-300"></p>
       <div class="flex justify-end space-x-4">
-        <button id="modal-edit"   class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
-        <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
+        <button id="modal-edit"   class="px-4 py-2	bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
+        <button id="modal-cancel" class="px-4 py-2	bg-red-500 hover:bg-red-600	text-white rounded">Cancelar reserva</button>
       </div>
     </div>
   </div>
@@ -291,6 +304,9 @@
 
   <script src="../assets/js/main.js"></script>
   <script>
+    // Preenche o nome do usuário na saudação
+    document.getElementById('user-name').textContent = user.name;
+
     // Inicializa FullCalendar
     document.addEventListener('DOMContentLoaded', function() {
       const calendarEl = document.getElementById('calendar');
