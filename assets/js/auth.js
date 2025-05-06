@@ -14,22 +14,24 @@ const Auth = (() => {
   async function login(email, password) {
     const res = await fetch(`${API}/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) throw new Error('Credenciais inválidas');
 
-    const { token } = await res.json();
-    saveToken(token);
-    // login OK → redireciona para a home (index.html via /)
+    // agora o back já devolve { _id,name,email,role,token }
+    const user = await res.json();
+    saveToken(user.token);
+    localStorage.setItem('user', JSON.stringify(user));
+    // login OK → redireciona para a home (index)
     window.location.assign('/');
-    return token;
+    return user.token;
   }
 
   async function register(data) {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(data)
     });
     if (!res.ok) {
@@ -37,24 +39,26 @@ const Auth = (() => {
       throw new Error(err.message || 'Erro no cadastro');
     }
 
-    const { token } = await res.json();
-    saveToken(token);
-    // registro OK → redireciona para a página de login
-    window.location.assign('/login.html');
-    return token;
+    // também recebe { _id,name,email,role,token }
+    const user = await res.json();
+    saveToken(user.token);
+    localStorage.setItem('user', JSON.stringify(user));
+    // registro OK → redireciona para o login
+    window.location.assign('/login');
+    return user.token;
   }
 
   function logout() {
     localStorage.removeItem('token');
-    window.location.assign('/login.html');
+    localStorage.removeItem('user');
+    window.location.assign('/login');
   }
 
   function getCurrentUser() {
-    const t = getToken();
-    if (!t) return null;
+    const str = localStorage.getItem('user');
+    if (!str) return null;
     try {
-      const [, payload] = t.split('.');
-      return JSON.parse(atob(payload));
+      return JSON.parse(str);
     } catch {
       return null;
     }

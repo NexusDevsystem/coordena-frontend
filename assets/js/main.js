@@ -46,7 +46,9 @@ const Api = (() => {
     : 'https://coordena-backend.onrender.com/api/reservas';
 
   function authHeaders(isJson = false) {
-    const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
+    const headers = {
+      'Authorization': `Bearer ${Auth.getToken() || ''}`
+    };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
   }
@@ -100,6 +102,7 @@ const CalendarModule = (() => {
     const el = document.getElementById('calendar');
     if (!el) return console.error('#calendar não encontrado');
 
+    const containerHeight = el.clientHeight;
     const isMobile = window.innerWidth < 640;
 
     calendar = new FullCalendar.Calendar(el, {
@@ -118,29 +121,16 @@ const CalendarModule = (() => {
       })),
       dateClick: onDateClick,
       eventClick: onEventClick,
-      height: el.clientHeight,
+      height: containerHeight,
       allDaySlot: false
     });
 
     calendar.render();
 
-    // ——— Controle de UI por papel ———
-    // somente PROFESSOR vê criação/edição
-    const user = Auth.getCurrentUser();
-    const role = user?.role?.toString().toLowerCase();
-    if (role !== 'professor') {
-      // esconde o botão de "Novo Agendamento"
-      document.getElementById('open-form-modal')?.style.setProperty('display','none');
-      // esconde botões "Editar" e "Cancelar" no modal de detalhes
-      document.getElementById('modal-edit')?.style.setProperty('display','none');
-      document.getElementById('modal-cancel')?.style.setProperty('display','none');
-      // opcionalmente você pode desabilitar seleção direta no calendário
-      calendar.setOption('selectable', false);
-    }
-
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
+      const newView = nowMobile ? 'listWeek' : 'dayGridMonth';
+      calendar.changeView(newView);
       calendar.setOption('headerToolbar', {
         left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
@@ -366,6 +356,9 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
+  // → pega o usuário que foi salvo no login/register
+  const currentUser = Auth.getCurrentUser();
+
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -393,4 +386,12 @@ onReady(async () => {
       if (ev) DetailModule.open(ev);
     }
   );
+
+  // ——— controle de UI por papel ———
+  const role = currentUser?.role?.toLowerCase();
+  if (role !== 'professor') {
+    document.getElementById('open-form-modal')?.style.setProperty('display','none');
+    document.getElementById('modal-edit')?.style.setProperty('display','none');
+    document.getElementById('modal-cancel')?.style.setProperty('display','none');
+  }
 });
