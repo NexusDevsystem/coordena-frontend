@@ -1,3 +1,4 @@
+// assets/js/auth.js
 const Auth = (() => {
   const API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/auth'
@@ -13,12 +14,14 @@ const Auth = (() => {
   async function login(email, password) {
     const res = await fetch(`${API}/login`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) throw new Error('Credenciais inválidas');
+
     const { token } = await res.json();
     saveToken(token);
+    // login OK → redireciona para a home (index.html via /)
     window.location.assign('/');
     return token;
   }
@@ -26,22 +29,24 @@ const Auth = (() => {
   async function register(data) {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(data)    // agora inclui name, email, password e role
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.message || 'Erro no cadastro');
     }
+
     const { token } = await res.json();
     saveToken(token);
-    window.location.assign('/login');
+    // registro OK → redireciona para a página de login
+    window.location.assign('/login.html');
     return token;
   }
 
   function logout() {
     localStorage.removeItem('token');
-    window.location.assign('/login');
+    window.location.assign('/login.html');
   }
 
   function getCurrentUser() {
