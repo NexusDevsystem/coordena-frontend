@@ -389,7 +389,8 @@ onReady(async () => {
 
   // ——— controle de UI por papel ———
   const role = currentUser?.role?.toLowerCase();
-  if (role !== 'professor') {
+  // ** agora escondemos apenas se for ALUNO **
+  if (role === 'student') {
     document.getElementById('open-form-modal')?.style.setProperty('display','none');
     document.getElementById('modal-edit')?.style.setProperty('display','none');
     document.getElementById('modal-cancel')?.style.setProperty('display','none');
