@@ -57,8 +57,15 @@
 
   <script>
     // Protege esta página: se não estiver logado, redireciona ao login
-    if (!Auth.getToken()) {
+    const user = Auth.getCurrentUser();
+    if (!user) {
       window.location.href = 'login.html';
+    }
+    // Se for aluno, desabilita acesso ao agendamento
+    if (user.role === 'student') {
+      const agLink = document.querySelector('a[href="pages/agendamento.html"]');
+      agLink.classList.add('opacity-50', 'cursor-not-allowed');
+      agLink.href = '#';
     }
   </script>
 

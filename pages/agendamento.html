@@ -68,8 +68,20 @@
 
   <script>
     // Protege esta página: redireciona para login se não autenticado
-    if (!Auth.getToken()) {
+    const user = Auth.getCurrentUser();
+    if (!user) {
       window.location.href = '../login.html';
+    }
+    // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
+    if (user.role === 'student') {
+      document.addEventListener('DOMContentLoaded', () => {
+        const openBtn = document.getElementById('open-form-modal');
+        if (openBtn) openBtn.style.display = 'none';
+        const editBtn = document.getElementById('modal-edit');
+        if (editBtn) editBtn.style.display = 'none';
+        const cancelBtn = document.getElementById('modal-cancel');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+      });
     }
   </script>
 
