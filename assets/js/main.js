@@ -130,6 +130,18 @@ const CalendarModule = (() => {
 
     calendar.render();
 
+    // ===== Controle da UI por papel (role) =====
+    const user = Auth.getCurrentUser();
+    if (user?.role === 'student') {
+      // Esconde botão "Novo Agendamento"
+      document.getElementById('open-form-modal')?.style.setProperty('display','none');
+      // Desabilita seleção direta no calendário
+      calendar.setOption('selectable', false);
+      // Esconde botões de editar e cancelar no modal de detalhes
+      document.getElementById('modal-edit')?.style.setProperty('display','none');
+      document.getElementById('modal-cancel')?.style.setProperty('display','none');
+    }
+
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       const newView = nowMobile ? 'listWeek' : 'dayGridMonth';
