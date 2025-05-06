@@ -41,23 +41,18 @@ const ThemeToggle = (() => {
 // MÓDULO DE API
 // ----------------------
 const Api = (() => {
-  // usa localhost em dev e o domínio público no Render em prod
   const BASE = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/reservas'
     : 'https://coordena-backend.onrender.com/api/reservas';
 
   function authHeaders(isJson = false) {
-    const headers = {
-      'Authorization': `Bearer ${Auth.getToken() || ''}`
-    };
+    const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
   }
 
   async function fetchEvents() {
-    const res = await fetch(BASE, {
-      headers: authHeaders(false)
-    });
+    const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
@@ -105,7 +100,6 @@ const CalendarModule = (() => {
     const el = document.getElementById('calendar');
     if (!el) return console.error('#calendar não encontrado');
 
-    const containerHeight = el.clientHeight;
     const isMobile = window.innerWidth < 640;
 
     calendar = new FullCalendar.Calendar(el, {
@@ -124,28 +118,28 @@ const CalendarModule = (() => {
       })),
       dateClick: onDateClick,
       eventClick: onEventClick,
-      height: containerHeight,
+      height: el.clientHeight,
       allDaySlot: false
     });
 
     calendar.render();
 
-    // ===== Controle da UI por papel (role) =====
+    // ——— Controle de UI por papel ———
     const user = Auth.getCurrentUser();
-    if (user?.role === 'student') {
-      // Esconde botão "Novo Agendamento"
+    const role = user?.role?.toString().toLowerCase();
+    if (role === 'aluno' || role === 'student') {
+      // esconde botão de criar
       document.getElementById('open-form-modal')?.style.setProperty('display','none');
-      // Desabilita seleção direta no calendário
+      // desabilita seleção direta no calendário
       calendar.setOption('selectable', false);
-      // Esconde botões de editar e cancelar no modal de detalhes
+      // esconde botões de editar/cancelar no modal de detalhes
       document.getElementById('modal-edit')?.style.setProperty('display','none');
       document.getElementById('modal-cancel')?.style.setProperty('display','none');
     }
 
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
-      const newView = nowMobile ? 'listWeek' : 'dayGridMonth';
-      calendar.changeView(newView);
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
       calendar.setOption('headerToolbar', {
         left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
