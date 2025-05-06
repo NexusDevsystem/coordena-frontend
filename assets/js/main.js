@@ -12,7 +12,7 @@ function onReady(fn) {
 }
 
 // ----------------------
-// MÓDULO DE TEMA (Dark/Light) COM OVERLAY
+// MÓDULO DE TEMA (Dark/Light)
 // ----------------------
 const ThemeToggle = (() => {
   const themeKey = 'theme';
@@ -24,39 +24,14 @@ const ThemeToggle = (() => {
   }
 
   function init() {
-    // aplica tema salvo
     const saved = localStorage.getItem(themeKey) || 'light';
     applyTheme(saved);
-
     const btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-
-    btn.addEventListener('click', () => {
-      // define qual será o próximo tema
-      const nextTheme = root.classList.contains('dark') ? 'light' : 'dark';
-
-      // escolhe cor do overlay com base no tema alvo
-      const overlayColor = nextTheme === 'dark' ? '#111827' /* gray-900 */ : '#ffffff';
-
-      // injeta variável CSS para a cor do overlay
-      root.style.setProperty('--overlay-color', overlayColor);
-
-      // cria o elemento de overlay
-      const overlay = document.createElement('div');
-      overlay.classList.add('theme-overlay');
-      document.body.appendChild(overlay);
-
-      // aguarda um tiquinho antes de trocar o tema
-      setTimeout(() => {
-        applyTheme(nextTheme);
-      }, 50);
-
-      // remove overlay após a animação
-      const duration = parseFloat(getComputedStyle(root).getPropertyValue('--overlay-duration')) * 1000;
-      setTimeout(() => {
-        overlay.remove();
-      }, duration + 50);
-    });
+    if (btn) {
+      btn.addEventListener('click', () => {
+        applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
+      });
+    }
   }
 
   return { init };
