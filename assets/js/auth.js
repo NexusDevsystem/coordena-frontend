@@ -1,4 +1,5 @@
 // assets/js/auth.js
+
 const Auth = (() => {
   const API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/auth'
@@ -7,6 +8,7 @@ const Auth = (() => {
   function saveToken(token) {
     localStorage.setItem('token', token);
   }
+
   function getToken() {
     return localStorage.getItem('token');
   }
@@ -17,33 +19,34 @@ const Auth = (() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!res.ok) throw new Error('Credenciais inválidas');
 
-    const user = await res.json(); // { _id, name, email, role, token }
-    saveToken(user.token);
-    localStorage.setItem('user', JSON.stringify(user));
-    // login OK → redireciona para a home (index.html)
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Credenciais inválidas');
+    }
+
+    saveToken(data.token);
+    localStorage.setItem('user', JSON.stringify(data));
     window.location.assign('/index.html');
-    return user.token;
+    return data.token;
   }
 
-  async function register(data) {
+  async function register({ name, email, password, role }) {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ name, email, password, role })
     });
+
+    const response = await res.json();
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Erro no cadastro');
+      throw new Error(response.error || 'Erro no cadastro');
     }
 
-    const user = await res.json(); // { _id, name, email, role, token }
-    saveToken(user.token);
-    localStorage.setItem('user', JSON.stringify(user));
-    // registro OK → redireciona para o login.html (não /login)
+    saveToken(response.token);
+    localStorage.setItem('user', JSON.stringify(response));
     window.location.assign('/login.html');
-    return user.token;
+    return response.token;
   }
 
   function logout() {
@@ -64,4 +67,5 @@ const Auth = (() => {
 
   return { login, register, logout, getCurrentUser, getToken };
 })();
+
 window.Auth = Auth;
