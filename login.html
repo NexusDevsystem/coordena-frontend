@@ -1,104 +1,125 @@
-// src/routes/auth.js
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Coordena+</title>
 
-import { Router } from 'express';
-import User        from '../models/User.js';
-import jwt         from 'jsonwebtoken';
-import bcrypt      from 'bcryptjs';
+  <!-- Favicon -->
+  <link rel="icon" href="assets/img/logo.png" type="image/png" />
 
-const router = Router();
-
-// Regex institucional Estácio
-const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
-
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
-  try {
-    let { name, email, password, role } = req.body;
-    email = email.trim().toLowerCase();
-
-    // Validação de domínio
-    if (!estacioRegex.test(email)) {
-      return res.status(400).json({
-        error: 'E-mail inválido. Use @alunos.estacio.br ou @professor.estacio.br.'
-      });
+  <!-- Tailwind + Dark Mode + extended primary gradient -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#2563EB', light: '#60A5FA' }
+          }
+        }
+      }
     }
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
 
-    // Verifica existência de usuário
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: 'Usuário já registrado.' });
-    }
+  <!-- Background -->
+  <div class="absolute inset-0 bg-[url('assets/img/background.png')] dark:bg-[url('assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"></div>
 
-    // Hash da senha
-    const salt   = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
+  <!-- Card -->
+  <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
+    <div class="flex justify-center">
+      <img src="assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
+    </div>
+    <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Entrar no Coordena+</h2>
 
-    // Cria usuário
-    const user = await User.create({
-      name,
-      email,
-      password: hashed,
-      role
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail</label>
+        <input type="email" id="email" name="email" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"
+               placeholder="usuário@alunos.estacio.br ou @professor.estacio.br" />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+        <input type="password" id="password" name="password" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+      </div>
+
+      <div class="flex items-center justify-between text-sm">
+        <label class="inline-flex items-center text-gray-700 dark:text-gray-300">
+          <input type="checkbox" class="form-checkbox h-4 w-4 text-primary transition" />
+          <span class="ml-2">Lembrar-me</span>
+        </label>
+        <a href="#" class="text-primary hover:underline">Esqueceu a senha?</a>
+      </div>
+
+      <div>
+        <button type="submit"
+                class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">
+          Entrar
+        </button>
+      </div>
+
+      <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+        Não tem conta?
+        <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- Dark/Light Toggle -->
+  <button id="theme-toggle"
+          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-6 w-6 text-gray-800 dark:text-gray-200"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
+               m0 12.02l.7-.7M17.66 6.34l.7-.7
+               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+    </svg>
+  </button>
+
+  <!-- Scripts -->
+  <script src="assets/js/auth.js"></script>
+  <script>
+    // Tema dark/light
+    const btn2 = document.getElementById('theme-toggle');
+    const root2 = document.documentElement;
+    const saved2 = localStorage.getItem('theme') || 'light';
+    if (saved2 === 'dark') root2.classList.add('dark');
+    btn2.addEventListener('click', () => {
+      root2.classList.toggle('dark');
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Gera JWT
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '8h' }
-    );
+    // Login via Auth e validação de e-mail institucional
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
 
-    return res.status(201).json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      },
-      token
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
+      if (!estacioRegex.test(email)) {
+        return alert(
+          'Use um e-mail institucional válido:\n' +
+          '- Aluno: @alunos.estacio.br\n' +
+          '- Professor: @professor.estacio.br'
+        );
+      }
+
+      try {
+        await Auth.login(email, document.getElementById('password').value);
+        window.location.href = 'index.html';
+      } catch (err) {
+        alert(err.message);
+      }
     });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Erro ao registrar usuário.' });
-  }
-});
-
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
-  try {
-    const email    = req.body.email.trim().toLowerCase();
-    const password = req.body.password;
-
-    // Validação de domínio
-    if (!estacioRegex.test(email)) {
-      return res.status(400).json({
-        error: 'E-mail inválido. Use @alunos.estacio.br ou @professor.estacio.br.'
-      });
-    }
-
-    // Busca usuário
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
-
-    // Compara senha
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Senha incorreta.' });
-    }
-
-    // Gera token e retorna
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '8h' }
-    );
-    return res.json({ token });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Erro no login.' });
-  }
-});
-
-export default router;
+  </script>
+</body>
+</html>
