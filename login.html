@@ -16,10 +16,7 @@
       theme: {
         extend: {
           colors: {
-            primary: {
-              DEFAULT: '#2563EB',
-              light: '#60A5FA'
-            }
+            primary: { DEFAULT: '#2563EB', light: '#60A5FA' }
           }
         }
       }
@@ -34,7 +31,6 @@
 
   <!-- Card -->
   <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
-    <!-- Logo -->
     <div class="flex justify-center">
       <img src="assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
     </div>
@@ -94,43 +90,36 @@
   <script src="assets/js/auth.js"></script>
   <script>
     // Tema dark/light
-    const btn2 = document.getElementById('theme-toggle')
-    const root2 = document.documentElement
-    const saved2 = localStorage.getItem('theme') || 'light'
-    if (saved2 === 'dark') root2.classList.add('dark')
+    const btn2 = document.getElementById('theme-toggle');
+    const root2 = document.documentElement;
+    const saved2 = localStorage.getItem('theme') || 'light';
+    if (saved2 === 'dark') root2.classList.add('dark');
     btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark')
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light')
-    })
+      root2.classList.toggle('dark');
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+    });
 
     // Login via Auth e validação de e-mail institucional
     document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault()
+      e.preventDefault();
 
-      const email = document.getElementById('email').value.trim()
-      // só aceita @alunos.estacio.br ou @professor.estacio.br
-      const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i
-
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
       if (!estacioRegex.test(email)) {
-        alert(
+        return alert(
           'Use um e-mail institucional válido:\n' +
           '- Aluno: @alunos.estacio.br\n' +
           '- Professor: @professor.estacio.br'
-        )
-        return
+        );
       }
 
       try {
-        await Auth.login(
-          email,
-          document.getElementById('password').value
-        )
-        // Redireciona para o dashboard (home) no root
-        window.location.href = 'index.html'
+        await Auth.login(email, document.getElementById('password').value);
+        window.location.href = 'index.html';
       } catch (err) {
-        alert(err.message)
+        alert(err.message);
       }
-    })
+    });
   </script>
 </body>
 </html>
