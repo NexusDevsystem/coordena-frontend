@@ -20,6 +20,8 @@
     }
   </script>
   <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- Auth library (deve vir antes do nosso script de registro) -->
   <script src="assets/js/auth.js"></script>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
@@ -129,7 +131,7 @@
       }
 
       try {
-        // envia matricula junto com name, email e password
+        // envia matrícula junto com nome, email e senha
         await Auth.register({ name, email, password: pwd, matricula });
         window.location.href = 'login.html';
       } catch (err) {
