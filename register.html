@@ -20,8 +20,6 @@
     }
   </script>
   <link rel="stylesheet" href="assets/css/styles.css" />
-
-  <!-- Auth library (deve vir antes do nosso script de registro) -->
   <script src="assets/js/auth.js"></script>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
@@ -42,6 +40,13 @@
       <div>
         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
         <input type="text" id="name" name="name" required
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+      </div>
+
+      <!-- Matrícula -->
+      <div>
+        <label for="matricula" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matrícula</label>
+        <input type="text" id="matricula" name="matricula" required
                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
@@ -67,16 +72,6 @@
                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
       </div>
 
-      <!-- Tipo de Usuário -->
-      <div>
-        <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Usuário</label>
-        <select id="role" name="role" required
-                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition">
-          <option value="student">Aluno</option>
-          <option value="professor">Professor</option>
-        </select>
-      </div>
-
       <!-- Botão Registrar -->
       <div>
         <button type="submit"
@@ -100,7 +95,7 @@
   </button>
 
   <script>
-    // Aplica tema salvo
+    // Tema dark/light
     const btn2 = document.getElementById('theme-toggle');
     const root2 = document.documentElement;
     const saved2 = localStorage.getItem('theme') || 'light';
@@ -113,16 +108,15 @@
     // Regex institucional Estácio
     const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
 
-    // Lógica de registro
     document.getElementById('register-form').addEventListener('submit', async e => {
       e.preventDefault();
-      const name      = document.getElementById('name').value.trim();
-      const email     = document.getElementById('email').value.trim().toLowerCase();
-      const password  = document.getElementById('password').value;
-      const password2 = document.getElementById('password2').value;
-      const role      = document.getElementById('role').value;
 
-      // Verifica domínio institucional
+      const name      = document.getElementById('name').value.trim();
+      const matricula = document.getElementById('matricula').value.trim();
+      const email     = document.getElementById('email').value.trim().toLowerCase();
+      const pwd       = document.getElementById('password').value;
+      const pwd2      = document.getElementById('password2').value;
+
       if (!estacioRegex.test(email)) {
         return alert(
           'Use um e-mail institucional válido:\n' +
@@ -130,15 +124,13 @@
           '- Professor: @professor.estacio.br'
         );
       }
-
-      if (password !== password2) {
+      if (pwd !== pwd2) {
         return alert('As senhas não coincidem');
       }
 
       try {
-        // Auth.register agora recebe name, email, password e role
-        await Auth.register({ name, email, password, role });
-        // redireciona após sucesso
+        // envia matricula junto com name, email e password
+        await Auth.register({ name, email, password: pwd, matricula });
         window.location.href = 'login.html';
       } catch (err) {
         alert(err.message);
