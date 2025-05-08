@@ -59,6 +59,12 @@
         overflow-y: auto;
       }
     }
+
+    /* Estudantes não podem interagir com o calendário */
+    .student #calendar {
+      pointer-events: none;
+      opacity: 0.7;
+    }
   </style>
 
   <!-- Auth library -->
@@ -72,15 +78,13 @@
     if (!user) {
       window.location.href = '../login.html';
     }
-    // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
+    // Se for aluno, marca classe e esconde botões de criar/editar/cancelar
     if (user.role === 'student') {
+      document.documentElement.classList.add('student');
       document.addEventListener('DOMContentLoaded', () => {
-        const openBtn   = document.getElementById('open-form-modal');
-        const editBtn   = document.getElementById('modal-edit');
-        const cancelBtn = document.getElementById('modal-cancel');
-        if (openBtn)   openBtn.style.display   = 'none';
-        if (editBtn)   editBtn.style.display   = 'none';
-        if (cancelBtn) cancelBtn.style.display = 'none';
+        document.getElementById('open-form-modal')?.style.display = 'none';
+        document.getElementById('modal-edit')?.style.display      = 'none';
+        document.getElementById('modal-cancel')?.style.display    = 'none';
       });
     }
   </script>
@@ -138,15 +142,6 @@
               d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
       </svg>
     </a>
-    <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-6 w-6 text-white"
-           fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
-                 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-    </button>
   </div>
 
   <main class="pt-24 pb-8 mx-auto max-w-full px-4 space-y-8">
