@@ -21,11 +21,13 @@ const Auth = (() => {
       throw new Error(err.error || 'Credenciais inválidas');
     }
 
-    // **Agora a API retorna { user: {...}, token }**
-    const { user, token } = await res.json();
-    saveToken(token);
-    localStorage.setItem('user', JSON.stringify(user));
-    return user;
+    // Agora recebemos { user: {...}, token }
+    const data = await res.json();
+    saveToken(data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    // login OK → redireciona para a home
+    window.location.assign('/index.html');
+    return data.token;
   }
 
   async function register(data) {
@@ -39,10 +41,12 @@ const Auth = (() => {
       throw new Error(err.error || 'Erro no cadastro');
     }
 
-    const { user, token } = await res.json();
-    saveToken(token);
-    localStorage.setItem('user', JSON.stringify(user));
-    return user;
+    const result = await res.json(); // { user: {...}, token }
+    saveToken(result.token);
+    localStorage.setItem('user', JSON.stringify(result.user));
+    // registro OK → redireciona para o login.html
+    window.location.assign('/login.html');
+    return result.token;
   }
 
   function logout() {
@@ -63,4 +67,5 @@ const Auth = (() => {
 
   return { login, register, logout, getCurrentUser, getToken };
 })();
+
 window.Auth = Auth;
