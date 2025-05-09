@@ -16,7 +16,7 @@ function onReady(fn) {
 // ----------------------
 const ThemeToggle = (() => {
   const themeKey = 'theme';
-  const root = document.documentElement;
+  const root     = document.documentElement;
 
   function applyTheme(mode) {
     root.classList.toggle('dark', mode === 'dark');
@@ -46,9 +46,7 @@ const Api = (() => {
     : 'https://coordena-backend.onrender.com/api/reservas';
 
   function authHeaders(isJson = false) {
-    const headers = {
-      'Authorization': `Bearer ${Auth.getToken() || ''}`
-    };
+    const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
   }
@@ -102,16 +100,14 @@ const CalendarModule = (() => {
     const el = document.getElementById('calendar');
     if (!el) return console.error('#calendar não encontrado');
 
-    const containerHeight = el.clientHeight;
     const isMobile = window.innerWidth < 640;
-
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
       initialView: isMobile ? 'listWeek' : 'dayGridMonth',
       headerToolbar: {
-        left: isMobile ? 'prev,next' : 'prev,next today',
+        left:   isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       events: events.map(e => ({
         id:    e._id,
@@ -119,22 +115,21 @@ const CalendarModule = (() => {
         start: `${e.date}T${e.start}`,
         end:   `${e.date}T${e.end}`
       })),
-      dateClick: onDateClick,
+      dateClick:  onDateClick,
       eventClick: onEventClick,
-      height: containerHeight,
+      height:     el.clientHeight,
       allDaySlot: false
     });
 
     calendar.render();
-
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
-      const newView = nowMobile ? 'listWeek' : 'dayGridMonth';
+      const newView   = nowMobile ? 'listWeek' : 'dayGridMonth';
       calendar.changeView(newView);
       calendar.setOption('headerToolbar', {
-        left: nowMobile ? 'prev,next' : 'prev,next today',
+        left:   nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       });
     });
   }
@@ -150,7 +145,7 @@ const CalendarModule = (() => {
   }
 
   function update(id, ev) {
-    events = events.map(e => e._id === id ? ev : e);
+    events = events.map(e => (e._id === id ? ev : e));
     const obj = calendar.getEventById(id);
     if (obj) {
       obj.setProp('title', `${ev.title} (${ev.time})`);
@@ -198,6 +193,15 @@ const FormModule = (() => {
     currentId = id;
     selectors.form.reset();
     selectors.fields.salaContainer.classList.add('hidden');
+
+    // ── **Nova parte**: auto-preenche e bloqueia o campo "Responsável" para novos agendamentos
+    if (!currentId) {
+      const user = Auth.getCurrentUser();
+      if (user?.name) {
+        selectors.fields.resp.value = user.name;
+        selectors.fields.resp.setAttribute('readonly', 'readonly');
+      }
+    }
 
     if (evData) {
       selectors.fields.data.value    = evData.date;
@@ -356,9 +360,7 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
-  // → pega o usuário que foi salvo no login/register
   const currentUser = Auth.getCurrentUser();
-
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -389,7 +391,6 @@ onReady(async () => {
 
   // ——— controle de UI por papel ———
   const role = currentUser?.role?.toLowerCase();
-  // ** agora escondemos apenas se for ALUNO **
   if (role === 'student') {
     document.getElementById('open-form-modal')?.style.setProperty('display','none');
     document.getElementById('modal-edit')?.style.setProperty('display','none');
