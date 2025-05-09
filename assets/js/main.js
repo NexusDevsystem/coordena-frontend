@@ -164,11 +164,7 @@ const CalendarModule = (() => {
     calendar.getEventById(id)?.remove();
   }
 
-  function getEvents() {
-    return events;
-  }
-
-  return { init, add, update, remove, getEvents };
+  return { init, add, update, remove, getEvents: () => events };
 })();
 
 // ----------------------
@@ -360,9 +356,8 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
+  // → pega o usuário que foi salvo no login/register
   const currentUser = Auth.getCurrentUser();
-  if (!currentUser) return window.location.href = '/login.html';
-  const role = currentUser.role.toLowerCase();
 
   let data = [];
   try {
@@ -371,27 +366,31 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // Define handlers conforme papel do usuário
-  const onDateClick  = role === 'professor'
-    ? info => FormModule.open(null, {
-        date: info.dateStr,
-        start: '00:00', end: '00:00', resource: '', sala: '',
-        type: '', responsible: '', department: '', status: '', description: '', time: ''
-      })
-    : null;
+  CalendarModule.init(
+    data,
+    info => FormModule.open(null, {
+      date:        info.dateStr,
+      start:       '00:00',
+      end:         '00:00',
+      resource:    '',
+      sala:        '',
+      type:        '',
+      responsible: '',
+      department:  '',
+      status:      '',
+      description: '',
+      time:        ''
+    }),
+    info => {
+      const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
+      if (ev) DetailModule.open(ev);
+    }
+  );
 
-  const onEventClick = role === 'professor'
-    ? info => {
-        const ev = data.find(e => e._id === info.event.id);
-        if (ev) DetailModule.open(ev);
-      }
-    : null;
-
-  CalendarModule.init(data, onDateClick, onEventClick);
-
-  // Controle de UI por papel: esconde botões para estudantes
+  // ——— controle de UI por papel ———
+  const role = currentUser?.role?.toLowerCase();
+  // ** agora escondemos apenas se for ALUNO **
   if (role === 'student') {
-    document.documentElement.classList.add('student');
     document.getElementById('open-form-modal')?.style.setProperty('display','none');
     document.getElementById('modal-edit')?.style.setProperty('display','none');
     document.getElementById('modal-cancel')?.style.setProperty('display','none');
