@@ -1,4 +1,3 @@
-// assets/js/auth.js
 const Auth = (() => {
   const API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/auth'
@@ -18,17 +17,15 @@ const Auth = (() => {
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Credenciais inválidas');
     }
 
-    // agora o backend retorna { user, token }
+    // **Agora a API retorna { user: {...}, token }**
     const { user, token } = await res.json();
     saveToken(token);
     localStorage.setItem('user', JSON.stringify(user));
-    // login OK → redireciona para a home (index.html)
-    window.location.assign('/index.html');
-    return token;
+    return user;
   }
 
   async function register(data) {
@@ -38,17 +35,14 @@ const Auth = (() => {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Erro no cadastro');
     }
 
-    // backend retorna { user, token }
     const { user, token } = await res.json();
     saveToken(token);
     localStorage.setItem('user', JSON.stringify(user));
-    // registro OK → redireciona para o login.html
-    window.location.assign('/login.html');
-    return token;
+    return user;
   }
 
   function logout() {
