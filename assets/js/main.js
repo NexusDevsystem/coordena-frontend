@@ -194,15 +194,7 @@ const FormModule = (() => {
     selectors.form.reset();
     selectors.fields.salaContainer.classList.add('hidden');
 
-    // ── **Nova parte**: auto-preenche e bloqueia o campo "Responsável" para novos agendamentos
-    if (!currentId) {
-      const user = Auth.getCurrentUser();
-      if (user?.name) {
-        selectors.fields.resp.value = user.name;
-        selectors.fields.resp.setAttribute('readonly', 'readonly');
-      }
-    }
-
+    // Se estiver editando, preenche com os dados existentes
     if (evData) {
       selectors.fields.data.value    = evData.date;
       selectors.fields.start.value   = evData.start;
@@ -215,6 +207,15 @@ const FormModule = (() => {
       selectors.fields.dept.value    = evData.department;
       selectors.fields.status.value  = evData.status;
       selectors.fields.desc.value    = evData.description;
+    }
+
+    // ── **AUTO-PREENCHER** “Responsável” em QUALQUER NOVO agendamento
+    if (!currentId) {
+      const user = Auth.getCurrentUser();
+      if (user?.name) {
+        selectors.fields.resp.value = user.name;
+        selectors.fields.resp.setAttribute('readonly', 'readonly');
+      }
     }
 
     selectors.modal.classList.remove('hidden');
