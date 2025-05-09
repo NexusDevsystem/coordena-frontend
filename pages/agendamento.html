@@ -60,7 +60,7 @@
       }
     }
 
-    /* Estudantes não podem interagir com o calendário */
+    /* Desabilita interações no calendário para alunos */
     .student #calendar {
       pointer-events: none;
       opacity: 0.7;
@@ -78,7 +78,7 @@
     if (!user) {
       window.location.href = '../login.html';
     }
-    // Se for aluno, marca classe e esconde botões de criar/editar/cancelar
+    // Se for aluno, adiciona classe 'student' e esconde botões de criar/editar/cancelar
     if (user.role === 'student') {
       document.documentElement.classList.add('student');
       document.addEventListener('DOMContentLoaded', () => {
@@ -241,21 +241,21 @@
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: Engenharia" required>
+                   class="w-full mt-1 px-3 py-2 border rounded-md	bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   placeholder="Ex: Engenharia"	required>
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: História" required>
+                   class="w-full mt-1 px-3 py-2 border rounded-md	bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   placeholder="Ex: História"	required>
           </div>
         </div>
         <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full mt-1 px-3 py-2	border rounded-md	bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
@@ -266,11 +266,11 @@
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2	border rounded-md	bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
         <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
+                class="w-full	bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
           Confirmar
         </button>
       </form>
@@ -282,13 +282,13 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
       <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
-      <p id="modal-date"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-date"	 class="mb-1 text-gray-700 dark:text-gray-300"></p>
       <p id="modal-resource" class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-type"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-resp"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-dept"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-type"	 class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-resp"	 class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-dept"	 class="mb-1 text-gray-700 dark:text-gray-300"></p>
       <p id="modal-status"   class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-desc"     class="mb-4 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-desc"	 class="mb-4 text-gray-700 dark:text-gray-300"></p>
       <div class="flex justify-end space-x-4">
         <button id="modal-edit"   class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
         <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
@@ -299,21 +299,5 @@
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
     Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
   </footer>
-
-  <script src="../assets/js/main.js"></script>
-  <script>
-    // Após carregar a página, preenche nome e reativa logout
-    document.addEventListener('DOMContentLoaded', () => {
-      const u = Auth.getCurrentUser();
-      if (u?.name) {
-        document.getElementById('user-name').textContent = u.name;
-      }
-      // Garante que o botão de logout funcione
-      document.getElementById('logout-btn').addEventListener('click', () => {
-        Auth.logout();
-        window.location.href = '../login.html';
-      });
-    });
-  </script>
 </body>
 </html>
