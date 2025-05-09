@@ -26,6 +26,14 @@
 
   <!-- Auth logic -->
   <script src="assets/js/auth.js"></script>
+  <script>
+    // → GARANTIA: só usuários com role continuam na página
+    window.user = Auth.getCurrentUser();
+    if (!window.user || !window.user.role) {
+      Auth.logout();
+      window.location.href = 'login.html';
+    }
+  </script>
 
   <!-- Background styling for light/dark + mobile scroll lock -->
   <style>
@@ -56,16 +64,13 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <script>
-    // Protege esta página: se não estiver logado, redireciona ao login
-    const user = Auth.getCurrentUser();
-    if (!user) {
-      window.location.href = 'login.html';
-    }
-    // Se for aluno, desabilita acesso ao agendamento
-    if (user.role === 'student') {
+    // Agora que window.user é garantido, blocamos o acesso à aba Agendamento se for aluno
+    if (window.user.role === 'student') {
       const agLink = document.querySelector('a[href="pages/agendamento.html"]');
-      agLink.classList.add('opacity-50', 'cursor-not-allowed');
-      agLink.href = '#';
+      if (agLink) {
+        agLink.classList.add('opacity-50', 'cursor-not-allowed');
+        agLink.href = '#';
+      }
     }
   </script>
 
@@ -79,7 +84,9 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
-    <span class="text-gray-800 dark:text-gray-200 font-medium">Olá, <span id="user-name">—</span>!</span>
+    <span class="text-gray-800 dark:text-gray-200 font-medium">
+      Olá, <span id="user-name">—</span>!
+    </span>
   </div>
 
   <!-- Toggle Dark/Light -->
@@ -171,7 +178,7 @@
       localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout: limpa token e redireciona sempre para login.html
+    // Logout: limpa token e redireciona
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
@@ -179,9 +186,8 @@
 
     // Exibe nome do usuário logado
     document.addEventListener('DOMContentLoaded', () => {
-      const user = Auth.getCurrentUser();
-      if (user?.name) {
-        document.getElementById('user-name').textContent = user.name;
+      if (window.user?.name) {
+        document.getElementById('user-name').textContent = window.user.name;
       }
     });
   </script>
