@@ -57,21 +57,17 @@
       }
     }
 
-    /* perfil & notificação buttons */
-    .icon-btn {
+    /* perfil dropdown */
+    .profile-btn {
       width: 2.5rem;
       height: 2.5rem;
       border-radius: 9999px;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       border: 2px solid rgba(229,231,235);
     }
-    .dark .icon-btn {
+    .dark .profile-btn {
       border-color: rgba(55,65,81);
     }
-
     .profile-dropdown {
       display: none;
       position: absolute;
@@ -104,6 +100,20 @@
       background: #374151;
       color: #F9FAFB;
     }
+    /* notification button */
+    .notification-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(229,231,235);
+    }
+    .dark .notification-btn {
+      border-color: rgba(55,65,81);
+    }
   </style>
 
   <!-- Auth library -->
@@ -114,8 +124,9 @@
   <script>
     // Protege esta página: redireciona para login se não autenticado
     const user = Auth.getCurrentUser();
-    if (!user) window.location.href = '../login.html';
-
+    if (!user) {
+      window.location.href = '../login.html';
+    }
     // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -129,31 +140,31 @@
   <!-- Botões de notificação, perfil e toggle -->
   <div class="fixed top-4 right-4 flex items-center space-x-3 z-50">
     <!-- Notificações -->
-    <button id="notification-btn" class="icon-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
+    <button id="notification-btn" class="notification-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
       <img src="../assets/img/icons/noti.png" alt="Notificações" class="w-5 h-5" />
     </button>
 
     <!-- Perfil e dropdown -->
-    <div class="relative">
-      <button id="profile-btn" class="icon-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-        <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-2">
-          <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
-          <p id="dropdown-email"    class="text-sm text-gray-600 dark:text-gray-400">—</p>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" class="px-4 py-2">Teste 1</a>
-        <a href="#" class="px-4 py-2">Teste 2</a>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
-      </div>
+<div class="relative">
+  <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
+    <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
+  </button>
+  <div id="profile-dropdown" class="profile-dropdown">
+    <div class="px-4 py-2">
+      <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
+      <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">—</p>
     </div>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" class="px-4 py-2">Teste 1</a>
+    <a href="#" class="px-4 py-2">Teste 2</a>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
+  </div>
+</div>
 
     <!-- Toggle Dark/Light -->
     <button id="theme-toggle"
-            class="icon-btn ml-1 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none">
+            class="ml-1 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg"
            class="h-6 w-6 text-gray-800 dark:text-gray-200"
            fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,8 +235,99 @@
                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
         </div>
-        <!-- ... resto do formulário permanece inalterado ... -->
-        <!-- (inclua aqui todas as seções do seu formulário original) -->
+        <!-- Início / Término -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
+            <input type="time" id="start"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   min="07:00" max="22:00" step="60" required>
+          </div>
+          <div>
+            <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
+            <input type="time" id="end"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   min="07:00" max="22:00" step="60" required>
+          </div>
+        </div>
+        <!-- Recurso / Tipo de Evento -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
+            <select id="recurso"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    required>
+              <option value="">Selecione...</option>
+              <option>Laboratório</option>
+              <option>Sala de Aula</option>
+              <option>Auditório</option>
+            </select>
+          </div>
+          <div>  
+            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
+            <select id="tipo-evento"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    required>
+              <option value="">Selecione...</option>
+              <option>Aula</option>
+              <option>Reunião</option>
+              <option>Palestra</option>
+              <option>Workshop</option>
+            </select>
+          </div>
+        </div>
+        <!-- Sala (condicional) -->
+        <div id="sala-container" class="hidden">
+          <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
+          <select id="sala"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <!-- Responsável -->
+        <div>
+          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
+          <input type="text" id="responsavel"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 placeholder="Nome do professor" required>
+        </div>
+        <!-- Curso / Matéria -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
+            <input type="text" id="departamento"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   placeholder="Ex: Engenharia" required>
+          </div>
+          <div>
+            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
+            <input type="text" id="curso"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   placeholder="Ex: História" required>
+          </div>
+        </div>
+        <!-- Status -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <select id="status"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  required>
+            <option value="Pendente">Pendente</option>
+            <option value="Aprovado">Aprovado</option>
+            <option value="Rejeitado">Rejeitado</option>
+          </select>
+        </div>
+        <!-- Descrição -->
+        <div>
+          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <textarea id="descricao" rows="3"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+        </div>
+        <!-- Botão Confirmar -->
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
+          Confirmar
+        </button>
       </form>
     </div>
   </div>
@@ -255,37 +357,27 @@
 
   <script src="../assets/js/main.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Preenche nome e email no dropdown
-      const user = Auth.getCurrentUser() || {};
-      document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
-      document.getElementById('dropdown-email').textContent    = user.email || '';
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getCurrentUser() || {};
+    // Preenche nome e email no dropdown
+    document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
+    document.getElementById('dropdown-email').textContent    = user.email || '';
 
-      // Toggle profile dropdown
-      const btn = document.getElementById('profile-btn');
-      const dd  = document.getElementById('profile-dropdown');
-      btn.addEventListener('click', () => {
-        dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
-      });
-
-      // Logout
-      document.getElementById('logout-link').addEventListener('click', e => {
-        e.preventDefault();
-        Auth.logout();
-        window.location.href = '../login.html';
-      });
-
-      // Dark/light toggle
-      document.getElementById('theme-toggle').addEventListener('click', () => {
-        const rootEl = document.documentElement;
-        rootEl.classList.toggle('dark');
-        localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
-      });
-
-      // (Opcional) Toggle notifications dropdown, se você quiser implementar:
-      // const notBtn = document.getElementById('notification-btn');
-      // notBtn.addEventListener('click', () => alert('Você não tem novas notificações'));
+    // Toggle dropdown
+    const btn = document.getElementById('profile-btn');
+    const dd  = document.getElementById('profile-dropdown');
+    btn.addEventListener('click', () => {
+      dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
     });
-  </script>
+
+    // Logout
+    document.getElementById('logout-link').addEventListener('click', e => {
+      e.preventDefault();
+      Auth.logout();
+      window.location.href = '../login.html';
+    });
+  });
+</script>
+
 </body>
 </html>
