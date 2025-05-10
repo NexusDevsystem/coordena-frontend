@@ -34,7 +34,7 @@
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-  <!-- Background styling & mobile scroll lock -->
+  <!-- Background styling & mobile scroll lock + perfil dropdown styles -->
   <style>
     body {
       background-image: url("../assets/img/background.png");
@@ -56,6 +56,7 @@
         overflow-y: auto;
       }
     }
+
     /* perfil dropdown */
     .profile-dropdown {
       display: none;
@@ -77,6 +78,16 @@
     .profile-dropdown a:hover {
       background: #f3f3f3;
     }
+    .dark .profile-dropdown {
+      background: #1F2937;
+    }
+    .dark .profile-dropdown a {
+      color: #D1D5DB;
+    }
+    .dark .profile-dropdown a:hover {
+      background: #374151;
+      color: #F9FAFB;
+    }
   </style>
 
   <!-- Auth library -->
@@ -90,9 +101,20 @@
     if (!user) {
       window.location.href = '../login.html';
     }
+    // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
+    if (user.role === 'student') {
+      document.addEventListener('DOMContentLoaded', () => {
+        const openBtn   = document.getElementById('open-form-modal');
+        const editBtn   = document.getElementById('modal-edit');
+        const cancelBtn = document.getElementById('modal-cancel');
+        if (openBtn)   openBtn.style.display   = 'none';
+        if (editBtn)   editBtn.style.display   = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+      });
+    }
   </script>
 
-  <!-- Saudação + perfil -->
+  <!-- Saudação + Perfil -->
   <div id="user-info"
        class="fixed top-4 left-4 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
     <svg xmlns="http://www.w3.org/2000/svg"
@@ -106,9 +128,8 @@
     <span class="text-gray-800 dark:text-gray-200 font-medium">
       Olá, <span id="user-name">—</span>!
     </span>
-    <!-- botão perfil -->
-    <div class="relative">
-      <button id="profile-btn" class="ml-2 w-8 h-8 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 focus:outline-none">
+    <div class="relative ml-2">
+      <button id="profile-btn" class="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 focus:outline-none">
         <img src="../assets/img/default-avatar.png" alt="Avatar" class="w-full h-full object-cover" />
       </button>
       <div id="profile-dropdown" class="profile-dropdown">
@@ -125,7 +146,10 @@
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
+               m0 12.02l.7-.7M17.66 6.34l.7-.7
+               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -218,7 +242,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                     required>
               <option value="">Selecione...</option>
               <option>Aula</option>
@@ -232,7 +256,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -240,7 +264,7 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
         <!-- Curso / Matéria -->
@@ -248,34 +272,34 @@
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: Engenharia" required>
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: História" required>
           </div>
         </div>
-        <!-- Status -->
+        <!-- Status -->  
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
-        <!-- Descrição -->
+        <!-- Descrição -->  
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
-        <!-- Botão Confirmar -->
+        <!-- Botão Confirmar -->  
         <button type="submit"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
           Confirmar
@@ -315,14 +339,12 @@
       if (u?.name) {
         document.getElementById('user-name').textContent = u.name;
       }
-
-      // profile dropdown toggle
+      // perfil dropdown toggle
       const btn = document.getElementById('profile-btn');
       const dd  = document.getElementById('profile-dropdown');
       btn.addEventListener('click', () => {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
       });
-
       // logout
       document.getElementById('logout-link').addEventListener('click', e => {
         e.preventDefault();
@@ -332,4 +354,4 @@
     });
   </script>
 </body>
-</htm
+</html>

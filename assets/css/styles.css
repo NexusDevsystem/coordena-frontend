@@ -1,49 +1,81 @@
-:root {
-  --overlay-duration: 0.6s;
+/* ================================
+   Perfil / Dropdown de usuário
+   ================================ */
+
+/* Botão de perfil */
+#profile-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 2px solid #D1D5DB; /* gray-300 */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#profile-btn:hover,
+#profile-btn:focus {
+  border-color: #3B82F6; /* primary */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
 }
 
-/* Overlay de transição */
-.theme-overlay {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  width: 0;
-  height: 0;
-  background: var(--overlay-color);
-  border-radius: 50%;
-  z-index: 9999;
+/* Imagem dentro do botão */
+#profile-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Container do dropdown */
+#profile-dropdown {
+  display: flex;
+  flex-direction: column;
+  width: 12rem;
+  background-color: #FFFFFF;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),
+              0 4px 6px -4px rgba(0,0,0,0.1);
+  transform-origin: top right;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+  transform: scale(0.95);
   pointer-events: none;
-  animation: expand-overlay var(--overlay-duration) forwards;
+}
+#profile-dropdown.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
-@keyframes expand-overlay {
-  to {
-    width: 200vmax;
-    height: 200vmax;
-    top: calc(50% - 100vmax);
-    right: calc(50% - 100vmax);
-  }
+/* Itens do dropdown */
+#profile-dropdown a {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #374151; /* gray-700 */
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+#profile-dropdown a:hover {
+  background-color: #F3F4F6; /* gray-100 */
+  color: #111827; /* gray-900 */
 }
 
-/* Corrige cabeçalho em dark mode para o FullCalendar */
-.dark .fc .fc-col-header {
-  background-color: #1f2937; /* gray-800 */
+/* Dark mode */
+.dark #profile-btn {
+  border-color: #4B5563; /* gray-600 */
 }
-
-.dark .fc .fc-col-header th {
-  border-color: #374151; /* gray-700 */
+.dark #profile-btn:hover,
+.dark #profile-btn:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
 }
-
-.dark .fc .fc-col-header-cell-cushion {
-  color: #d1d5db; /* gray-300 */
+.dark #profile-dropdown {
+  background-color: #1F2937; /* gray-800 */
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.4),
+              0 4px 6px -4px rgba(0,0,0,0.4);
 }
-
-/* Se você também usar a grade de listas em mobile, cor das linhas: */
-.dark .fc .fc-list-head {
-  background-color: #1f2937;
+.dark #profile-dropdown a {
+  color: #D1D5DB; /* gray-300 */
 }
-
-.dark .fc .fc-list-heading td {
-  color: #d1d5db;
-  border-color: #374151;
+.dark #profile-dropdown a:hover {
+  background-color: #374151; /* gray-700 */
+  color: #F9FAFB; /* gray-50 */
 }
