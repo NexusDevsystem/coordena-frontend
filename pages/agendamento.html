@@ -292,20 +292,28 @@
                  placeholder="Nome do professor" required>
         </div>
         <!-- Curso / Matéria -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-            <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: Engenharia" required>
-          </div>
-          <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
-            <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: História" required>
-          </div>
-        </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Curso
+      </label>
+      <input type="text" id="departamento"
+             class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                    text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+             placeholder="Ex: Computação" required>
+    </div>
+    <div>
+      <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Matéria
+      </label>
+      <select id="curso"
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              required>
+        <option value="">Selecione a matéria...</option>
+      </select>
+    </div>
+  </div>
         <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>

@@ -287,7 +287,7 @@ const FormModule = (() => {
 
     // mapa de cursos × matérias (Computação com todas as ARA)
     const courseMap = {
-      'Computação': [
+      'Engenharia de Computação': [
         'ARA0003 - PRINCÍPIOS DE GESTÃO',
         'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
         'ARA0039 - ARQUITETURA DE COMPUTADORES',
