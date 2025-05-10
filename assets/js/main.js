@@ -379,13 +379,10 @@ const DetailModule = (() => {
     });
     selectors.btnDelete?.addEventListener('click', async () => {
       if (!currentId) return;
-      try {
-        await Api.deleteEvent(currentId);
+      try { await Api.deleteEvent(currentId);
         CalendarModule.remove(currentId);
         close();
-      } catch (err) {
-        alert(err.message);
-      }
+      } catch (err) { alert(err.message); }
     });
   }
 
@@ -410,20 +407,7 @@ onReady(async () => {
 
   CalendarModule.init(
     data,
-    info => FormModule.open(null, {
-      date:        info.dateStr,
-      start:       '00:00',
-      end:         '00:00',
-      resource:    '',
-      sala:        '',
-      type:        '',
-      responsible: '',
-      department:  '',
-      materia:     '',
-      status:      '',
-      description: '',
-      time:        ''
-    }),
+    info => FormModule.open(null, { date: info.dateStr, start: '00:00', end: '00:00', resource: '', sala: '', type: '', responsible: '', department: '', materia: '', status: '', description: '', time: '' }),
     info => {
       const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
       if (ev) DetailModule.open(ev);
@@ -439,7 +423,7 @@ onReady(async () => {
   }
 
   // ----------------------
-  // MENU OFF-CANVAS / TOGGLE
+  // MENU OFF-CANVAS / TOGGLE (estilo Rockstar)
   // ----------------------
   const menuToggle = document.getElementById('menu-toggle');
   const sideMenu   = document.getElementById('side-menu');
@@ -449,18 +433,22 @@ onReady(async () => {
   menuToggle.addEventListener('click', () => {
     sideMenu.classList.toggle('show');
     const opened = sideMenu.classList.contains('show');
+
     if (opened) {
-      bars[0].classList.add('rotate-45', 'translate-y-1');
-      bars[1].classList.add('-rotate-45', '-translate-y-1');
+      bars[0].classList.add('rotate-45', 'translate-y-1.5');
+      bars[1].classList.add('-rotate-45', '-translate-y-1.5');
+      sideMenu.style.width = '50vw';
     } else {
-      bars[0].classList.remove('rotate-45', 'translate-y-1');
-      bars[1].classList.remove('-rotate-45', '-translate-y-1');
+      bars[0].classList.remove('rotate-45', 'translate-y-1.5');
+      bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
+      sideMenu.style.width = '';
     }
   });
 
   menuClose.addEventListener('click', () => {
     sideMenu.classList.remove('show');
-    bars[0].classList.remove('rotate-45', 'translate-y-1');
-    bars[1].classList.remove('-rotate-45', '-translate-y-1');
+    bars[0].classList.remove('rotate-45', 'translate-y-1.5');
+    bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
+    sideMenu.style.width = '';
   });
 });
