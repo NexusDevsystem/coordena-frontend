@@ -100,7 +100,6 @@
       background: #374151;
       color: #F9FAFB;
     }
-
     /* notification button */
     .notification-btn {
       width: 2.5rem;
@@ -146,22 +145,22 @@
     </button>
 
     <!-- Perfil e dropdown -->
-    <div class="relative">
-      <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-        <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-2">
-          <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
-          <p id="dropdown-email"    class="text-sm text-gray-600 dark:text-gray-400">—</p>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" class="px-4 py-2">Teste 1</a>
-        <a href="#" class="px-4 py-2">Teste 2</a>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
-      </div>
+<div class="relative">
+  <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
+    <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
+  </button>
+  <div id="profile-dropdown" class="profile-dropdown">
+    <div class="px-4 py-2">
+      <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
+      <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">—</p>
     </div>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" class="px-4 py-2">Teste 1</a>
+    <a href="#" class="px-4 py-2">Teste 2</a>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
+  </div>
+</div>
 
     <!-- Toggle Dark/Light -->
     <button id="theme-toggle"
@@ -233,8 +232,7 @@
         <div>
           <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
           <input type="date" id="data"
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                        text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  required>
         </div>
         <!-- Início / Término -->
@@ -242,15 +240,13 @@
           <div>
             <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
             <input type="time" id="start"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                          text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    min="07:00" max="22:00" step="60" required>
           </div>
           <div>
             <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
             <input type="time" id="end"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                          text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    min="07:00" max="22:00" step="60" required>
           </div>
         </div>
@@ -259,8 +255,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                           text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                     required>
               <option value="">Selecione...</option>
               <option>Laboratório</option>
@@ -268,11 +263,10 @@
               <option>Auditório</option>
             </select>
           </div>
-          <div>
+          <div>  
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                           text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                     required>
               <option value="">Selecione...</option>
               <option>Aula</option>
@@ -286,8 +280,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                         text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -295,105 +288,49 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                        text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
-
         <!-- Curso / Matéria -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Curso -->
-          <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Curso
-            </label>
-            <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                          text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: Engenharia de Computação" required>
-          </div>
-          <!-- Filtro e Matéria -->
-          <div>
-            <label for="filter-codigo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Filtrar por ARA
-            </label>
-            <input type="text" id="filter-codigo"
-                   class="w-full mb-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                          text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Digite código ARA…">
-            <label for="curso" class="sr-only">Matéria</label>
-            <select id="curso"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                           text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                    required>
-              <option value="">Selecione a matéria...</option>
-              <option value="ARA0003">ARA0003 - PRINCÍPIOS DE GESTÃO</option>
-              <option value="ARA0017">ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES</option>
-              <option value="ARA0039">ARA0039 - ARQUITETURA DE COMPUTADORES</option>
-              <option value="ARA0045">ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE</option>
-              <option value="ARA0015">ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL</option>
-              <option value="ARA0020">ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR</option>
-              <option value="ARA0038">ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO</option>
-              <option value="ARA0048">ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA</option>
-              <option value="ARA1386">ARA1386 - SISTEMAS OPERACIONAIS</option>
-              <option value="ARA0002">ARA0002 - PENSAMENTO COMPUTACIONAL</option>
-              <option value="ARA0014">ARA0014 - ANÁLISE DE DADOS</option>
-              <option value="ARA0018">ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS</option>
-              <option value="ARA0044">ARA0044 - ELETRICIDADE E MAGNETISMO</option>
-              <option value="ARA0047">ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES</option>
-              <option value="ARA1398">ARA1398 - MECÂNICA DOS SÓLIDOS</option>
-              <option value="ARA0029">ARA0029 - ELETRICIDADE APLICADA</option>
-              <option value="ARA0030">ARA0030 - EQUAÇÕES DIFERENCIAIS</option>
-              <option value="ARA0046">ARA0046 - FENÔMENOS DE TRANSPORTE</option>
-              <option value="ARA0056">ARA0056 - QUÍMICA TECNOLÓGICA</option>
-              <option value="ARA2042">ARA2042 - SISTEMAS DIGITAIS</option>
-              <option value="ARA0079">ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES</option>
-              <option value="ARA0083">ARA0083 - ELETRÔNICA ANALÓGICA</option>
-              <option value="ARA0125">ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS</option>
-              <option value="ARA1943">ARA1943 - MODELAGEM MATEMÁTICA</option>
-              <option value="ARA0040">ARA0040 - BANCO DE DADOS</option>
-              <option value="ARA0098">ARA0098 - ESTRUTURA DE DADOS</option>
-              <option value="ARA2545">ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA</option>
-              <option value="ARA0095">ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON</option>
-              <option value="ARA0141">ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL</option>
-              <option value="ARA0363">ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C</option>
-              <option value="ARA2086">ARA2086 - ALGORITMOS EM GRAFOS</option>
-              <option value="ARA0301">ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES</option>
-              <option value="ARA0309">ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS</option>
-              <option value="ARA1879">ARA1879 - AUTOMAÇÃO INDUSTRIAL</option>
-              <option value="ARA0085">ARA0085 - INTELIGÊNCIA ARTIFICIAL</option>
-              <option value="ARA0115">ARA0115 - SISTEMAS EMBARCADOS</option>
-              <option value="ARA1191">ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.</option>
-              <option value="ARA1518">ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM</option>
-              <option value="ARA0026">ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO</option>
-              <option value="ARA0154">ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA</option>
-              <option value="ARA0869">ARA0869 - INOVAÇÃO, EMPREENDED. E PROJETO FINAL - ENG. DE COMP.</option>
-              <option value="ARA2074">ARA2074 - SEGURANÇA CIBERNÉTICA</option>
-            </select>
-          </div>
-        </div>
-
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Curso
+      </label>
+      <input type="text" id="departamento"
+             class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                    text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+             placeholder="Ex: Computação" required>
+    </div>
+    <div>
+      <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Matéria
+      </label>
+      <select id="curso"
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              required>
+        <option value="">Selecione a matéria...</option>
+      </select>
+    </div>
+  </div>
         <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                         text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
-
         <!-- Descrição -->
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
-                           text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
-
         <!-- Botão Confirmar -->
         <button type="submit"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
@@ -423,38 +360,32 @@
   </div>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
-    Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
+    Copyright© 2025 - Nexus Devsystem - Todos os direitos reservados.
   </footer>
 
   <script src="../assets/js/main.js"></script>
   <script>
-    // Preenche o dropdown de perfil e controla seu toggle
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = Auth.getCurrentUser() || {};
-      document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
-      document.getElementById('dropdown-email').textContent    = user.email || '';
-      const btn = document.getElementById('profile-btn');
-      const dd  = document.getElementById('profile-dropdown');
-      btn.addEventListener('click', () => {
-        dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
-      });
-      document.getElementById('logout-link').addEventListener('click', e => {
-        e.preventDefault();
-        Auth.logout();
-        window.location.href = '../login.html';
-      });
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getCurrentUser() || {};
+    // Preenche nome e email no dropdown
+    document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
+    document.getElementById('dropdown-email').textContent    = user.email || '';
 
-      // Filtro de código ARA
-      const filtro = document.getElementById('filter-codigo');
-      const selMat = document.getElementById('curso');
-      filtro.addEventListener('input', e => {
-        const term = e.target.value.trim().toLowerCase();
-        Array.from(selMat.options).forEach(opt => {
-          opt.hidden = term !== '' && !opt.value.toLowerCase().startsWith(term);
-        });
-      });
+    // Toggle dropdown
+    const btn = document.getElementById('profile-btn');
+    const dd  = document.getElementById('profile-dropdown');
+    btn.addEventListener('click', () => {
+      dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
     });
-  </script>
+
+    // Logout
+    document.getElementById('logout-link').addEventListener('click', e => {
+      e.preventDefault();
+      Auth.logout();
+      window.location.href = '../login.html';
+    });
+  });
+</script>
 
 </body>
 </html>
