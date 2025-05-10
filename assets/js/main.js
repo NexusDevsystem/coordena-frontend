@@ -193,7 +193,14 @@ const FormModule = (() => {
   function open(id = null, evData = null) {
     currentId = id;
     selectors.form.reset();
+
+    // sempre esconder sala
     selectors.fields.salaContainer.classList.add('hidden');
+
+    // reset curso & matéria
+    selectors.fields.dept.value = '';
+    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+    selectors.fields.materia.disabled = true;
 
     if (evData) {
       selectors.fields.data.value    = evData.date;
@@ -207,6 +214,12 @@ const FormModule = (() => {
       selectors.fields.dept.value    = evData.department;
       selectors.fields.status.value  = evData.status;
       selectors.fields.desc.value    = evData.description;
+
+      // se vier materia no evento, populamos & habilitamos
+      if (evData.materia) {
+        selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
+        selectors.fields.materia.disabled = false;
+      }
     }
 
     if (!currentId) {
@@ -236,6 +249,7 @@ const FormModule = (() => {
       type:        f.type.value,
       responsible: f.resp.value,
       department:  f.dept.value,
+      materia:     f.materia.value,        // inclui materia
       status:      f.status.value,
       description: f.desc.value,
       time:        `${f.start.value}-${f.end.value}`,
@@ -263,6 +277,10 @@ const FormModule = (() => {
 
   function init() {
     cacheSelectors();
+    // inicia matéria desabilitado
+    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+    selectors.fields.materia.disabled = true;
+
     selectors.btnOpen?.addEventListener('click', () => open());
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
@@ -285,7 +303,7 @@ const FormModule = (() => {
       }
     });
 
-    // mapa de cursos × matérias (Computação com todas as ARA)
+    // mapa de cursos × matérias
     const courseMap = {
       'Engenharia de Computação': [
         'ARA0003 - PRINCÍPIOS DE GESTÃO',
@@ -331,18 +349,23 @@ const FormModule = (() => {
         'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
         'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
         'ARA2074 - SEGURANÇA CIBERNÉTICA'
-      ],
-      // adicione outros cursos aqui...
+      ]
     };
 
     selectors.fields.dept?.addEventListener('change', () => {
       const curso = selectors.fields.dept.value;
       const lista = courseMap[curso] || [];
       const sel   = selectors.fields.materia;
-      sel.innerHTML = lista.length
-        ? '<option value="">Selecione a matéria...</option>' +
-          lista.map(m => `<option value="${m}">${m}</option>`).join('')
-        : '<option value="">Digite primeiro um curso válido</option>';
+
+      if (lista.length) {
+        sel.innerHTML =
+          '<option value="">Selecione a matéria...</option>' +
+          lista.map(m => `<option value="${m}">${m}</option>`).join('');
+        sel.disabled = false;
+      } else {
+        sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+        sel.disabled = true;
+      }
     });
   }
 
@@ -367,7 +390,7 @@ const DetailModule = (() => {
       type:     document.getElementById('modal-type'),
       resp:     document.getElementById('modal-resp'),
       dept:     document.getElementById('modal-dept'),
-      materia:  document.getElementById('modal-materia'),  // <–– novo
+      materia:  document.getElementById('modal-materia'),
       status:   document.getElementById('modal-status'),
       desc:     document.getElementById('modal-desc')
     };
@@ -381,7 +404,7 @@ const DetailModule = (() => {
     f.type.textContent     = `Evento: ${ev.type}`;
     f.resp.textContent     = `Responsável: ${ev.responsible}`;
     f.dept.textContent     = `Curso: ${ev.department}`;
-    f.materia.textContent  = `Matéria: ${ev.materia}`;     // <–– popula
+    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
     f.status.textContent   = `Status: ${ev.status}`;
     f.desc.textContent     = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
@@ -442,6 +465,7 @@ onReady(async () => {
       type:        '',
       responsible: '',
       department:  '',
+      materia:     '',
       status:      '',
       description: '',
       time:        ''
