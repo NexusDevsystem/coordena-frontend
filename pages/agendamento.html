@@ -148,8 +148,8 @@
     </nav>
   </div>
 
-  <!-- Menu Toggle Rockstar Style -->
-  <div class="fixed top-4 right-4 z-50">
+  <!-- Menu Toggle Rockstar Style (agora à esquerda) -->
+  <div class="fixed top-4 left-4 z-50">
     <button id="menu-toggle"
             class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
                    bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center space-y-1
@@ -266,8 +266,8 @@
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-              <option value="">Selecione a matéria...</option>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+              <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
         </div>
@@ -318,7 +318,6 @@
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
-  <!-- Todos os módulos JS inline -->
   <script>
   // ----------------------
   // UTILIDADES
@@ -434,7 +433,7 @@
           title: `${e.title} (${e.time})`,
           start: `${e.date}T${e.start}`,
           end:   `${e.date}T${e.end}`
-        })),  
+        })),
         dateClick:  onDateClick,
         eventClick: onEventClick,
         height:     el.clientHeight,
@@ -515,6 +514,11 @@
       selectors.form.reset();
       selectors.fields.salaContainer.classList.add('hidden');
 
+      // reiniciar seleção de curso/matéria
+      selectors.fields.dept.value = '';
+      selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+      selectors.fields.materia.disabled = true;
+
       if (evData) {
         selectors.fields.data.value    = evData.date;
         selectors.fields.start.value   = evData.start;
@@ -527,13 +531,18 @@
         selectors.fields.dept.value    = evData.department;
         selectors.fields.status.value  = evData.status;
         selectors.fields.desc.value    = evData.description;
+
+        if (evData.materia) {
+          selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
+          selectors.fields.materia.disabled = false;
+        }
       }
 
       if (!currentId) {
         const user = Auth.getCurrentUser();
         if (user?.name) {
           selectors.fields.resp.value = user.name;
-          selectors.fields.resp.setAttribute('readonly', 'readonly');
+          selectors.fields.resp.setAttribute('readonly','readonly');
         }
       }
 
@@ -556,6 +565,7 @@
         type:        f.type.value,
         responsible: f.resp.value,
         department:  f.dept.value,
+        materia:     f.materia.value,
         status:      f.status.value,
         description: f.desc.value,
         time:        `${f.start.value}-${f.end.value}`,
@@ -583,11 +593,16 @@
 
     function init() {
       cacheSelectors();
+
+      // inicia matéria desabilitado
+      selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+      selectors.fields.materia.disabled = true;
+
       selectors.btnOpen?.addEventListener('click', () => open());
       selectors.btnClose?.addEventListener('click', close);
       selectors.form?.addEventListener('submit', handleSubmit);
 
-      // salas
+      // mapa de salas
       const salaOpts = {
         'Laboratório': ['Lab401','Lab402','Lab403'],
         'Sala de Aula': ['Sala101','Sala102','Sala103'],
@@ -605,30 +620,52 @@
         }
       });
 
-      // cursos × matérias
+      // mapa de cursos × matérias
       const courseMap = {
         'Engenharia de Computação': [
-          'ARA0003 - PRINCÍPIOS DE GESTÃO', 'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
-          'ARA0039 - ARQUITETURA DE COMPUTADORES', 'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
-          'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL', 'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
-          'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO', 'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
-          'ARA1386 - SISTEMAS OPERACIONAIS', 'ARA0002 - PENSAMENTO COMPUTACIONAL',
-          'ARA0014 - ANÁLISE DE DADOS', 'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
-          'ARA0044 - ELETRICIDADE E MAGNETISMO', 'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
-          'ARA1398 - MECÂNICA DOS SÓLIDOS', 'ARA0029 - ELETRICIDADE APLICADA',
-          'ARA0030 - EQUAÇÕES DIFERENCIAIS', 'ARA0046 - FENÔMENOS DE TRANSPORTE',
-          'ARA0056 - QUÍMICA TECNOLÓGICA', 'ARA2042 - SISTEMAS DIGITAIS',
-          'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES', 'ARA0083 - ELETRÔNICA ANALÓGICA',
-          'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS', 'ARA1943 - MODELAGEM MATEMÁTICA',
-          'ARA0040 - BANCO DE DADOS', 'ARA0098 - ESTRUTURA DE DADOS', 'COMPILADORES',
-          'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA', 'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
-          'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL', 'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
-          'ARA2086 - ALGORITMOS EM GRAFOS', 'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
-          'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS', 'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
-          'ARA0085 - INTELIGÊNCIA ARTIFICIAL', 'ARA0115 - SISTEMAS EMBARCADOS',
-          'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.', 'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
-          'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO', 'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
-          'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP', 'ARA2074 - SEGURANÇA CIBERNÉTICA'
+          'ARA0003 - PRINCÍPIOS DE GESTÃO',
+          'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
+          'ARA0039 - ARQUITETURA DE COMPUTADORES',
+          'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
+          'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
+          'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+          'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
+          'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
+          'ARA1386 - SISTEMAS OPERACIONAIS',
+          'ARA0002 - PENSAMENTO COMPUTACIONAL',
+          'ARA0014 - ANÁLISE DE DADOS',
+          'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+          'ARA0044 - ELETRICIDADE E MAGNETISMO',
+          'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
+          'ARA1398 - MECÂNICA DOS SÓLIDOS',
+          'ARA0029 - ELETRICIDADE APLICADA',
+          'ARA0030 - EQUAÇÕES DIFERENCIAIS',
+          'ARA0046 - FENÔMENOS DE TRANSPORTE',
+          'ARA0056 - QUÍMICA TECNOLÓGICA',
+          'ARA2042 - SISTEMAS DIGITAIS',
+          'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+          'ARA0083 - ELETRÔNICA ANALÓGICA',
+          'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
+          'ARA1943 - MODELAGEM MATEMÁTICA',
+          'ARA0040 - BANCO DE DADOS',
+          'ARA0098 - ESTRUTURA DE DADOS',
+          'COMPILADORES',
+          'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
+          'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
+          'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+          'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
+          'ARA2086 - ALGORITMOS EM GRAFOS',
+          'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+          'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
+          'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
+          'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+          'ARA0115 - SISTEMAS EMBARCADOS',
+          'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
+          'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+          'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
+          'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+          'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+          'ARA2074 - SEGURANÇA CIBERNÉTICA'
         ]
       };
 
@@ -636,10 +673,15 @@
         const curso = selectors.fields.dept.value;
         const lista = courseMap[curso] || [];
         const sel   = selectors.fields.materia;
-        sel.innerHTML = lista.length
-          ? '<option value="">Selecione a matéria...</option>' +
-            lista.map(m => `<option value="${m}">${m}</option>`).join('')
-          : '<option value="">Digite primeiro um curso válido</option>';
+        if (lista.length) {
+          sel.innerHTML =
+            '<option value="">Selecione a matéria...</option>' +
+            lista.map(m => `<option value="${m}">${m}</option>`).join('');
+          sel.disabled = false;
+        } else {
+          sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+          sel.disabled = true;
+        }
       });
     }
 
@@ -678,7 +720,7 @@
       f.type.textContent     = `Evento: ${ev.type}`;
       f.resp.textContent     = `Responsável: ${ev.responsible}`;
       f.dept.textContent     = `Curso: ${ev.department}`;
-      f.materia.textContent  = `Matéria: ${ev.materia}`;
+      f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
       f.status.textContent   = `Status: ${ev.status}`;
       f.desc.textContent     = ev.description || 'Sem descrição';
       selectors.modal.classList.remove('hidden');
@@ -751,10 +793,10 @@
 
     // link menu off-canvas
     document.getElementById('menu-toggle').addEventListener('click', () => {
-      document.getElementById('side-menu').classList.toggle('show');
+      const menu = document.getElementById('side-menu');
       const bars = document.querySelectorAll('#menu-toggle span');
-      const open = document.getElementById('side-menu').classList.contains('show');
-      if (open) {
+      menu.classList.toggle('show');
+      if (menu.classList.contains('show')) {
         bars[0].classList.add('rotate-45','translate-y-1');
         bars[1].classList.add('-rotate-45','-translate-y-1');
       } else {
@@ -763,8 +805,9 @@
       }
     });
     document.getElementById('menu-close').addEventListener('click', () => {
-      document.getElementById('side-menu').classList.remove('show');
+      const menu = document.getElementById('side-menu');
       const bars = document.querySelectorAll('#menu-toggle span');
+      menu.classList.remove('show');
       bars[0].classList.remove('rotate-45','translate-y-1');
       bars[1].classList.remove('-rotate-45','-translate-y-1');
     });
