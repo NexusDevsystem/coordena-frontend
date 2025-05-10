@@ -8,325 +8,159 @@
   <!-- Favicon -->
   <link rel="icon" href="../assets/img/logo.png" type="image/png" />
 
-  <!-- PWA / full-screen on mobile -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#2563EB">
-  <link rel="manifest" href="../manifest.json">
-
   <!-- Tailwind + Dark Mode -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
 
-  <!-- Aplica imediatamente o tema salvo (evita flash) -->
+  <!-- Pre-apply theme -->
   <script>
     const _theme = localStorage.getItem('theme') || 'light';
-    document.documentElement.classList.remove('light');
-    if (_theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
+    document.documentElement.classList.toggle('dark', _theme === 'dark');
   </script>
 
-  <link rel="stylesheet" href="../assets/css/styles.css" />
-
-  <!-- FullCalendar CSS & JS -->
+  <!-- FullCalendar -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
+  <!-- Auth library -->
+  <script src="../assets/js/auth.js"></script>
+
   <style>
-    /* ================================
-       Layout & Botões
-       ================================ */
-    body {
-      background-image: url("../assets/img/background.png");
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-    }
-    .dark body {
-      background-image: url("../assets/img/backgrounddark.png");
-    }
-    @media (max-width: 768px) {
-      html, body { height: 100vh; overflow: hidden; }
-    }
-    @media (min-width: 769px) {
-      body { overflow-y: auto; }
-    }
-
-    .notification-btn,
-    .profile-btn,
-    #menu-toggle {
-      width: 2.5rem; height: 2.5rem;
-      border-radius: 0.5rem;
-      display: flex; align-items: center; justify-content: center;
-      border: 2px solid rgba(229,231,235);
-      background: var(--tw-bg-opacity,1) currentColor;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .notification-btn:hover,
-    .notification-btn:focus,
-    .profile-btn:hover,
-    .profile-btn:focus,
-    #menu-toggle:hover,
-    #menu-toggle:focus {
-      border-color: #3B82F6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.4);
-    }
-    .dark .notification-btn,
-    .dark .profile-btn,
-    .dark #menu-toggle {
-      border-color: rgba(55,65,81);
-    }
-
-    /* perfil dropdown */
-    .profile-dropdown {
-      display: none;
-      position: absolute; top: 3rem; right: 0;
-      background: white; border-radius: .5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.1);
-      z-index: 60; min-width: 12rem;
-    }
-    .profile-dropdown a {
-      display: block; padding: .75rem 1rem;
-      color: #374151; text-decoration: none; font-size: .875rem;
-    }
-    .profile-dropdown a:hover { background: #F3F4F6; }
-    .dark .profile-dropdown { background: #1F2937; }
-    .dark .profile-dropdown a { color: #D1D5DB; }
-    .dark .profile-dropdown a:hover { background: #374151; color: #F9FAFB; }
-
-    /* off-canvas menu */
+    /* ===========
+       Off-canvas
+       =========== */
     #side-menu {
-      position: fixed; top: 0; left: 0;
+      position: fixed; top: 0; right: 0;
       width: 16rem; height: 100vh;
-      background: white; box-shadow: 2px 0 8px rgba(0,0,0,.1);
-      transform: translateX(-100%); transition: transform .3s ease;
-      z-index: 55;
+      background: white; box-shadow: -2px 0 8px rgba(0,0,0,.1);
+      transform: translateX(100%); transition: transform .5s cubic-bezier(.2,0,.2,1);
+      z-index: 60; display: flex; flex-direction: column;
     }
     #side-menu.show { transform: translateX(0); }
-    .dark #side-menu { background: #1F2937; color: #D1D5DB; }
+    .dark #side-menu { background: #1F2937; color: #D1D5DB; box-shadow: -2px 0 8px rgba(0,0,0,.4); }
+
+    /* Header do menu */
     #side-menu .menu-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 1rem; border-bottom: 1px solid rgba(229,231,235);
     }
+    .dark #side-menu .menu-header { border-color: rgba(55,65,81); }
+
+    /* Nav links */
     #side-menu nav a {
       display: block; padding: .75rem 1rem;
-      border-bottom: 1px solid rgba(229,231,235);
       color: inherit; text-decoration: none;
+      border-bottom: 1px solid rgba(229,231,235);
     }
     #side-menu nav a:hover { background: rgba(0,0,0,.05); }
     .dark #side-menu nav a { border-color: rgba(55,65,81); }
     .dark #side-menu nav a:hover { background: rgba(255,255,255,.1); }
-  </style>
 
-  <!-- Auth library -->
-  <script src="../assets/js/auth.js"></script>
+    /* Botões dentro do menu */
+    .menu-header button {
+      width: 2rem; height: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: transparent; cursor: pointer;
+      color: inherit; font-size: 1.25rem;
+      transition: color .2s;
+    }
+    .menu-header button:hover { color: #3B82F6; }
+
+    /* Toggle externo */
+    #menu-toggle {
+      position: fixed; top: 1rem; right: 1rem;
+      width: 2.5rem; height: 2.5rem;
+      background: #E5E7EB; border-radius: .5rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      z-index: 65;
+    }
+    .dark #menu-toggle { background: #374151; }
+
+    /* Mobile scroll lock */
+    @media (max-width: 768px) {
+      html, body { height: 100vh; overflow: hidden; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
 
   <script>
-    // Proteção de rota
+    // Protege esta página: redireciona se não autenticado
     const user = Auth.getCurrentUser();
     if (!user) window.location.href = '../login.html';
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('open-form-modal')?.classList.add('hidden');
-        document.getElementById('modal-edit')?.classList.add('hidden');
-        document.getElementById('modal-cancel')?.classList.add('hidden');
+        ['open-form-modal','modal-edit','modal-cancel'].forEach(id=>{
+          document.getElementById(id)?.classList.add('hidden');
+        });
       });
     }
   </script>
 
-  <!-- Off-canvas Menu -->
+  <!-- Botão de abrir menu -->
+  <button id="menu-toggle" aria-label="Abrir menu">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+
+  <!-- Off-canvas menu -->
   <div id="side-menu">
     <div class="menu-header">
       <span class="font-semibold">Menu</span>
-      <button id="menu-close" class="notification-btn">&times;</button>
+      <div class="flex items-center space-x-2">
+        <!-- Dark mode toggle inside do menu -->
+        <button id="theme-toggle" title="Alternar tema">🌓</button>
+        <button id="menu-close" title="Fechar">×</button>
+      </div>
     </div>
-    <nav>
+    <nav class="flex-1 overflow-auto">
       <a href="#" id="menu-notifications">Notificações</a>
       <a href="#" id="menu-profile">Perfil</a>
-      <a href="#" id="menu-theme">Alternar Tema</a>
       <a href="#" id="menu-logout">Sair</a>
     </nav>
   </div>
 
-  <!-- Top controls -->
-  <div class="fixed top-4 right-4 flex items-center space-x-3 z-50">
-    <button id="menu-toggle" class="bg-gray-200 dark:bg-gray-800 focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </button>
-
-    <button id="notification-btn" class="notification-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-      <img src="../assets/img/icons/noti.png" alt="Notificações" class="w-5 h-5" />
-    </button>
-
-    <div class="relative">
-      <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-        <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-2">
-          <p id="dropdown-username" class="font-semibold dark:text-gray-100">—</p>
-          <p id="dropdown-email"    class="text-sm dark:text-gray-400">—</p>
-        </div>
-        <div class="border-t dark:border-gray-700"></div>
-        <a href="#">Teste 1</a>
-        <a href="#">Teste 2</a>
-        <div class="border-t dark:border-gray-700"></div>
-        <a href="#" id="logout-link">Sair</a>
-      </div>
-    </div>
-
-    <button id="theme-toggle"
-            class="p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-6 w-6 text-gray-800 dark:text-gray-200"
-           fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-                 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-                 m0 12.02l.7-.7M17.66 6.34l.7-.7
-                 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Quick Access -->
-  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
-    <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
-      </svg>
-    </a>
-    <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
-                 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Main content -->
+  <!-- Conteúdo principal -->
   <main class="pt-24 pb-8 mx-auto max-w-full px-4 space-y-8">
     <h1 class="text-3xl font-semibold text-center">Agendamento de Recursos</h1>
     <div class="flex justify-center">
-      <button id="open-form-modal"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
+      <button id="open-form-modal" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
       </button>
     </div>
     <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        Calendário de Reservas
-      </h2>
+      <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Calendário de Reservas</h2>
       <div id="calendar" class="w-full h-[600px]"></div>
     </section>
   </main>
 
-  <!-- Modal de Form -->
+  <!-- Modal de Formulário -->
   <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
     <div class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6">
       <button id="form-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">✕</button>
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Novo Agendamento</h3>
       <form id="agendamento-form" class="space-y-4">
-        <!-- Data -->
-        <div>
-          <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
-          <input type="date" id="data" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-        </div>
-        <!-- Horário -->
+        <!-- campos de data/hora/recurso/tipo/sala/responsável/curso/matéria/status/descrição -->
+        <div><label for="data" class="block text-sm text-gray-700 dark:text-gray-300">Data</label><input type="date" id="data" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></div>
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
-            <input type="time" id="start" min="07:00" max="22:00" step="60" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-          </div>
-          <div>
-            <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
-            <input type="time" id="end" min="07:00" max="22:00" step="60" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-          </div>
+          <div><label for="start" class="block text-sm text-gray-700 dark:text-gray-300">Início</label><input type="time" id="start" required min="07:00" max="22:00" step="60" class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></div>
+          <div><label for="end" class="block text-sm text-gray-700 dark:text-gray-300">Término</label><input type="time" id="end" required min="07:00" max="22:00" step="60" class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></div>
         </div>
-        <!-- Recurso / Tipo -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
-            <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-              <option value="">Selecione...</option>
-              <option>Laboratório</option>
-              <option>Sala de Aula</option>
-              <option>Auditório</option>
-            </select>
-          </div>
-          <div>
-            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
-            <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-              <option value="">Selecione...</option>
-              <option>Aula</option>
-              <option>Reunião</option>
-              <option>Palestra</option>
-              <option>Workshop</option>
-            </select>
-          </div>
+          <div><label for="recurso" class="block text-sm text-gray-700 dark:text-gray-300">Recurso</label><select id="recurso" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"><option value="">Selecione...</option><option>Laboratório</option><option>Sala de Aula</option><option>Auditório</option></select></div>
+          <div><label for="tipo-evento" class="block text-sm text-gray-700 dark:text-gray-300">Tipo de Evento</label><select id="tipo-evento" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"><option value="">Selecione...</option><option>Aula</option><option>Reunião</option><option>Palestra</option><option>Workshop</option></select></div>
         </div>
-        <!-- Sala (condicional) -->
-        <div id="sala-container" class="hidden">
-          <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
-          <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-            <option value="">Selecione...</option>
-          </select>
-        </div>
-        <!-- Responsável -->
-        <div>
-          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
-          <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-        </div>
-        <!-- Curso / Matéria -->
+        <div id="sala-container" class="hidden"><label for="sala" class="block text-sm text-gray-700 dark:text-gray-300">Qual Sala?</label><select id="sala" class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"><option value="">Selecione...</option></select></div>
+        <div><label for="responsavel" class="block text-sm text-gray-700 dark:text-gray-300">Responsável</label><input type="text" id="responsavel" placeholder="Nome do professor" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-            <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-          </div>
-          <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
-            <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-              <option value="">Selecione a matéria...</option>
-            </select>
-          </div>
+          <div><label for="departamento" class="block text-sm text-gray-700 dark:text-gray-300">Curso</label><input type="text" id="departamento" placeholder="Ex: Engenharia de Computação" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></div>
+          <div><label for="curso" class="block text-sm text-gray-700 dark:text-gray-300">Matéria</label><select id="curso" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"><option value="">Selecione a matéria...</option></select></div>
         </div>
-        <!-- Status -->
-        <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
-          <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
-            <option value="Pendente">Pendente</option>
-            <option value="Aprovado">Aprovado</option>
-            <option value="Rejeitado">Rejeitado</option>
-          </select>
-        </div>
-        <!-- Descrição -->
-        <div>
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
-          <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
-        </div>
-        <!-- Botão Confirmar -->
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
-          Confirmar
-        </button>
+        <div><label for="status" class="block text-sm text-gray-700 dark:text-gray-300">Status da Reserva</label><select id="status" required class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"><option value="Pendente">Pendente</option><option value="Aprovado">Aprovado</option><option value="Rejeitado">Rejeitado</option></select></div>
+        <div><label for="descricao" class="block text-sm text-gray-700 dark:text-gray-300">Descrição (opcional)</label><textarea id="descricao" rows="3" class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea></div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">Confirmar</button>
       </form>
     </div>
   </div>
@@ -351,14 +185,45 @@
   </div>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
-    Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
+    Desenvolvido por Nexus · 2025 • Todos os direitos reservados.
   </footer>
 
-  <!-- Todos os módulos JS inline -->
+  <!-- Menu & Darkmode logic -->
   <script>
-  // ----------------------
+    // Abre/fecha menu
+    document.getElementById('menu-toggle').addEventListener('click', () => {
+      document.getElementById('side-menu').classList.add('show');
+    });
+    document.getElementById('menu-close').addEventListener('click', () => {
+      document.getElementById('side-menu').classList.remove('show');
+    });
+    // Linkagem para notificações/perfil/logout
+    document.getElementById('menu-notifications').addEventListener('click', () => {
+      document.getElementById('notification-btn')?.click();
+      document.getElementById('side-menu').classList.remove('show');
+    });
+    document.getElementById('menu-profile').addEventListener('click', () => {
+      document.getElementById('profile-btn')?.click();
+      document.getElementById('side-menu').classList.remove('show');
+    });
+    document.getElementById('menu-logout').addEventListener('click', () => {
+      document.getElementById('logout-link')?.click();
+    });
+    // Toggle tema já vinculado ao botão interno
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const root = document.documentElement;
+      const mode = root.classList.contains('dark') ? 'light' : 'dark';
+      root.classList.toggle('dark', mode === 'dark');
+      localStorage.setItem('theme', mode);
+    });
+  </script>
+
+  <!-- =============================
+       Aqui começam SEUS MÓDULOS JS
+       (copie exatamente do seu main.js)
+       ============================= -->
+  <script>
   // UTILIDADES
-  // ----------------------
   function onReady(fn) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fn);
@@ -367,454 +232,271 @@
     }
   }
 
-  // ----------------------
-  // MÓDULO DE TEMA (Dark/Light)
-  // ----------------------
-  const ThemeToggle = (() => {
-    const themeKey = 'theme';
-    const root     = document.documentElement;
+  // MÓDULO DE TEMA (Dark/Light) – já inicializado no menu
 
-    function applyTheme(mode) {
-      root.classList.toggle('dark', mode === 'dark');
-      localStorage.setItem(themeKey, mode);
-    }
-
-    function init() {
-      const saved = localStorage.getItem(themeKey) || 'light';
-      applyTheme(saved);
-      const btn = document.getElementById('theme-toggle');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
-        });
-      }
-    }
-
-    return { init };
-  })();
-
-  // ----------------------
   // MÓDULO DE API
-  // ----------------------
   const Api = (() => {
     const BASE = window.location.hostname.includes('localhost')
       ? 'http://localhost:10000/api/reservas'
       : 'https://coordena-backend.onrender.com/api/reservas';
-
     function authHeaders(isJson = false) {
-      const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
+      const headers = { 'Authorization': `Bearer ${Auth.getToken()||''}` };
       if (isJson) headers['Content-Type'] = 'application/json';
       return headers;
     }
-
     async function fetchEvents() {
       const res = await fetch(BASE, { headers: authHeaders(false) });
       if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
       return res.json();
     }
-
     async function createEvent(data) {
       const res = await fetch(BASE, {
-        method: 'POST',
-        headers: authHeaders(true),
-        body: JSON.stringify(data)
+        method: 'POST', headers: authHeaders(true), body: JSON.stringify(data)
       });
       if (!res.ok) throw new Error('Falha ao criar reserva');
       return res.json();
     }
-
-    async function updateEvent(id, data) {
-      const res = await fetch(`${BASE}/${id}`, {
-        method: 'PUT',
-        headers: authHeaders(true),
-        body: JSON.stringify(data)
+    async function updateEvent(id,data){
+      const res = await fetch(`${BASE}/${id}`,{
+        method:'PUT',headers:authHeaders(true),body:JSON.stringify(data)
       });
-      if (!res.ok) throw new Error('Falha ao atualizar reserva');
+      if(!res.ok) throw new Error('Falha ao atualizar reserva');
       return res.json();
     }
-
-    async function deleteEvent(id) {
-      const res = await fetch(`${BASE}/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders(false)
+    async function deleteEvent(id){
+      const res = await fetch(`${BASE}/${id}`,{
+        method:'DELETE',headers:authHeaders(false)
       });
-      if (!res.ok) throw new Error('Falha ao excluir reserva');
+      if(!res.ok) throw new Error('Falha ao excluir reserva');
     }
-
     return { fetchEvents, createEvent, updateEvent, deleteEvent };
   })();
 
-  // ----------------------
-  // MÓDULO CALENDÁRIO (SUPORTE MOBILE)
-  // ----------------------
+  // MÓDULO CALENDÁRIO
   const CalendarModule = (() => {
-    let calendar;
-    let events = [];
-
-    function init(rawEvents, onDateClick, onEventClick) {
-      events = rawEvents;
+    let calendar, events = [];
+    function init(raw, onDateClick, onEventClick){
+      events = raw;
       const el = document.getElementById('calendar');
-      if (!el) return console.error('#calendar não encontrado');
-
+      if(!el) return console.error('#calendar não encontrado');
       const isMobile = window.innerWidth < 640;
-      calendar = new FullCalendar.Calendar(el, {
-        locale: 'pt-br',
-        initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-        headerToolbar: {
-          left:   isMobile ? 'prev,next' : 'prev,next today',
-          center: 'title',
-          right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      calendar = new FullCalendar.Calendar(el,{
+        locale:'pt-br',
+        initialView: isMobile?'listWeek':'dayGridMonth',
+        headerToolbar:{
+          left: isMobile?'prev,next':'prev,next today',
+          center:'title',
+          right: isMobile?'':'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: events.map(e => ({
-          id:    e._id,
-          title: `${e.title} (${e.time})`,
-          start: `${e.date}T${e.start}`,
-          end:   `${e.date}T${e.end}`
+        events: events.map(e=>({
+          id:e._id,
+          title:`${e.title} (${e.time})`,
+          start:`${e.date}T${e.start}`,
+          end:`${e.date}T${e.end}`
         })),
-        dateClick:  onDateClick,
-        eventClick: onEventClick,
-        height:     el.clientHeight,
-        allDaySlot: false
+        dateClick:onDateClick,
+        eventClick:onEventClick,
+        height:el.clientHeight,
+        allDaySlot:false
       });
-
       calendar.render();
-      window.addEventListener('resize', () => {
-        const nowMobile = window.innerWidth < 640;
-        const newView   = nowMobile ? 'listWeek' : 'dayGridMonth';
-        calendar.changeView(newView);
-        calendar.setOption('headerToolbar', {
-          left:   nowMobile ? 'prev,next' : 'prev,next today',
-          center: 'title',
-          right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      window.addEventListener('resize',()=>{
+        const nowMobile = window.innerWidth<640;
+        calendar.changeView(nowMobile?'listWeek':'dayGridMonth');
+        calendar.setOption('headerToolbar',{
+          left: nowMobile?'prev,next':'prev,next today',
+          center:'title',
+          right: nowMobile?'':'dayGridMonth,timeGridWeek,timeGridDay'
         });
       });
     }
-
-    function add(ev) {
-      calendar.addEvent({
-        id:    ev._id,
-        title: `${ev.title} (${ev.time})`,
-        start: `${ev.date}T${ev.start}`,
-        end:   `${ev.date}T${ev.end}`
-      });
-      events.push(ev);
-    }
-
-    function update(id, ev) {
-      events = events.map(e => (e._id === id ? ev : e));
-      const obj = calendar.getEventById(id);
-      if (obj) {
-        obj.setProp('title', `${ev.title} (${ev.time})`);
-        obj.setStart(`${ev.date}T${ev.start}`);
-        obj.setEnd(`${ev.date}T${ev.end}`);
-      }
-    }
-
-    function remove(id) {
-      events = events.filter(e => e._id !== id);
-      calendar.getEventById(id)?.remove();
-    }
-
-    return { init, add, update, remove, getEvents: () => events };
+    function add(ev){ calendar.addEvent({ id:ev._id, title:`${ev.title} (${ev.time})`, start:`${ev.date}T${ev.start}`, end:`${ev.date}T${ev.end}` }); events.push(ev); }
+    function update(id,ev){ events=events.map(e=>e._id===id?ev:e); const obj=calendar.getEventById(id); if(obj){ obj.setProp('title',`${ev.title} (${ev.time})`); obj.setStart(`${ev.date}T${ev.start}`); obj.setEnd(`${ev.date}T${ev.end}`); } }
+    function remove(id){ events=events.filter(e=>e._id!==id); calendar.getEventById(id)?.remove(); }
+    return { init, add, update, remove, getEvents:()=>events };
   })();
 
-  // ----------------------
   // MÓDULO FORMULÁRIO
-  // ----------------------
   const FormModule = (() => {
-    let currentId = null;
-    const selectors = {};
-
-    function cacheSelectors() {
-      selectors.modal    = document.getElementById('form-modal');
-      selectors.form     = document.getElementById('agendamento-form');
-      selectors.btnOpen  = document.getElementById('open-form-modal');
-      selectors.btnClose = document.getElementById('form-close');
-      selectors.fields   = {
-        data:          document.getElementById('data'),
-        start:         document.getElementById('start'),
-        end:           document.getElementById('end'),
-        recurso:       document.getElementById('recurso'),
+    let currentId=null; const selectors={};
+    function cacheSelectors(){
+      selectors.modal    =document.getElementById('form-modal');
+      selectors.form     =document.getElementById('agendamento-form');
+      selectors.btnOpen  =document.getElementById('open-form-modal');
+      selectors.btnClose =document.getElementById('form-close');
+      selectors.fields   ={
+        data: document.getElementById('data'),
+        start: document.getElementById('start'),
+        end: document.getElementById('end'),
+        recurso: document.getElementById('recurso'),
         salaContainer: document.getElementById('sala-container'),
-        sala:          document.getElementById('sala'),
-        type:          document.getElementById('tipo-evento'),
-        resp:          document.getElementById('responsavel'),
-        dept:          document.getElementById('departamento'),
-        materia:       document.getElementById('curso'),
-        status:        document.getElementById('status'),
-        desc:          document.getElementById('descricao')
+        sala: document.getElementById('sala'),
+        type: document.getElementById('tipo-evento'),
+        resp: document.getElementById('responsavel'),
+        dept: document.getElementById('departamento'),
+        materia: document.getElementById('curso'),
+        status: document.getElementById('status'),
+        desc: document.getElementById('descricao')
       };
     }
-
-    function open(id = null, evData = null) {
-      currentId = id;
-      selectors.form.reset();
-      selectors.fields.salaContainer.classList.add('hidden');
-
-      if (evData) {
-        selectors.fields.data.value    = evData.date;
-        selectors.fields.start.value   = evData.start;
-        selectors.fields.end.value     = evData.end;
-        selectors.fields.recurso.value = evData.resource;
+    function open(id=null,evData=null){
+      currentId=id; selectors.form.reset(); selectors.fields.salaContainer.classList.add('hidden');
+      if(evData){
+        selectors.fields.data.value    =evData.date;
+        selectors.fields.start.value   =evData.start;
+        selectors.fields.end.value     =evData.end;
+        selectors.fields.recurso.value =evData.resource;
         selectors.fields.recurso.dispatchEvent(new Event('change'));
-        selectors.fields.sala.value    = evData.sala || '';
-        selectors.fields.type.value    = evData.type;
-        selectors.fields.resp.value    = evData.responsible;
-        selectors.fields.dept.value    = evData.department;
-        selectors.fields.status.value  = evData.status;
-        selectors.fields.desc.value    = evData.description;
+        selectors.fields.sala.value    =evData.sala||'';
+        selectors.fields.type.value    =evData.type;
+        selectors.fields.resp.value    =evData.responsible;
+        selectors.fields.dept.value    =evData.department;
+        selectors.fields.status.value  =evData.status;
+        selectors.fields.desc.value    =evData.description;
       }
-
-      if (!currentId) {
-        const user = Auth.getCurrentUser();
-        if (user?.name) {
-          selectors.fields.resp.value = user.name;
-          selectors.fields.resp.setAttribute('readonly', 'readonly');
-        }
+      if(!currentId){
+        const u=Auth.getCurrentUser();
+        if(u?.name){ selectors.fields.resp.value=u.name; selectors.fields.resp.setAttribute('readonly','readonly'); }
       }
-
       selectors.modal.classList.remove('hidden');
     }
-
-    function close() {
-      selectors.modal.classList.add('hidden');
-    }
-
-    function handleSubmit(e) {
+    function close(){ selectors.modal.classList.add('hidden'); }
+    function handleSubmit(e){
       e.preventDefault();
-      const f = selectors.fields;
-      const payload = {
-        date:        f.data.value,
-        start:       f.start.value,
-        end:         f.end.value,
-        resource:    f.recurso.value,
-        sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-        type:        f.type.value,
+      const f=selectors.fields;
+      const payload={
+        date: f.data.value,
+        start: f.start.value,
+        end: f.end.value,
+        resource: f.recurso.value,
+        sala: f.salaContainer.classList.contains('hidden')?'':f.sala.value,
+        type: f.type.value,
         responsible: f.resp.value,
-        department:  f.dept.value,
-        status:      f.status.value,
+        department: f.dept.value,
+        status: f.status.value,
         description: f.desc.value,
-        time:        `${f.start.value}-${f.end.value}`,
-        title:       f.salaContainer.classList.contains('hidden')
-                      ? f.type.value
-                      : `${f.type.value} - ${f.sala.value}`
+        time: `${f.start.value}-${f.end.value}`,
+        title: f.salaContainer.classList.contains('hidden')?f.type.value:`${f.type.value} - ${f.sala.value}`
       };
-
-      (async () => {
-        try {
+      (async()=>{
+        try{
           let saved;
-          if (currentId) {
-            saved = await Api.updateEvent(currentId, payload);
-            CalendarModule.update(currentId, saved);
-          } else {
-            saved = await Api.createEvent(payload);
-            CalendarModule.add(saved);
-          }
+          if(currentId){ saved=await Api.updateEvent(currentId,payload); CalendarModule.update(currentId,saved); }
+          else         { saved=await Api.createEvent(payload); CalendarModule.add(saved); }
           close();
-        } catch (err) {
-          alert(err.message);
-        }
+        }catch(err){ alert(err.message); }
       })();
     }
-
-    function init() {
+    function init(){
       cacheSelectors();
-      selectors.btnOpen?.addEventListener('click', () => open());
-      selectors.btnClose?.addEventListener('click', close);
-      selectors.form?.addEventListener('submit', handleSubmit);
-
+      selectors.btnOpen?.addEventListener('click',()=>open());
+      selectors.btnClose?.addEventListener('click',close);
+      selectors.form?.addEventListener('submit',handleSubmit);
       // salas
-      const salaOpts = {
-        'Laboratório': ['Lab401','Lab402','Lab403'],
-        'Sala de Aula': ['Sala101','Sala102','Sala103'],
-        'Auditório': ['Auditório A','Auditório B']
-      };
-      selectors.fields.recurso?.addEventListener('change', () => {
-        const tipo = selectors.fields.recurso.value;
-        if (salaOpts[tipo]) {
+      const salaOpts={ 'Laboratório':['Lab401','Lab402','Lab403'], 'Sala de Aula':['Sala101','Sala102','Sala103'], 'Auditório':['Auditório A','Auditório B'] };
+      selectors.fields.recurso?.addEventListener('change',()=>{
+        const tipo=selectors.fields.recurso.value;
+        if(salaOpts[tipo]){
           selectors.fields.salaContainer.classList.remove('hidden');
-          selectors.fields.sala.innerHTML =
-            '<option value="">Selecione...</option>' +
-            salaOpts[tipo].map(s => `<option>${s}</option>`).join('');
-        } else {
-          selectors.fields.salaContainer.classList.add('hidden');
-        }
+          selectors.fields.sala.innerHTML='<option value="">Selecione...</option>'+salaOpts[tipo].map(s=>`<option>${s}</option>`).join('');
+        } else selectors.fields.salaContainer.classList.add('hidden');
       });
-
       // cursos × matérias
-      const courseMap = {
-        'Engenharia de Computação': [
-          'ARA0003 - PRINCÍPIOS DE GESTÃO', 'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
-          'ARA0039 - ARQUITETURA DE COMPUTADORES', 'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
-          'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL', 'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
-          'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO', 'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
-          'ARA1386 - SISTEMAS OPERACIONAIS', 'ARA0002 - PENSAMENTO COMPUTACIONAL',
-          'ARA0014 - ANÁLISE DE DADOS', 'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
-          'ARA0044 - ELETRICIDADE E MAGNETISMO', 'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
-          'ARA1398 - MECÂNICA DOS SÓLIDOS', 'ARA0029 - ELETRICIDADE APLICADA',
-          'ARA0030 - EQUAÇÕES DIFERENCIAIS', 'ARA0046 - FENÔMENOS DE TRANSPORTE',
-          'ARA0056 - QUÍMICA TECNOLÓGICA', 'ARA2042 - SISTEMAS DIGITAIS',
-          'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES', 'ARA0083 - ELETRÔNICA ANALÓGICA',
-          'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS', 'ARA1943 - MODELAGEM MATEMÁTICA',
-          'ARA0040 - BANCO DE DADOS', 'ARA0098 - ESTRUTURA DE DADOS', 'COMPILADORES',
-          'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA', 'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
-          'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL', 'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
-          'ARA2086 - ALGORITMOS EM GRAFOS', 'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
-          'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS', 'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
-          'ARA0085 - INTELIGÊNCIA ARTIFICIAL', 'ARA0115 - SISTEMAS EMBARCADOS',
-          'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.', 'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
-          'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO', 'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
-          'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP', 'ARA2074 - SEGURANÇA CIBERNÉTICA'
+      const courseMap={
+        'Engenharia de Computação':[
+          'ARA0003 - PRINCÍPIOS DE GESTÃO','ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES','ARA0039 - ARQUITETURA DE COMPUTADORES',
+          'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE','ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL','ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+          'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO','ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA','ARA1386 - SISTEMAS OPERACIONAIS',
+          'ARA0002 - PENSAMENTO COMPUTACIONAL','ARA0014 - ANÁLISE DE DADOS','ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+          'ARA0044 - ELETRICIDADE E MAGNETISMO','ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES','ARA1398 - MECÂNICA DOS SÓLIDOS',
+          'ARA0029 - ELETRICIDADE APLICADA','ARA0030 - EQUAÇÕES DIFERENCIAIS','ARA0046 - FENÔMENOS DE TRANSPORTE',
+          'ARA0056 - QUÍMICA TECNOLÓGICA','ARA2042 - SISTEMAS DIGITAIS','ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+          'ARA0083 - ELETRÔNICA ANALÓGICA','ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS','ARA1943 - MODELAGEM MATEMÁTICA',
+          'ARA0040 - BANCO DE DADOS','ARA0098 - ESTRUTURA DE DADOS','COMPILADORES',
+          'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA','ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON','ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+          'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C','ARA2086 - ALGORITMOS EM GRAFOS','ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+          'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS','ARA1879 - AUTOMAÇÃO INDUSTRIAL','ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+          'ARA0115 - SISTEMAS EMBARCADOS','ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.','ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+          'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO','ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA','ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+          'ARA2074 - SEGURANÇA CIBERNÉTICA'
         ]
       };
-
-      selectors.fields.dept?.addEventListener('change', () => {
-        const curso = selectors.fields.dept.value;
-        const lista = courseMap[curso] || [];
-        const sel   = selectors.fields.materia;
+      selectors.fields.dept?.addEventListener('change',()=>{
+        const c=selectors.fields.dept.value;
+        const lista=courseMap[c]||[];
+        const sel=selectors.fields.materia;
         sel.innerHTML = lista.length
-          ? '<option value="">Selecione a matéria...</option>' +
-            lista.map(m => `<option value="${m}">${m}</option>`).join('')
+          ? '<option value="">Selecione a matéria...</option>'+lista.map(m=>`<option value="${m}">${m}</option>`).join('')
           : '<option value="">Digite primeiro um curso válido</option>';
       });
     }
-
     return { init, open };
   })();
 
-  // ----------------------
-  // MÓDULO MODAL DETALHES
-  // ----------------------
+  // MÓDULO DETALHES
   const DetailModule = (() => {
-    let currentId = null;
-    const selectors = {};
-
-    function cacheSelectors() {
-      selectors.modal     = document.getElementById('event-modal');
-      selectors.btnClose  = document.getElementById('modal-close');
-      selectors.btnEdit   = document.getElementById('modal-edit');
-      selectors.btnDelete = document.getElementById('modal-cancel');
-      selectors.fields    = {
-        date:     document.getElementById('modal-date'),
+    let currentId=null; const selectors={};
+    function cacheSelectors(){
+      selectors.modal     =document.getElementById('event-modal');
+      selectors.btnClose  =document.getElementById('modal-close');
+      selectors.btnEdit   =document.getElementById('modal-edit');
+      selectors.btnDelete =document.getElementById('modal-cancel');
+      selectors.fields    ={
+        date: document.getElementById('modal-date'),
         resource: document.getElementById('modal-resource'),
-        type:     document.getElementById('modal-type'),
-        resp:     document.getElementById('modal-resp'),
-        dept:     document.getElementById('modal-dept'),
-        materia:  document.getElementById('modal-materia'),
-        status:   document.getElementById('modal-status'),
-        desc:     document.getElementById('modal-desc')
+        type: document.getElementById('modal-type'),
+        resp: document.getElementById('modal-resp'),
+        dept: document.getElementById('modal-dept'),
+        status: document.getElementById('modal-status'),
+        desc: document.getElementById('modal-desc')
       };
     }
-
-    function open(ev) {
-      currentId = ev._id;
-      const f = selectors.fields;
-      f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
-      f.resource.textContent = `Recurso: ${ev.resource}`;
-      f.type.textContent     = `Evento: ${ev.type}`;
-      f.resp.textContent     = `Responsável: ${ev.responsible}`;
-      f.dept.textContent     = `Curso: ${ev.department}`;
-      f.materia.textContent  = `Matéria: ${ev.materia}`;
-      f.status.textContent   = `Status: ${ev.status}`;
-      f.desc.textContent     = ev.description || 'Sem descrição';
+    function open(ev){
+      currentId=ev._id;
+      const f=selectors.fields;
+      f.date.textContent     =`Data: ${ev.date} (${ev.time})`;
+      f.resource.textContent =`Recurso: ${ev.resource}`;
+      f.type.textContent     =`Evento: ${ev.type}`;
+      f.resp.textContent     =`Responsável: ${ev.responsible}`;
+      f.dept.textContent     =`Departamento: ${ev.department}`;
+      f.status.textContent   =`Status: ${ev.status}`;
+      f.desc.textContent     =ev.description||'Sem descrição';
       selectors.modal.classList.remove('hidden');
     }
-
-    function close() {
-      selectors.modal.classList.add('hidden');
-    }
-
-    function init() {
+    function close(){ selectors.modal.classList.add('hidden'); }
+    function init(){
       cacheSelectors();
-      selectors.btnClose?.addEventListener('click', close);
-      selectors.btnEdit?.addEventListener('click', () => {
-        if (!currentId) return;
-        const ev = CalendarModule.getEvents().find(e => e._id === currentId);
-        if (ev) FormModule.open(currentId, ev);
+      selectors.btnClose?.addEventListener('click',close);
+      selectors.btnEdit?.addEventListener('click',()=>{
+        if(!currentId)return;
+        const ev=CalendarModule.getEvents().find(e=>e._id===currentId);
+        if(ev) FormModule.open(currentId,ev);
         close();
       });
-      selectors.btnDelete?.addEventListener('click', async () => {
-        if (!currentId) return;
-        try {
-          await Api.deleteEvent(currentId);
-          CalendarModule.remove(currentId);
-          close();
-        } catch (err) {
-          alert(err.message);
-        }
+      selectors.btnDelete?.addEventListener('click',async()=>{
+        if(!currentId)return;
+        try{ await Api.deleteEvent(currentId); CalendarModule.remove(currentId); close(); }
+        catch(err){ alert(err.message); }
       });
     }
-
     return { init, open };
   })();
 
-  // ----------------------
-  // INICIALIZAÇÃO PRINCIPAL
-  // ----------------------
-  onReady(async () => {
-    ThemeToggle.init();
+  // Inicialização
+  onReady(async()=>{
     FormModule.init();
     DetailModule.init();
-
-    const currentUser = Auth.getCurrentUser();
-    let data = [];
-    try {
-      data = await Api.fetchEvents();
-    } catch (err) {
-      console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
-    }
-
+    let data=[];
+    try{ data=await Api.fetchEvents(); } catch(err){ console.warn('Falha ao buscar reservas',err); }
     CalendarModule.init(
       data,
-      info => FormModule.open(null, {
-        date:        info.dateStr,
-        start:       '00:00',
-        end:         '00:00',
-        resource:    '',
-        sala:        '',
-        type:        '',
-        responsible: '',
-        department:  '',
-        status:      '',
-        description: '',
-        time:        ''
+      info=>FormModule.open(null,{
+        date:info.dateStr,start:'00:00',end:'00:00',
+        resource:'',sala:'',type:'',responsible:'',
+        department:'',status:'',description:'',time:''
       }),
-      info => {
-        const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
-        if (ev) DetailModule.open(ev);
-      }
+      info=>{ const ev=CalendarModule.getEvents().find(e=>e._id===info.event.id); if(ev)DetailModule.open(ev); }
     );
-
-    // controle de UI por papel
-    const role = currentUser?.role?.toLowerCase();
-    if (role === 'student') {
-      document.getElementById('open-form-modal')?.style.setProperty('display','none');
-      document.getElementById('modal-edit')?.style.setProperty('display','none');
-      document.getElementById('modal-cancel')?.style.setProperty('display','none');
-    }
-
-    // link entre menu off-canvas e botões
-    document.getElementById('menu-toggle').addEventListener('click', () => {
-      document.getElementById('side-menu').classList.toggle('show');
-    });
-    document.getElementById('menu-close').addEventListener('click', () => {
-      document.getElementById('side-menu').classList.remove('show');
-    });
-    document.getElementById('menu-notifications').addEventListener('click', () => {
-      document.getElementById('notification-btn').click();
-      document.getElementById('side-menu').classList.remove('show');
-    });
-    document.getElementById('menu-profile').addEventListener('click', () => {
-      document.getElementById('profile-btn').click();
-      document.getElementById('side-menu').classList.remove('show');
-    });
-    document.getElementById('menu-theme').addEventListener('click', () => {
-      document.getElementById('theme-toggle').click();
-      document.getElementById('side-menu').classList.remove('show');
-    });
-    document.getElementById('menu-logout').addEventListener('click', () => {
-      document.getElementById('logout-link').click();
-    });
   });
   </script>
 </body>
