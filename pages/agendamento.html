@@ -145,22 +145,22 @@
     </button>
 
     <!-- Perfil e dropdown -->
-    <div class="relative">
-      <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-        <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-2">
-          <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">Usuário</p>
-          <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">email@exemplo.com</p>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" class="px-4 py-2">Teste 1</a>
-        <a href="#" class="px-4 py-2">Teste 2</a>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
-      </div>
+<div class="relative">
+  <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
+    <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
+  </button>
+  <div id="profile-dropdown" class="profile-dropdown">
+    <div class="px-4 py-2">
+      <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
+      <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">—</p>
     </div>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" class="px-4 py-2">Teste 1</a>
+    <a href="#" class="px-4 py-2">Teste 2</a>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
+  </div>
+</div>
 
     <!-- Toggle Dark/Light -->
     <button id="theme-toggle"
@@ -357,39 +357,27 @@
 
   <script src="../assets/js/main.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Preenche nome/email no dropdown
-      const usr = Auth.getCurrentUser();
-      if (usr?.name)   document.getElementById('dropdown-username').textContent = usr.name;
-      if (usr?.email)  document.getElementById('dropdown-email').textContent    = usr.email;
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getCurrentUser() || {};
+    // Preenche nome e email no dropdown
+    document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
+    document.getElementById('dropdown-email').textContent    = user.email || '';
 
-      // Perfil dropdown
-      const btn   = document.getElementById('profile-btn');
-      const dd    = document.getElementById('profile-dropdown');
-      btn.addEventListener('click', () => {
-        dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
-      });
-
-      // Notificações (aqui você pode criar um dropdown próprio)
-      document.getElementById('notification-btn').addEventListener('click', () => {
-        alert('Nenhuma notificação no momento.');
-      });
-
-      // Logout
-      document.getElementById('logout-link').addEventListener('click', e => {
-        e.preventDefault();
-        Auth.logout();
-        window.location.href = '../login.html';
-      });
-
-      // Dark/light toggle
-      document.getElementById('theme-toggle').addEventListener('click', () => {
-        const rootEl = document.documentElement;
-        rootEl.classList.toggle('dark');
-        localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
-      });
+    // Toggle dropdown
+    const btn = document.getElementById('profile-btn');
+    const dd  = document.getElementById('profile-dropdown');
+    btn.addEventListener('click', () => {
+      dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
     });
-  </script>
+
+    // Logout
+    document.getElementById('logout-link').addEventListener('click', e => {
+      e.preventDefault();
+      Auth.logout();
+      window.location.href = '../login.html';
+    });
+  });
+</script>
 
 </body>
 </html>
