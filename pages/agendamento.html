@@ -23,9 +23,7 @@
   <script>
     const _theme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.remove('light');
-    if (_theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
+    if (_theme === 'dark') document.documentElement.classList.add('dark');
   </script>
 
   <link rel="stylesheet" href="../assets/css/styles.css" />
@@ -35,9 +33,9 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <style>
-    /* ================================
-       Layout & Botões
-       ================================ */
+    /* ================================================
+       Background & Scroll Lock
+       ================================================ */
     body {
       background-image: url("../assets/img/background.png");
       background-size: cover;
@@ -54,66 +52,76 @@
       body { overflow-y: auto; }
     }
 
-    .notification-btn,
-    .profile-btn {
-      width: 2.5rem; height: 2.5rem;
-      border-radius: 0.5rem;
-      display: flex; align-items: center; justify-content: center;
-      border: 2px solid rgba(229,231,235);
-      background: var(--tw-bg-opacity,1) currentColor;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .notification-btn:hover,
-    .notification-btn:focus,
-    .profile-btn:hover,
-    .profile-btn:focus {
-      border-color: #3B82F6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.4);
-    }
-    .dark .notification-btn,
-    .dark .profile-btn {
-      border-color: rgba(55,65,81);
-    }
-
-    /* perfil dropdown */
-    .profile-dropdown {
-      display: none;
-      position: absolute; top: 3rem; right: 0;
-      background: white; border-radius: .5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.1);
-      z-index: 60; min-width: 12rem;
-    }
-    .profile-dropdown a {
-      display: block; padding: .75rem 1rem;
-      color: #374151; text-decoration: none; font-size: .875rem;
-    }
-    .profile-dropdown a:hover { background: #F3F4F6; }
-    .dark .profile-dropdown { background: #1F2937; }
-    .dark .profile-dropdown a { color: #D1D5DB; }
-    .dark .profile-dropdown a:hover { background: #374151; color: #F9FAFB; }
-
-    /* off-canvas menu */
+    /* ================================================
+       Off‑canvas Menu
+       ================================================ */
     #side-menu {
-      position: fixed; top: 0; left: 0;
-      width: 16rem; height: 100vh;
-      background: white; box-shadow: 2px 0 8px rgba(0,0,0,.1);
-      transform: translateX(-100%); transition: transform .3s ease;
-      z-index: 55;
+      position: fixed;
+      inset-y: 0;
+      left: 0;
+      width: 16rem;
+      transform: translateX(-100%);
+      background: rgba(31, 41, 55, 0.8); /* gray-800 with opacity */
+      backdrop-blur: blur(8px);
+      box-shadow: 2px 0 12px rgba(0,0,0,0.5);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+      z-index: 50;
     }
-    #side-menu.show { transform: translateX(0); }
-    .dark #side-menu { background: #1F2937; color: #D1D5DB; }
+    #side-menu.show {
+      transform: translateX(0);
+    }
     #side-menu .menu-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem; border-bottom: 1px solid rgba(229,231,235);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background: linear-gradient(90deg,#4f46e5,#9333ea);
+      border-bottom-right-radius: 1rem;
+    }
+    #side-menu .menu-header h2 {
+      color: white;
+      font-weight: bold;
+      font-size: 1.125rem;
+    }
+    #side-menu .menu-header button {
+      background: rgba(255,255,255,0.2);
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s;
+    }
+    #side-menu .menu-header button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    #side-menu nav {
+      margin-top: .5rem;
     }
     #side-menu nav a {
-      display: block; padding: .75rem 1rem;
-      border-bottom: 1px solid rgba(229,231,235);
-      color: inherit; text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .75rem 1rem;
+      color: #e5e7eb; /* gray-200 */
+      transition: background .2s, color .2s;
+      border-radius: .5rem;
     }
-    #side-menu nav a:hover { background: rgba(0,0,0,.05); }
-    .dark #side-menu nav a { border-color: rgba(55,65,81); }
-    .dark #side-menu nav a:hover { background: rgba(255,255,255,.1); }
+    #side-menu nav a:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    #side-menu nav a.logout {
+      color: #f87171; /* red-400 */
+    }
+    #side-menu nav a.logout:hover {
+      background: rgba(248,113,113,0.2);
+      color: #fee2e2;
+    }
+
+    /* ensure toggle is always on top */
+    #menu-toggle { z-index: 60; }
   </style>
 
   <!-- Auth library -->
@@ -134,21 +142,62 @@
     }
   </script>
 
-  <!-- Off-canvas Menu -->
+  <!-- Off‑canvas Menu -->
   <div id="side-menu">
     <div class="menu-header">
-      <span class="font-semibold">Menu</span>
-      <button id="menu-close" class="notification-btn">&times;</button>
+      <h2>Menu</h2>
+      <button id="menu-close" aria-label="Fechar menu">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
     <nav>
-      <a href="#" id="menu-notifications">Notificações</a>
-      <a href="#" id="menu-profile">Perfil</a>
-      <a href="#" id="menu-theme">Alternar Tema</a>
-      <a href="#" id="menu-logout">Sair</a>
+      <a href="#" id="menu-notifications">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405C18.21 14.79 18 14.105 18 13.382V11
+                   a6 6 0 10-12 0v2.382c0 .723-.21 1.408-.595 1.213L4 17h5m6
+                   0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        Notificações
+      </a>
+      <a href="#" id="menu-profile">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5.121 17.804A9 9 0 1118.88 6.196
+                   M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Perfil
+      </a>
+      <a href="#" id="menu-theme">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 3v1m0 16v1m8.66-10h-1
+                   M4.34 12h-1m14.14-6.14l-.707.707
+                   M6.343 17.657l-.707.707m14.14 0l-.707-.707
+                   M6.343 6.343l-.707-.707M12 5a7 7 0
+                   100 14 7 7 0 000-14z"/>
+        </svg>
+        Alternar Tema
+      </a>
+      <a href="#" id="menu-logout" class="logout">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-12V5"/>
+        </svg>
+        Sair
+      </a>
     </nav>
   </div>
 
-  <!-- Menu Toggle Rockstar Style (agora à esquerda) -->
+  <!-- Menu Toggle Rockstar Style (esquerda) -->
   <div class="fixed top-4 left-4 z-50">
     <button id="menu-toggle"
             class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
@@ -164,14 +213,16 @@
     <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
+              d="M3 12l9-9 9 9m-1 9h-4a2 2 0
+                 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
       </svg>
     </a>
     <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
-                 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              d="M8 7V3m8 4V3m-9 8h10M5
+                 21h14a2 2 0 002-2V7a2 2 0
+                 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
       </svg>
     </button>
   </div>
@@ -318,6 +369,7 @@
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
+  <!-- Todos os módulos JS inline -->
   <script>
   // ----------------------
   // UTILIDADES
@@ -345,12 +397,10 @@
     function init() {
       const saved = localStorage.getItem(themeKey) || 'light';
       applyTheme(saved);
-      const btn = document.getElementById('theme-toggle');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
-        });
-      }
+      const btn = document.getElementById('menu-theme');
+      if (btn) btn.addEventListener('click', () => {
+        applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
+      });
     }
 
     return { init };
@@ -791,12 +841,14 @@
       }
     );
 
-    // link menu off-canvas
-    document.getElementById('menu-toggle').addEventListener('click', () => {
-      const menu = document.getElementById('side-menu');
-      const bars = document.querySelectorAll('#menu-toggle span');
-      menu.classList.toggle('show');
-      if (menu.classList.contains('show')) {
+    // Toggle off‑canvas
+    const toggle = document.getElementById('menu-toggle');
+    const menu   = document.getElementById('side-menu');
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('show');
+      const bars = toggle.querySelectorAll('span');
+      document.body.classList.toggle('overflow-hidden', open);
+      if (open) {
         bars[0].classList.add('rotate-45','translate-y-1');
         bars[1].classList.add('-rotate-45','-translate-y-1');
       } else {
@@ -805,11 +857,11 @@
       }
     });
     document.getElementById('menu-close').addEventListener('click', () => {
-      const menu = document.getElementById('side-menu');
-      const bars = document.querySelectorAll('#menu-toggle span');
       menu.classList.remove('show');
+      const bars = toggle.querySelectorAll('span');
       bars[0].classList.remove('rotate-45','translate-y-1');
       bars[1].classList.remove('-rotate-45','-translate-y-1');
+      document.body.classList.remove('overflow-hidden');
     });
   });
   </script>
