@@ -367,6 +367,7 @@ const DetailModule = (() => {
       type:     document.getElementById('modal-type'),
       resp:     document.getElementById('modal-resp'),
       dept:     document.getElementById('modal-dept'),
+      materia:  document.getElementById('modal-materia'),  // <–– novo
       status:   document.getElementById('modal-status'),
       desc:     document.getElementById('modal-desc')
     };
@@ -379,7 +380,8 @@ const DetailModule = (() => {
     f.resource.textContent = `Recurso: ${ev.resource}`;
     f.type.textContent     = `Evento: ${ev.type}`;
     f.resp.textContent     = `Responsável: ${ev.responsible}`;
-    f.dept.textContent     = `Departamento: ${ev.department}`;
+    f.dept.textContent     = `Curso: ${ev.department}`;
+    f.materia.textContent  = `Matéria: ${ev.materia}`;     // <–– popula
     f.status.textContent   = `Status: ${ev.status}`;
     f.desc.textContent     = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
