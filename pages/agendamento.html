@@ -78,7 +78,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       overflow: hidden;
       z-index: 60;
-      min-width: 10rem;
+      min-width: 12rem;
     }
     .profile-dropdown a {
       display: block;
@@ -123,21 +123,45 @@
     }
   </script>
 
-  <!-- Perfil e dropdown -->
-  <div class="fixed top-4 right-4 flex items-center z-50">
+  <!-- Perfil, notificações e dropdown -->
+  <div class="fixed top-4 right-4 flex items-center space-x-4 z-50">
+    <!-- Notificações -->
+    <button id="notif-btn" class="relative p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405M19 10V6a7 7 0 10-14 0v4l-1.405 1.405A2 2 0 005 17h10a2 2 0 001.405-3.595L15 10z" />
+      </svg>
+      <span class="absolute top-1 right-1 inline-flex items-center justify-center px-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">3</span>
+    </button>
+    <div id="notif-dropdown" class="profile-dropdown right-0">
+      <a href="#">Notificação 1</a>
+      <a href="#">Notificação 2</a>
+      <a href="#">Notificação 3</a>
+    </div>
+    <!-- Perfil -->
     <div class="relative">
       <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
         <img src="../assets/img/default-avatar.png" alt="Avatar" class="w-full h-full object-cover" />
       </button>
       <div id="profile-dropdown" class="profile-dropdown">
-        <a href="#">Conta</a>
-        <a href="#">Seus Eventos</a>
-        <a href="#" id="logout-link">Sair</a>
+        <div class="px-4 py-2">
+          <div class="font-semibold text-gray-800 dark:text-gray-200">Olá, ${user.name}!</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">${user.email}</div>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700"></div>
+        <a href="#">Dashboard</a>
+        <a href="#">Account Settings</a>
+        <a href="#">Create Team <span class="float-right">＋</span></a>
+        <div class="border-t border-gray-200 dark:border-gray-700"></div>
+        <a href="#">Command Menu <span class="float-right text-xs text-gray-400">Ctrl K</span></a>
+        <a href="#">Theme <span class="float-right">🌞/🌙</span></a>
+        <a href="#">Home Page</a>
+        <a href="#" id="logout-link">Log Out</a>
       </div>
     </div>
     <!-- Toggle Dark/Light -->
     <button id="theme-toggle"
-            class="ml-3 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+            class="p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg"
            class="h-6 w-6 text-gray-800 dark:text-gray-200"
            fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -331,18 +355,27 @@
   <script src="../assets/js/main.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Notificações dropdown
+      const notifBtn = document.getElementById('notif-btn');
+      const notifDd  = document.getElementById('notif-dropdown');
+      notifBtn.addEventListener('click', () => {
+        notifDd.style.display = notifDd.style.display === 'block' ? 'none' : 'block';
+      });
+
       // Perfil dropdown
       const btn = document.getElementById('profile-btn');
       const dd  = document.getElementById('profile-dropdown');
       btn.addEventListener('click', () => {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
       });
+
       // Logout
       document.getElementById('logout-link').addEventListener('click', e => {
         e.preventDefault();
         Auth.logout();
         window.location.href = '../login.html';
       });
+
       // Dark/light toggle
       document.getElementById('theme-toggle').addEventListener('click', () => {
         const rootEl = document.documentElement;
