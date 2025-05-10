@@ -57,7 +57,6 @@
        ================================================ */
     #side-menu {
       position: fixed;
-      inset-y: 0;
       right: 0;
       width: 50vw;
       max-width: 16rem;
@@ -144,59 +143,28 @@
   </script>
 
   <!-- Off-canvas Menu -->
-  <div id="side-menu">
-    <div class="menu-header">
-      <h2>Menu</h2>
-      <button id="menu-close" aria-label="Fechar menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-    <nav>
-      <a href="#" id="menu-notifications">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405C18.21 14.79 18 14.105 18 13.382V11
-                   a6 6 0 10-12 0v2.382c0 .723-.21 1.408-.595 1.213L4 17h5m6
-                   0v1a3 3 0 11-6 0v-1m6 0H9"/>
-        </svg>
-        Notificações
-      </a>
-      <a href="#" id="menu-profile">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5.121 17.804A9 9 0 1118.88 6.196
-                   M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        Perfil
-      </a>
-      <a href="#" id="menu-theme">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 3v1m0 16v1m8.66-10h-1
-                   M4.34 12h-1m14.14-6.14l-.707.707
-                   M6.343 17.657l-.707.707m14.14 0l-.707-.707
-                   M6.343 6.343l-.707-.707M12 5a7 7 0
-                   100 14 7 7 0 000-14z"/>
-        </svg>
-        Alternar Tema
-      </a>
-      <a href="#" id="menu-logout" class="logout">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-12V5"/>
-        </svg>
-        Sair
-      </a>
-    </nav>
+<div id="side-menu">
+  <div class="menu-header">
+    <h2>Menu</h2>
+    <!-- botão de fechar removido -->
   </div>
+  <nav>
+    <a href="#" id="menu-notifications">
+      <!-- ícone e texto... -->
+      Notificações
+    </a>
+    <a href="#" id="menu-profile">
+      Perfil
+    </a>
+    <a href="#" id="menu-theme">
+      Alternar Tema
+    </a>
+    <a href="#" id="menu-logout" class="logout">
+      Sair
+    </a>
+  </nav>
+</div>
+
 
   <!-- Menu Toggle Rockstar Style (esquerda) -->
   <div class="fixed top-4 left-4 z-50">
