@@ -184,7 +184,7 @@ const FormModule = (() => {
       type:          document.getElementById('tipo-evento'),
       resp:          document.getElementById('responsavel'),
       dept:          document.getElementById('departamento'),
-      materia:       document.getElementById('curso'),         // <- novo
+      materia:       document.getElementById('curso'),
       status:        document.getElementById('status'),
       desc:          document.getElementById('descricao')
     };
@@ -209,7 +209,6 @@ const FormModule = (() => {
       selectors.fields.desc.value    = evData.description;
     }
 
-    // → auto‐preenche “Responsável”
     if (!currentId) {
       const user = Auth.getCurrentUser();
       if (user?.name) {
@@ -268,7 +267,7 @@ const FormModule = (() => {
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
-    // → salas
+    // mapa de salas
     const salaOpts = {
       'Laboratório': ['Lab401','Lab402','Lab403'],
       'Sala de Aula': ['Sala101','Sala102','Sala103'],
@@ -286,29 +285,60 @@ const FormModule = (() => {
       }
     });
 
-    // → mapa de cursos × matérias
+    // mapa de cursos × matérias (Computação com todas as ARA)
     const courseMap = {
       'Computação': [
-        'Introdução à Computação',
-        'Programação I',
-        'Estruturas de Dados',
-        'Banco de Dados',
-        'Redes de Computadores'
+        'ARA0003 - PRINCÍPIOS DE GESTÃO',
+        'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
+        'ARA0039 - ARQUITETURA DE COMPUTADORES',
+        'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
+        'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
+        'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+        'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
+        'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
+        'ARA1386 - SISTEMAS OPERACIONAIS',
+        'ARA0002 - PENSAMENTO COMPUTACIONAL',
+        'ARA0014 - ANÁLISE DE DADOS',
+        'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+        'ARA0044 - ELETRICIDADE E MAGNETISMO',
+        'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
+        'ARA1398 - MECÂNICA DOS SÓLIDOS',
+        'ARA0029 - ELETRICIDADE APLICADA',
+        'ARA0030 - EQUAÇÕES DIFERENCIAIS',
+        'ARA0046 - FENÔMENOS DE TRANSPORTE',
+        'ARA0056 - QUÍMICA TECNOLÓGICA',
+        'ARA2042 - SISTEMAS DIGITAIS',
+        'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+        'ARA0083 - ELETRÔNICA ANALÓGICA',
+        'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
+        'ARA1943 - MODELAGEM MATEMÁTICA',
+        'ARA0040 - BANCO DE DADOS',
+        'ARA0098 - ESTRUTURA DE DADOS',
+        'COMPILADORES',
+        'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
+        'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
+        'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+        'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
+        'ARA2086 - ALGORITMOS EM GRAFOS',
+        'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+        'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
+        'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
+        'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+        'ARA0115 - SISTEMAS EMBARCADOS',
+        'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
+        'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+        'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
+        'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+        'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+        'ARA2074 - SEGURANÇA CIBERNÉTICA'
       ],
-      'Engenharia': [
-        'Cálculo I',
-        'Física Geral',
-        'Desenho Técnico'
-      ]
-      // …adicione outros cursos e suas matérias aqui
+      // adicione outros cursos aqui...
     };
 
-    // → listener para popular “Matéria”
     selectors.fields.dept?.addEventListener('change', () => {
       const curso = selectors.fields.dept.value;
       const lista = courseMap[curso] || [];
-      // trocamos o <input id="curso"> por um <select id="curso"> no seu HTML
-      const sel = selectors.fields.materia;
+      const sel   = selectors.fields.materia;
       sel.innerHTML = lista.length
         ? '<option value="">Selecione a matéria...</option>' +
           lista.map(m => `<option value="${m}">${m}</option>`).join('')
