@@ -194,7 +194,6 @@ const FormModule = (() => {
     selectors.form.reset();
     selectors.fields.salaContainer.classList.add('hidden');
 
-    // Se estiver editando, preenche com os dados existentes
     if (evData) {
       selectors.fields.data.value    = evData.date;
       selectors.fields.start.value   = evData.start;
@@ -209,7 +208,7 @@ const FormModule = (() => {
       selectors.fields.desc.value    = evData.description;
     }
 
-    // ── **AUTO-PREENCHER** “Responsável” em QUALQUER NOVO agendamento
+    // Auto-preencher “Responsável” com nome do usuário logado
     if (!currentId) {
       const user = Auth.getCurrentUser();
       if (user?.name) {
@@ -396,5 +395,22 @@ onReady(async () => {
     document.getElementById('open-form-modal')?.style.setProperty('display','none');
     document.getElementById('modal-edit')?.style.setProperty('display','none');
     document.getElementById('modal-cancel')?.style.setProperty('display','none');
+  }
+
+  // ——— dropdown de perfil ———
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  if (profileBtn && profileDropdown) {
+    // abre/fecha ao clicar
+    profileBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('show');
+    });
+    // fecha ao clicar fora
+    document.addEventListener('click', () => {
+      profileDropdown.classList.remove('show');
+    });
+    // evita fechar ao clicar dentro
+    profileDropdown.addEventListener('click', e => e.stopPropagation());
   }
 });
