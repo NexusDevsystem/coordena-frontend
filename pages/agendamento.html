@@ -58,25 +58,37 @@
     }
 
     /* perfil dropdown */
+    .profile-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      overflow: hidden;
+      border: 2px solid rgba(229,231,235);
+    }
+    .dark .profile-btn {
+      border-color: rgba(55,65,81);
+    }
     .profile-dropdown {
       display: none;
       position: absolute;
+      top: 3rem;
       right: 0;
-      margin-top: 0.5rem;
       background: white;
       border-radius: 0.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       overflow: hidden;
       z-index: 60;
+      min-width: 10rem;
     }
     .profile-dropdown a {
       display: block;
       padding: 0.75rem 1rem;
-      color: #333;
+      color: #374151;
       text-decoration: none;
+      font-size: 0.875rem;
     }
     .profile-dropdown a:hover {
-      background: #f3f3f3;
+      background: #F3F4F6;
     }
     .dark .profile-dropdown {
       background: #1F2937;
@@ -104,54 +116,39 @@
     // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
-        const openBtn   = document.getElementById('open-form-modal');
-        const editBtn   = document.getElementById('modal-edit');
-        const cancelBtn = document.getElementById('modal-cancel');
-        if (openBtn)   openBtn.style.display   = 'none';
-        if (editBtn)   editBtn.style.display   = 'none';
-        if (cancelBtn) cancelBtn.style.display = 'none';
+        document.getElementById('open-form-modal')?.classList.add('hidden');
+        document.getElementById('modal-edit')?.classList.add('hidden');
+        document.getElementById('modal-cancel')?.classList.add('hidden');
       });
     }
   </script>
 
-  <!-- Saudação + Perfil -->
-  <div id="user-info"
-       class="fixed top-4 left-4 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-gray-700 dark:text-gray-300"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    <span class="text-gray-800 dark:text-gray-200 font-medium">
-      Olá, <span id="user-name">—</span>!
-    </span>
-    <div class="relative ml-2">
-      <button id="profile-btn" class="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 focus:outline-none">
+  <!-- Perfil e dropdown -->
+  <div class="fixed top-4 right-4 flex items-center z-50">
+    <div class="relative">
+      <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
         <img src="../assets/img/default-avatar.png" alt="Avatar" class="w-full h-full object-cover" />
       </button>
       <div id="profile-dropdown" class="profile-dropdown">
-        <a href="#">Teste</a>
+        <a href="#">Conta</a>
+        <a href="#">Seus Eventos</a>
         <a href="#" id="logout-link">Sair</a>
       </div>
     </div>
+    <!-- Toggle Dark/Light -->
+    <button id="theme-toggle"
+            class="ml-3 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-6 w-6 text-gray-800 dark:text-gray-200"
+           fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+                 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
+                 m0 12.02l.7-.7M17.66 6.34l.7-.7
+                 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
+      </svg>
+    </button>
   </div>
-
-  <!-- Toggle Dark/Light -->
-  <button id="theme-toggle"
-          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-gray-800 dark:text-gray-200"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-               m0 12.02l.7-.7M17.66 6.34l.7-.7
-               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
 
   <!-- Quick Access -->
   <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
@@ -242,7 +239,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                     required>
               <option value="">Selecione...</option>
               <option>Aula</option>
@@ -256,7 +253,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -264,7 +261,7 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel"
-                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                  placeholder="Nome do professor" required>
         </div>
         <!-- Curso / Matéria -->
@@ -272,34 +269,34 @@
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: Engenharia" required>
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <input type="text" id="curso"
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                    placeholder="Ex: História" required>
           </div>
         </div>
-        <!-- Status -->  
+        <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status"
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
                   required>
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
           </select>
         </div>
-        <!-- Descrição -->  
+        <!-- Descrição -->
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
-        <!-- Botão Confirmar -->  
+        <!-- Botão Confirmar -->
         <button type="submit"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
           Confirmar
@@ -334,24 +331,26 @@
   <script src="../assets/js/main.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // preenche nome
-      const u = Auth.getCurrentUser();
-      if (u?.name) {
-        document.getElementById('user-name').textContent = u.name;
-      }
-      // perfil dropdown toggle
+      // Perfil dropdown
       const btn = document.getElementById('profile-btn');
       const dd  = document.getElementById('profile-dropdown');
       btn.addEventListener('click', () => {
         dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
       });
-      // logout
+      // Logout
       document.getElementById('logout-link').addEventListener('click', e => {
         e.preventDefault();
         Auth.logout();
         window.location.href = '../login.html';
       });
+      // Dark/light toggle
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const rootEl = document.documentElement;
+        rootEl.classList.toggle('dark');
+        localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
+      });
     });
   </script>
+
 </body>
 </html>
