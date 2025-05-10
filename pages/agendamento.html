@@ -53,17 +53,18 @@
     }
 
     /* ================================================
-       Off‑canvas Menu
+       Off-canvas Menu (da direita para o centro)
        ================================================ */
     #side-menu {
       position: fixed;
       inset-y: 0;
-      left: 0;
-      width: 16rem;
-      transform: translateX(-100%);
+      right: 0;
+      width: 50vw;
+      max-width: 16rem;
+      transform: translateX(100%);
       background: rgba(31, 41, 55, 0.8); /* gray-800 with opacity */
-      backdrop-blur: blur(8px);
-      box-shadow: 2px 0 12px rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      box-shadow: -2px 0 12px rgba(0,0,0,0.5);
       transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
       z-index: 50;
     }
@@ -142,7 +143,7 @@
     }
   </script>
 
-  <!-- Off‑canvas Menu -->
+  <!-- Off-canvas Menu -->
   <div id="side-menu">
     <div class="menu-header">
       <h2>Menu</h2>
