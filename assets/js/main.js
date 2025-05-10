@@ -184,6 +184,7 @@ const FormModule = (() => {
       type:          document.getElementById('tipo-evento'),
       resp:          document.getElementById('responsavel'),
       dept:          document.getElementById('departamento'),
+      materia:       document.getElementById('curso'),         // <- novo
       status:        document.getElementById('status'),
       desc:          document.getElementById('descricao')
     };
@@ -208,7 +209,7 @@ const FormModule = (() => {
       selectors.fields.desc.value    = evData.description;
     }
 
-    // Auto-preencher “Responsável” com nome do usuário logado
+    // → auto‐preenche “Responsável”
     if (!currentId) {
       const user = Auth.getCurrentUser();
       if (user?.name) {
@@ -267,6 +268,7 @@ const FormModule = (() => {
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
+    // → salas
     const salaOpts = {
       'Laboratório': ['Lab401','Lab402','Lab403'],
       'Sala de Aula': ['Sala101','Sala102','Sala103'],
@@ -282,6 +284,35 @@ const FormModule = (() => {
       } else {
         selectors.fields.salaContainer.classList.add('hidden');
       }
+    });
+
+    // → mapa de cursos × matérias
+    const courseMap = {
+      'Computação': [
+        'Introdução à Computação',
+        'Programação I',
+        'Estruturas de Dados',
+        'Banco de Dados',
+        'Redes de Computadores'
+      ],
+      'Engenharia': [
+        'Cálculo I',
+        'Física Geral',
+        'Desenho Técnico'
+      ]
+      // …adicione outros cursos e suas matérias aqui
+    };
+
+    // → listener para popular “Matéria”
+    selectors.fields.dept?.addEventListener('change', () => {
+      const curso = selectors.fields.dept.value;
+      const lista = courseMap[curso] || [];
+      // trocamos o <input id="curso"> por um <select id="curso"> no seu HTML
+      const sel = selectors.fields.materia;
+      sel.innerHTML = lista.length
+        ? '<option value="">Selecione a matéria...</option>' +
+          lista.map(m => `<option value="${m}">${m}</option>`).join('')
+        : '<option value="">Digite primeiro um curso válido</option>';
     });
   }
 
@@ -395,22 +426,5 @@ onReady(async () => {
     document.getElementById('open-form-modal')?.style.setProperty('display','none');
     document.getElementById('modal-edit')?.style.setProperty('display','none');
     document.getElementById('modal-cancel')?.style.setProperty('display','none');
-  }
-
-  // ——— dropdown de perfil ———
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  if (profileBtn && profileDropdown) {
-    // abre/fecha ao clicar
-    profileBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle('show');
-    });
-    // fecha ao clicar fora
-    document.addEventListener('click', () => {
-      profileDropdown.classList.remove('show');
-    });
-    // evita fechar ao clicar dentro
-    profileDropdown.addEventListener('click', e => e.stopPropagation());
   }
 });
