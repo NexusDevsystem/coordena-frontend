@@ -34,7 +34,7 @@
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-  <!-- Background & Botões -->
+  <!-- Background styling & mobile scroll lock + perfil dropdown styles -->
   <style>
     body {
       background-image: url("../assets/img/background.png");
@@ -46,50 +46,88 @@
       background-image: url("../assets/img/backgrounddark.png");
     }
     @media (max-width: 768px) {
-      html, body { height: 100vh; overflow: hidden; }
+      html, body {
+        height: 100vh;
+        overflow: hidden;
+      }
     }
     @media (min-width: 769px) {
-      body { overflow-y: auto; }
+      body {
+        overflow-y: auto;
+      }
     }
-    .notification-btn, .profile-btn {
-      width: 2.5rem; height: 2.5rem;
-      border-radius: 0.5rem;
-      display: flex; align-items: center; justify-content: center;
+
+    /* perfil dropdown */
+    .profile-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      overflow: hidden;
       border: 2px solid rgba(229,231,235);
-      transition: border-color .2s, box-shadow .2s;
     }
-    .notification-btn:hover, .notification-btn:focus,
-    .profile-btn:hover, .profile-btn:focus {
-      border-color: #3B82F6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.4);
-    }
-    .dark .notification-btn, .dark .profile-btn {
+    .dark .profile-btn {
       border-color: rgba(55,65,81);
     }
     .profile-dropdown {
       display: none;
-      position: absolute; top: 3rem; right: 0;
-      background: white; border-radius: 0.5rem;
+      position: absolute;
+      top: 3rem;
+      right: 0;
+      background: white;
+      border-radius: 0.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      overflow: hidden; z-index: 60; min-width: 12rem;
+      overflow: hidden;
+      z-index: 60;
+      min-width: 12rem;
     }
     .profile-dropdown a {
-      display: block; padding: .75rem 1rem;
-      font-size: .875rem; color: #374151; text-decoration: none;
+      display: block;
+      padding: 0.75rem 1rem;
+      color: #374151;
+      text-decoration: none;
+      font-size: 0.875rem;
     }
-    .profile-dropdown a:hover { background: #F3F4F6; }
-    .dark .profile-dropdown { background: #1F2937; }
-    .dark .profile-dropdown a { color: #D1D5DB; }
-    .dark .profile-dropdown a:hover { background: #374151; color: #F9FAFB; }
+    .profile-dropdown a:hover {
+      background: #F3F4F6;
+    }
+    .dark .profile-dropdown {
+      background: #1F2937;
+    }
+    .dark .profile-dropdown a {
+      color: #D1D5DB;
+    }
+    .dark .profile-dropdown a:hover {
+      background: #374151;
+      color: #F9FAFB;
+    }
+    /* notification button */
+    .notification-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(229,231,235);
+    }
+    .dark .notification-btn {
+      border-color: rgba(55,65,81);
+    }
   </style>
 
+  <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <script>
+    // Protege esta página: redireciona para login se não autenticado
     const user = Auth.getCurrentUser();
-    if (!user) window.location.href = '../login.html';
+    if (!user) {
+      window.location.href = '../login.html';
+    }
+    // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('open-form-modal')?.classList.add('hidden');
@@ -99,27 +137,32 @@
     }
   </script>
 
-  <!-- Botões Notificação, Perfil e Tema -->
+  <!-- Botões de notificação, perfil e toggle -->
   <div class="fixed top-4 right-4 flex items-center space-x-3 z-50">
+    <!-- Notificações -->
     <button id="notification-btn" class="notification-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
       <img src="../assets/img/icons/noti.png" alt="Notificações" class="w-5 h-5" />
     </button>
-    <div class="relative">
-      <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
-        <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-2">
-          <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
-          <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">—</p>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" class="px-4 py-2">Teste 1</a>
-        <a href="#" class="px-4 py-2">Teste 2</a>
-        <div class="border-t border-gray-200 dark:border-gray-700"></div>
-        <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
-      </div>
+
+    <!-- Perfil e dropdown -->
+<div class="relative">
+  <button id="profile-btn" class="profile-btn bg-gray-200 dark:bg-gray-800 focus:outline-none">
+    <img src="../assets/img/icons/perfil.png" alt="Perfil" class="w-full h-full object-cover" />
+  </button>
+  <div id="profile-dropdown" class="profile-dropdown">
+    <div class="px-4 py-2">
+      <p id="dropdown-username" class="font-semibold text-gray-900 dark:text-gray-100">—</p>
+      <p id="dropdown-email" class="text-sm text-gray-600 dark:text-gray-400">—</p>
     </div>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" class="px-4 py-2">Teste 1</a>
+    <a href="#" class="px-4 py-2">Teste 2</a>
+    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+    <a href="#" id="logout-link" class="px-4 py-2">Sair</a>
+  </div>
+</div>
+
+    <!-- Toggle Dark/Light -->
     <button id="theme-toggle"
             class="ml-1 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg"
@@ -156,7 +199,6 @@
     </button>
   </div>
 
-  <!-- Main Content -->
   <main class="pt-24 pb-8 mx-auto max-w-full px-4 space-y-8">
     <h1 class="text-3xl font-semibold text-center">Agendamento de Recursos</h1>
     <div class="flex justify-center">
@@ -184,6 +226,7 @@
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         Novo Agendamento
       </h3>
+
       <form id="agendamento-form" class="space-y-4">
         <!-- Data -->
         <div>
@@ -220,7 +263,7 @@
               <option>Auditório</option>
             </select>
           </div>
-          <div>
+          <div>  
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento"
                     class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
@@ -249,22 +292,28 @@
                  placeholder="Nome do professor" required>
         </div>
         <!-- Curso / Matéria -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-            <input type="text" id="departamento"
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                   placeholder="Ex: Computação" required>
-          </div>
-          <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
-            <select id="curso"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
-                    required>
-              <option value="">Selecione a matéria...</option>
-            </select>
-          </div>
-        </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Curso
+      </label>
+      <input type="text" id="departamento"
+             class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                    text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+             placeholder="Ex: Computação" required>
+    </div>
+    <div>
+      <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Matéria
+      </label>
+      <select id="curso"
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              required>
+        <option value="">Selecione a matéria...</option>
+      </select>
+    </div>
+  </div>
         <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
@@ -314,436 +363,29 @@
     Copyright© 2025 - Nexus Devsystem - Todos os direitos reservados.
   </footer>
 
-  <!-- Inline JavaScript com TODOS os seus módulos -->
+  <script src="../assets/js/main.js"></script>
   <script>
-  // ----------------------
-  // UTILIDADES
-  // ----------------------
-  function onReady(fn) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fn);
-    } else {
-      fn();
-    }
-  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getCurrentUser() || {};
+    // Preenche nome e email no dropdown
+    document.getElementById('dropdown-username').textContent = user.name || 'Usuário';
+    document.getElementById('dropdown-email').textContent    = user.email || '';
 
-  // ----------------------
-  // MÓDULO DE TEMA (Dark/Light)
-  // ----------------------
-  const ThemeToggle = (() => {
-    const themeKey = 'theme';
-    const root     = document.documentElement;
-
-    function applyTheme(mode) {
-      root.classList.toggle('dark', mode === 'dark');
-      localStorage.setItem(themeKey, mode);
-    }
-
-    function init() {
-      const saved = localStorage.getItem(themeKey) || 'light';
-      applyTheme(saved);
-      const btn = document.getElementById('theme-toggle');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
-        });
-      }
-    }
-
-    return { init };
-  })();
-
-  // ----------------------
-  // MÓDULO DE API
-  // ----------------------
-  const Api = (() => {
-    const BASE = window.location.hostname.includes('localhost')
-      ? 'http://localhost:10000/api/reservas'
-      : 'https://coordena-backend.onrender.com/api/reservas';
-
-    function authHeaders(isJson = false) {
-      const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
-      if (isJson) headers['Content-Type'] = 'application/json';
-      return headers;
-    }
-
-    async function fetchEvents() {
-      const res = await fetch(BASE, { headers: authHeaders(false) });
-      if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
-      return res.json();
-    }
-
-    async function createEvent(data) {
-      const res = await fetch(BASE, {
-        method: 'POST',
-        headers: authHeaders(true),
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error('Falha ao criar reserva');
-      return res.json();
-    }
-
-    async function updateEvent(id, data) {
-      const res = await fetch(`${BASE}/${id}`, {
-        method: 'PUT',
-        headers: authHeaders(true),
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error('Falha ao atualizar reserva');
-      return res.json();
-    }
-
-    async function deleteEvent(id) {
-      const res = await fetch(`${BASE}/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders(false)
-      });
-      if (!res.ok) throw new Error('Falha ao excluir reserva');
-    }
-
-    return { fetchEvents, createEvent, updateEvent, deleteEvent };
-  })();
-
-  // ----------------------
-  // MÓDULO CALENDÁRIO (SUPORTE MOBILE)
-  // ----------------------
-  const CalendarModule = (() => {
-    let calendar;
-    let events = [];
-
-    function init(rawEvents, onDateClick, onEventClick) {
-      events = rawEvents;
-      const el = document.getElementById('calendar');
-      if (!el) return console.error('#calendar não encontrado');
-
-      const isMobile = window.innerWidth < 640;
-      calendar = new FullCalendar.Calendar(el, {
-        locale: 'pt-br',
-        initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-        headerToolbar: {
-          left:   isMobile ? 'prev,next' : 'prev,next today',
-          center: 'title',
-          right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: events.map(e => ({
-          id:    e._id,
-          title: `${e.title} (${e.time})`,
-          start: `${e.date}T${e.start}`,
-          end:   `${e.date}T${e.end}`
-        })),
-        dateClick:  onDateClick,
-        eventClick: onEventClick,
-        height:     el.clientHeight,
-        allDaySlot: false
-      });
-
-      calendar.render();
-      window.addEventListener('resize', () => {
-        const nowMobile = window.innerWidth < 640;
-        const newView   = nowMobile ? 'listWeek' : 'dayGridMonth';
-        calendar.changeView(newView);
-        calendar.setOption('headerToolbar', {
-          left:   nowMobile ? 'prev,next' : 'prev,next today',
-          center: 'title',
-          right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-        });
-      });
-    }
-
-    function add(ev) {
-      calendar.addEvent({
-        id:    ev._id,
-        title: `${ev.title} (${ev.time})`,
-        start: `${ev.date}T${ev.start}`,
-        end:   `${ev.date}T${ev.end}`
-      });
-      events.push(ev);
-    }
-
-    function update(id, ev) {
-      events = events.map(e => (e._id === id ? ev : e));
-      const obj = calendar.getEventById(id);
-      if (obj) {
-        obj.setProp('title', `${ev.title} (${ev.time})`);
-        obj.setStart(`${ev.date}T${ev.start}`);
-        obj.setEnd(`${ev.date}T${ev.end}`);
-      }
-    }
-
-    function remove(id) {
-      events = events.filter(e => e._id !== id);
-      calendar.getEventById(id)?.remove();
-    }
-
-    return { init, add, update, remove, getEvents: () => events };
-  })();
-
-  // ----------------------
-  // MÓDULO FORMULÁRIO
-  // ----------------------
-  const FormModule = (() => {
-    let currentId = null;
-    const selectors = {};
-
-    function cacheSelectors() {
-      selectors.modal    = document.getElementById('form-modal');
-      selectors.form     = document.getElementById('agendamento-form');
-      selectors.btnOpen  = document.getElementById('open-form-modal');
-      selectors.btnClose = document.getElementById('form-close');
-      selectors.fields   = {
-        data:          document.getElementById('data'),
-        start:         document.getElementById('start'),
-        end:           document.getElementById('end'),
-        recurso:       document.getElementById('recurso'),
-        salaContainer: document.getElementById('sala-container'),
-        sala:          document.getElementById('sala'),
-        type:          document.getElementById('tipo-evento'),
-        resp:          document.getElementById('responsavel'),
-        dept:          document.getElementById('departamento'),
-        materia:       document.getElementById('curso'),
-        status:        document.getElementById('status'),
-        desc:          document.getElementById('descricao')
-      };
-    }
-
-    function open(id = null, evData = null) {
-      currentId = id;
-      selectors.form.reset();
-      selectors.fields.salaContainer.classList.add('hidden');
-
-      if (evData) {
-        selectors.fields.data.value    = evData.date;
-        selectors.fields.start.value   = evData.start;
-        selectors.fields.end.value     = evData.end;
-        selectors.fields.recurso.value = evData.resource;
-        selectors.fields.recurso.dispatchEvent(new Event('change'));
-        selectors.fields.sala.value    = evData.sala || '';
-        selectors.fields.type.value    = evData.type;
-        selectors.fields.resp.value    = evData.responsible;
-        selectors.fields.dept.value    = evData.department;
-        selectors.fields.status.value  = evData.status;
-        selectors.fields.desc.value    = evData.description;
-      }
-
-      if (!currentId) {
-        const user = Auth.getCurrentUser();
-        if (user?.name) {
-          selectors.fields.resp.value = user.name;
-          selectors.fields.resp.setAttribute('readonly', 'readonly');
-        }
-      }
-
-      selectors.modal.classList.remove('hidden');
-    }
-
-    function close() {
-      selectors.modal.classList.add('hidden');
-    }
-
-    function handleSubmit(e) {
-      e.preventDefault();
-      const f = selectors.fields;
-      const payload = {
-        date:        f.data.value,
-        start:       f.start.value,
-        end:         f.end.value,
-        resource:    f.recurso.value,
-        sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-        type:        f.type.value,
-        responsible: f.resp.value,
-        department:  f.dept.value,
-        status:      f.status.value,
-        description: f.desc.value,
-        time:        `${f.start.value}-${f.end.value}`,
-        title:       f.salaContainer.classList.contains('hidden')
-                      ? f.type.value
-                      : `${f.type.value} - ${f.sala.value}`
-      };
-
-      (async () => {
-        try {
-          let saved;
-          if (currentId) {
-            saved = await Api.updateEvent(currentId, payload);
-            CalendarModule.update(currentId, saved);
-          } else {
-            saved = await Api.createEvent(payload);
-            CalendarModule.add(saved);
-          }
-          close();
-        } catch (err) {
-          alert(err.message);
-        }
-      })();
-    }
-
-    function init() {
-      cacheSelectors();
-      selectors.btnOpen?.addEventListener('click', () => open());
-      selectors.btnClose?.addEventListener('click', close);
-      selectors.form?.addEventListener('submit', handleSubmit);
-
-      const salaOpts = {
-        'Laboratório': ['Lab401','Lab402','Lab403'],
-        'Sala de Aula': ['Sala101','Sala102','Sala103'],
-        'Auditório': ['Auditório A','Auditório B']
-      };
-      selectors.fields.recurso?.addEventListener('change', () => {
-        const tipo = selectors.fields.recurso.value;
-        if (salaOpts[tipo]) {
-          selectors.fields.salaContainer.classList.remove('hidden');
-          selectors.fields.sala.innerHTML =
-            '<option value="">Selecione...</option>' +
-            salaOpts[tipo].map(s => `<option>${s}</option>`).join('');
-        } else {
-          selectors.fields.salaContainer.classList.add('hidden');
-        }
-      });
-
-      // Curso × Matérias
-      const courseMap = {
-        'Engenharia de Computação': [
-          'ARA0003 - PRINCÍPIOS DE GESTÃO',
-          'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
-          'ARA0039 - ARQUITETURA DE COMPUTADORES',
-           /* ... todas as outras ARA ... */
-          'ARA2074 - SEGURANÇA CIBERNÉTICA'
-        ]
-      };
-      selectors.fields.dept?.addEventListener('change', () => {
-        const curso = selectors.fields.dept.value;
-        const lista = courseMap[curso] || [];
-        const sel   = selectors.fields.materia;
-        sel.innerHTML = lista.length
-          ? '<option value="">Selecione a matéria...</option>' +
-            lista.map(m => `<option value="${m}">${m}</option>`).join('')
-          : '<option value="">Digite primeiro um curso válido</option>';
-      });
-    }
-
-    return { init, open };
-  })();
-
-  // ----------------------
-  // MÓDULO MODAL DETALHES
-  // ----------------------
-  const DetailModule = (() => {
-    let currentId = null;
-    const selectors = {};
-
-    function cacheSelectors() {
-      selectors.modal     = document.getElementById('event-modal');
-      selectors.btnClose  = document.getElementById('modal-close');
-      selectors.btnEdit   = document.getElementById('modal-edit');
-      selectors.btnDelete = document.getElementById('modal-cancel');
-      selectors.fields    = {
-        date:     document.getElementById('modal-date'),
-        resource: document.getElementById('modal-resource'),
-        type:     document.getElementById('modal-type'),
-        resp:     document.getElementById('modal-resp'),
-        dept:     document.getElementById('modal-dept'),
-        status:   document.getElementById('modal-status'),
-        desc:     document.getElementById('modal-desc')
-      };
-    }
-
-    function open(ev) {
-      currentId = ev._id;
-      const f = selectors.fields;
-      f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
-      f.resource.textContent = `Recurso: ${ev.resource}`;
-      f.type.textContent     = `Evento: ${ev.type}`;
-      f.resp.textContent     = `Responsável: ${ev.responsible}`;
-      f.dept.textContent     = `Departamento: ${ev.department}`;
-      f.status.textContent   = `Status: ${ev.status}`;
-      f.desc.textContent     = ev.description || 'Sem descrição';
-      selectors.modal.classList.remove('hidden');
-    }
-
-    function close() {
-      selectors.modal.classList.add('hidden');
-    }
-
-    function init() {
-      cacheSelectors();
-      selectors.btnClose?.addEventListener('click', close);
-      selectors.btnEdit?.addEventListener('click', () => {
-        if (!currentId) return;
-        const ev = CalendarModule.getEvents().find(e => e._id === currentId);
-        if (ev) FormModule.open(currentId, ev);
-        close();
-      });
-      selectors.btnDelete?.addEventListener('click', async () => {
-        if (!currentId) return;
-        try {
-          await Api.deleteEvent(currentId);
-          CalendarModule.remove(currentId);
-          close();
-        } catch (err) { alert(err.message); }
-      });
-    }
-
-    return { init, open };
-  })();
-
-  // ----------------------
-  // INICIALIZAÇÃO PRINCIPAL
-  // ----------------------
-  onReady(async () => {
-    ThemeToggle.init();
-    FormModule.init();
-    DetailModule.init();
-
-    const currentUser = Auth.getCurrentUser();
-    let data = [];
-    try {
-      data = await Api.fetchEvents();
-    } catch (err) {
-      console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
-    }
-
-    CalendarModule.init(
-      data,
-      info => FormModule.open(null, {
-        date:        info.dateStr,
-        start:       '00:00',
-        end:         '00:00',
-        resource:    '',
-        sala:        '',
-        type:        '',
-        responsible: '',
-        department:  '',
-        status:      '',
-        description: '',
-        time:        ''
-      }),
-      info => {
-        const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
-        if (ev) DetailModule.open(ev);
-      }
-    );
-
-    // controle UI por papel
-    const role = currentUser?.role?.toLowerCase();
-    if (role === 'student') {
-      document.getElementById('open-form-modal')?.style.setProperty('display','none');
-      document.getElementById('modal-edit')?.style.setProperty('display','none');
-      document.getElementById('modal-cancel')?.style.setProperty('display','none');
-    }
-
-    // preenche dropdown e eventos extra
-    document.getElementById('dropdown-username').textContent = currentUser?.name || 'Usuário';
-    document.getElementById('dropdown-email').textContent    = currentUser?.email || '';
-    // perfil desktop
-    document.getElementById('profile-btn').addEventListener('click', () => {
-      const dd = document.getElementById('profile-dropdown');
+    // Toggle dropdown
+    const btn = document.getElementById('profile-btn');
+    const dd  = document.getElementById('profile-dropdown');
+    btn.addEventListener('click', () => {
       dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
     });
+
+    // Logout
     document.getElementById('logout-link').addEventListener('click', e => {
-      e.preventDefault(); Auth.logout(); window.location.href = '../login.html';
+      e.preventDefault();
+      Auth.logout();
+      window.location.href = '../login.html';
     });
   });
-  </script>
+</script>
 
 </body>
 </html>
