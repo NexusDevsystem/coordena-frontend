@@ -45,19 +45,37 @@
     .dark body {
       background-image: url("../assets/img/backgrounddark.png");
     }
-
-    /* bloqueia scroll somente em telas mobile */
     @media (max-width: 768px) {
       html, body {
         height: 100vh;
         overflow: hidden;
       }
     }
-    /* mantém scroll normal em desktop */
     @media (min-width: 769px) {
       body {
         overflow-y: auto;
       }
+    }
+    /* perfil dropdown */
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      margin-top: 0.5rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      z-index: 60;
+    }
+    .profile-dropdown a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: #333;
+      text-decoration: none;
+    }
+    .profile-dropdown a:hover {
+      background: #f3f3f3;
     }
   </style>
 
@@ -72,20 +90,9 @@
     if (!user) {
       window.location.href = '../login.html';
     }
-    // Se for aluno, oculta botão de novo agendamento e botões de editar/cancelar
-    if (user.role === 'student') {
-      document.addEventListener('DOMContentLoaded', () => {
-        const openBtn   = document.getElementById('open-form-modal');
-        const editBtn   = document.getElementById('modal-edit');
-        const cancelBtn = document.getElementById('modal-cancel');
-        if (openBtn)   openBtn.style.display   = 'none';
-        if (editBtn)   editBtn.style.display   = 'none';
-        if (cancelBtn) cancelBtn.style.display = 'none';
-      });
-    }
   </script>
 
-  <!-- Saudação com nome do usuário -->
+  <!-- Saudação + perfil -->
   <div id="user-info"
        class="fixed top-4 left-4 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
     <svg xmlns="http://www.w3.org/2000/svg"
@@ -99,6 +106,16 @@
     <span class="text-gray-800 dark:text-gray-200 font-medium">
       Olá, <span id="user-name">—</span>!
     </span>
+    <!-- botão perfil -->
+    <div class="relative">
+      <button id="profile-btn" class="ml-2 w-8 h-8 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 focus:outline-none">
+        <img src="../assets/img/default-avatar.png" alt="Avatar" class="w-full h-full object-cover" />
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <a href="#">Teste</a>
+        <a href="#" id="logout-link">Sair</a>
+      </div>
+    </div>
   </div>
 
   <!-- Toggle Dark/Light -->
@@ -108,22 +125,7 @@
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-               m0 12.02l.7-.7M17.66 6.34l.7-.7
-               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
-
-  <!-- Logout -->
-  <button id="logout-btn"
-          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-50">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-white"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0
-               01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
@@ -307,18 +309,27 @@
 
   <script src="../assets/js/main.js"></script>
   <script>
-    // Após carregar a página, preenche nome e reativa logout
     document.addEventListener('DOMContentLoaded', () => {
+      // preenche nome
       const u = Auth.getCurrentUser();
       if (u?.name) {
         document.getElementById('user-name').textContent = u.name;
       }
-      // Garante que o botão de logout funcione
-      document.getElementById('logout-btn').addEventListener('click', () => {
+
+      // profile dropdown toggle
+      const btn = document.getElementById('profile-btn');
+      const dd  = document.getElementById('profile-dropdown');
+      btn.addEventListener('click', () => {
+        dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // logout
+      document.getElementById('logout-link').addEventListener('click', e => {
+        e.preventDefault();
         Auth.logout();
         window.location.href = '../login.html';
       });
     });
   </script>
 </body>
-</html>
+</htm
