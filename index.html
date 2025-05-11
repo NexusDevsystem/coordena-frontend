@@ -9,25 +9,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
 
-  <!-- Aplica imediatamente o tema salvo (evita flash) -->
+  <!-- Evita flash de tema -->
   <script>
     const _theme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.remove('light');
-    if (_theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
+    if (_theme === 'dark') document.documentElement.classList.add('dark');
   </script>
 
   <!-- Favicon -->
   <link rel="icon" href="assets/img/logo.png" type="image/png" />
 
-  <!-- Estilos customizados -->
+  <!-- Seu styles.css -->
   <link rel="stylesheet" href="assets/css/styles.css" />
 
-  <!-- Auth logic -->
+  <!-- Auth -->
   <script src="assets/js/auth.js"></script>
   <script>
-    // → GARANTIA: só usuários com role continuam na página
     window.user = Auth.getCurrentUser();
     if (!window.user || !window.user.role) {
       Auth.logout();
@@ -35,13 +32,18 @@
     }
   </script>
 
-  <!-- Background styling for light/dark + mobile scroll lock -->
+  <!-- 
+    Background + scroll lock
+    CSS do menu off-canvas (estilo GTA VI meio-a-meio) 
+  -->
   <style>
     body {
       background-image: url("assets/img/background.png");
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
     }
     .dark body {
       background-image: url("assets/img/backgrounddark.png");
@@ -53,104 +55,121 @@
       body { overflow-y: auto; }
     }
 
-    /* ================================================
-       Off-canvas Menu GTA VI Style (full-screen)
-       ================================================
-       conteúdo extraído do seu style.css */
-    body {
-      font-family: Arial, sans-serif;
-      overflow-x: hidden;
+    /* overlay quando o menu estiver aberto */
+    body.menu-open::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 999; 
     }
-    .menu-button {
+
+    /* botão hambúrguer */
+    #menu-toggle {
       position: fixed;
       top: 1rem;
       left: 1rem;
-      cursor: pointer;
-      font-size: 30px;
-      padding: 10px;
-      z-index: 60;
-      color: white;
+      z-index: 1001;
+      width: 3rem;
+      height: 3rem;
+      border: 2px solid #fff;
       background: rgba(0,0,0,0.6);
-      border-radius: 4px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s;
     }
-    .menu {
-      position: fixed;
-      top: 0;
-      right: -100vw; /* inicia totalmente fora da tela */
-      width: 50vw;
-      height: 100vh;
-      background: #111;
-      color: white;
-      transition: right 0.3s ease;
-      overflow-y: auto;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index:  fifty;
-    }
-    .menu.open {
-      right: 0; /* traz o menu para a tela toda */
+    #menu-toggle:hover { background: rgba(0,0,0,0.8); }
+    #menu-toggle span {
+      display: block;
+      width: 1.5rem;
+      height: 0.125rem;
+      background: #fff;
+      margin: 0.15rem 0;
+      transition: transform .3s;
     }
 
-    /* GTA VI inner layout */
-    .menu .container {
+    /* painel lateral */
+    #side-menu {
+      position: fixed;
+      top: 0;
+      right: -100vw;
+      width: 50vw;           /* ocupa metade da tela */
+      height: 100vh;
+      /* max-width: 480px; */ /* REMOVIDO */
+      background: #14141f;
+      color: #f3f3f3;
+      box-shadow: -2px 0 12px rgba(0,0,0,0.5);
+      transition: right .35s cubic-bezier(0.22,1,0.36,1);
+      z-index: 1000;         /* acima de tudo, mas abaixo do overlay */
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    #side-menu.show {
+      right: 0;
+    }
+
+    /* conteúdo interno do menu */
+    #side-menu .container {
       display: flex;
       height: 100%;
     }
-    .menu .left {
+    #side-menu .left {
       flex: 1;
       background: linear-gradient(to bottom, #2f395e, #116897);
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    .menu .left h1 {
+    #side-menu .left h1 {
       font-size: 5rem;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(255,255,255,0.1);
       padding: 20px;
       border-radius: 10px;
       color: white;
-      text-align: center;
     }
-    .menu .right {
+    #side-menu .right {
       flex: 1;
       background-color: #1e1e2f;
       padding: 20px;
       display: flex;
       flex-direction: column;
     }
-    .menu .right h2 {
+    #side-menu .right h2 {
       font-size: 2rem;
       margin-bottom: 20px;
       color: white;
     }
-    .menu .right .overflow-y-auto {
+    #side-menu .right .overflow-y-auto {
       flex-grow: 1;
       overflow-y: auto;
     }
-    .menu .right .person {
+    #side-menu .right .person {
       font-size: 1.5rem;
       margin: 8px 0;
       color: white;
     }
-    .menu .right .footer {
+    #side-menu .right .footer {
       margin-top: auto;
       text-align: center;
       font-size: 1rem;
       color: white;
     }
   </style>
+
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <!-- Botão do menu (☰) -->
-  <div class="menu-button" onclick="toggleMenu()">☰</div>
+  <!-- botão para abrir/fechar menu -->
+  <button id="menu-toggle">
+    <span></span><span></span>
+  </button>
 
   <!-- Off-canvas Menu GTA VI -->
-  <nav class="menu">
+  <nav id="side-menu">
     <div class="container">
-      <div class="left">
-        <h1>VI</h1>
-      </div>
+      <div class="left"><h1>VI</h1></div>
       <div class="right">
         <h2>Pessoas</h2>
         <div class="overflow-y-auto flex-grow">
@@ -170,7 +189,8 @@
 
   <!-- Saudação com nome do usuário -->
   <div id="user-info"
-       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
+       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-500">
+    <!-- ícone -->
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
@@ -184,28 +204,29 @@
 
   <!-- Toggle Dark/Light -->
   <button id="theme-toggle"
-          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
+          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition z-500">
+    <!-- ícone do sol/lua -->
     <svg xmlns="http://www.w3.org/2000/svg"
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-               m0 12.02l.7-.7M17.66 6.34l.7-.7
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 
+               m0 12.02l.7-.7M17.66 6.34l.7-.7 
                M12 5a7 7 0 100 14a7 7 0 000-14z"/>
     </svg>
   </button>
 
   <!-- Logout -->
   <button id="logout-btn"
-          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-50">
+          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transition transform hover:scale-105 z-500">
+    <!-- ícone de logout -->
     <svg xmlns="http://www.w3.org/2000/svg"
          class="h-6 w-6 text-white"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0  
-               01-2 2H5a2 2 0 01-2-2V7a2 2 0  
-               012-2h6a2 2 0 012 2v1"/>
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 
+               01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
     </svg>
   </button>
 
@@ -214,19 +235,21 @@
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
       <a href="pages/agendamento.html"
-         class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
+         class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition text-center">
         <div class="mb-4">
+          <!-- ícone calendário -->
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0  
+                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0
                      002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
         <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
       </a>
+      <!-- placeholders -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -258,31 +281,41 @@
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
-  <!-- Script do menu -->
   <script>
-    function toggleMenu() {
-      const menu = document.querySelector('.menu');
-      menu.classList.toggle('open');
-    }
-    // Dark/Light Toggle
-    const themeBtn = document.getElementById('theme-toggle');
-    const rootEl   = document.documentElement;
-    themeBtn.addEventListener('click', () => {
-      rootEl.classList.toggle('dark');
-      localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
+    // abre/fecha menu
+    const toggleBtn = document.getElementById('menu-toggle');
+    const sideMenu  = document.getElementById('side-menu');
+    toggleBtn.addEventListener('click', () => {
+      const opened = sideMenu.classList.toggle('show');
+      document.body.classList.toggle('menu-open', opened);
+      const spans = toggleBtn.querySelectorAll('span');
+      if (opened) {
+        spans[0].classList.add('rotate-45','translate-y-1');
+        spans[1].classList.add('-rotate-45','-translate-y-1');
+      } else {
+        spans[0].classList.remove('rotate-45','translate-y-1');
+        spans[1].classList.remove('-rotate-45','-translate-y-1');
+      }
     });
+
+    // Dark/Light Toggle
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
     });
-    // Exibe nome do usuário logado
+
+    // Exibe usuário
     document.addEventListener('DOMContentLoaded', () => {
       if (window.user?.name) {
         document.getElementById('user-name').textContent = window.user.name;
       }
     });
   </script>
-
 </body>
 </html>
