@@ -63,8 +63,8 @@
       top: 1rem;
       left: 1rem;
       cursor: pointer;
-      font-size: 30px;
-      padding: 10px;
+      font-size: 24px;
+      padding: 8px;
       z-index: 60;
       color: white;
       background: rgba(0,0,0,0.6);
@@ -73,7 +73,7 @@
     nav.menu {
       position: fixed;
       top: 0;
-      right: -100vw; /* inicia totalmente fora da tela */
+      right: -100vw; /* inicia fora */
       width: 50vw;
       height: 100vh;
       background: #111;
@@ -85,7 +85,7 @@
       z-index: 59;
     }
     nav.menu.open {
-      right: 0; /* traz o menu para a tela toda */
+      right: 0; /* mostra */
     }
 
     /* GTA VI inner layout */
@@ -97,60 +97,67 @@
       flex: 1;
       background: linear-gradient(to bottom, #2f395e, #116897);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      padding: 20px;
+      padding: 1.5rem;
     }
     nav.menu .left .user-name {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: bold;
       color: #fff;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
     nav.menu .left .user-email {
-      font-size: 1rem;
+      font-size: 0.875rem;
       color: #e5e7eb;
     }
     nav.menu .right {
       flex: 1;
       background-color: #1e1e2f;
-      padding: 20px;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
     }
     nav.menu .right h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
       color: white;
     }
     nav.menu .right .overflow-y-auto {
       flex-grow: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       overflow-y: auto;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
     nav.menu .right .person {
-      font-size: 1.5rem;
-      margin: 8px 0;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      text-align: center;
       color: white;
     }
     nav.menu .right .footer {
       margin-top: auto;
-      text-align: center;
-      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
       color: white;
-      margin-bottom: 1rem;
     }
     nav.menu .right .menu-actions {
       display: flex;
-      justify-content: space-around;
+      gap: 0.5rem;
     }
     nav.menu .right .menu-actions button {
       background: rgba(255,255,255,0.1);
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.8rem;
       border-radius: 0.5rem;
       color: white;
+      font-size: 0.875rem;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -168,14 +175,13 @@
   <nav class="menu">
     <div class="container">
       <div class="left">
-        <!-- Exibe nome e email do usuário -->
+        <!-- Nome e email -->
         <div class="user-name" id="menu-user-name">—</div>
         <div class="user-email" id="menu-user-email">—</div>
       </div>
       <div class="right">
         <h2>Menu</h2>
         <div class="overflow-y-auto">
-          <!-- Todos os itens substituídos por "teste" -->
           <div class="person">PERFIL</div>
           <div class="person">SEUS AGENDAMENTOS</div>
           <div class="person">teste</div>
@@ -186,10 +192,9 @@
           <div class="person">teste</div>
         </div>
         <div class="footer">Português do Brasil</div>
-        <!-- Ações: DarkMode + Logout -->
         <div class="menu-actions">
-          <button id="menu-theme-btn">🌙 Dark/Light</button>
-          <button id="menu-logout-btn">⎋ Sair</button>
+          <button id="menu-theme-btn">Tema</button>
+          <button id="menu-logout-btn">Sair</button>
         </div>
       </div>
     </div>
@@ -197,14 +202,14 @@
 
   <!-- Saudação com nome do usuário -->
   <div id="user-info"
-       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-3 py-2 shadow-md z-50">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
-    <span class="text-gray-800 dark:text-gray-200 font-medium">
+    <span class="text-gray-800 dark:text-gray-200 font-medium text-sm">
       Olá, <span id="user-name">—</span>!
     </span>
   </div>
@@ -299,16 +304,15 @@
       window.location.href = 'login.html';
     });
 
-    // Logout/Toggle externos continuam funcionando
+    // Toggle externos continuam
     document.getElementById('theme-toggle').addEventListener('click', () => {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
-    document.getElementById('logout-btn').addEventListener('click', () => {
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
     });
   </script>
-
 </body>
 </html>
