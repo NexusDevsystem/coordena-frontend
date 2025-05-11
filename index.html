@@ -35,7 +35,8 @@
     }
   </script>
 
-  <!-- Background styling for light/dark + mobile scroll lock -->
+  <!-- Background styling for light/dark + mobile scroll lock
+       and GTA VI–style off-canvas menu -->
   <style>
     body {
       background-image: url("assets/img/background.png");
@@ -53,12 +54,11 @@
       body { overflow-y: auto; }
     }
 
-    /* ================================================
-       Off-canvas Menu GTA VI Style
-       ================================================ */
+    /* Off-canvas Menu GTA VI Style */
     #side-menu {
       position: fixed;
-      top: 0; right: 0;
+      top: 0;
+      right: 0;
       width: 50vw;
       max-width: 480px;
       height: 100vh;
@@ -69,7 +69,7 @@
       -webkit-backdrop-filter: blur(8px);
     }
     #side-menu.show {
-      transform: translateX(0);
+      transform: translateX(0) !important;
     }
     #side-menu .container {
       display: flex;
@@ -210,8 +210,6 @@
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
         <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
       </a>
-
-      <!-- Placeholder cards -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
