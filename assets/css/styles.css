@@ -55,15 +55,15 @@ body {
 }
 
 /* ================================================
-   Menu Toggle com 2 barras brancas (sem fundo)
+   Menu Toggle somente com 2 barras (sem fundo)
    ================================================ */
 #menu-toggle {
   position: fixed;
   top: 1rem;
   right: 1rem;
   z-index: 60;               /* acima do side-menu */
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;             /* botão um pouco maior */
+  height: 2.5rem;
   background: transparent;    /* sem fundo */
   border: none;              /* sem borda */
   display: flex;
@@ -72,26 +72,26 @@ body {
   align-items: center;
   cursor: pointer;
   padding: 0;
+}
+
+/* barras maiores e mais grossas */
+#menu-toggle span {
+  display: block;
+  width: 1.75rem;    /* um pouco mais largas */
+  height: 0.25rem;   /* grossura das barras */
+  background: #fff;
+  margin: 0.3rem 0;  /* espaçamento entre as barras */
   transition: transform .3s;
 }
 
-/* barras */
-#menu-toggle span {
-  display: block;
-  width: 1.5rem;
-  height: 0.25rem;           /* mais grossa */
-  background: #fff;
-  margin: 0.25rem 0;
-  transition: transform .3s, opacity .3s;
-}
-
-/* quando o menu estiver aberto, anima para X */
+/* animação de X quando o menu estiver aberto */
 #side-menu.show ~ #menu-toggle span:first-child {
-  transform: rotate(45deg) translate(0.15rem, 0.15rem);
+  transform: rotate(45deg) translate(0.2rem, 0.2rem);
 }
 #side-menu.show ~ #menu-toggle span:last-child {
-  transform: rotate(-45deg) translate(0.15rem, -0.15rem);
+  transform: rotate(-45deg) translate(0.2rem, -0.2rem);
 }
+
 
 
 /* =================================================
