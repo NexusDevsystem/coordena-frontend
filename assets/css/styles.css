@@ -54,41 +54,45 @@ body {
   border-color: rgba(55,65,81);
 }
 
-/* =================================================
-   Menu Toggle "Rockstar Style"
-   ================================================= */
+/* ================================================
+   Menu Toggle com 2 barras brancas (sem fundo)
+   ================================================ */
 #menu-toggle {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 60;                      /* acima do side-menu */
-  width: 3rem;
-  height: 3rem;
-  border: 2px solid #fff;
-  background: rgba(0,0,0,0.6);
-  border-radius: 50%;
+  z-index: 60;               /* acima do side-menu */
+  width: 2rem;
+  height: 2rem;
+  background: transparent;    /* sem fundo */
+  border: none;              /* sem borda */
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  transition: background .2s;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform .3s;
 }
-#menu-toggle:hover { background: rgba(0,0,0,0.8); }
 
+/* barras */
 #menu-toggle span {
   display: block;
   width: 1.5rem;
-  height: 0.125rem;
+  height: 0.25rem;           /* mais grossa */
   background: #fff;
-  margin: 0.15rem 0;
-  transition: transform .3s;
+  margin: 0.25rem 0;
+  transition: transform .3s, opacity .3s;
 }
-/* animação do X quando aberto */
+
+/* quando o menu estiver aberto, anima para X */
 #side-menu.show ~ #menu-toggle span:first-child {
-  transform: rotate(45deg) translate(0.2rem, 0.2rem);
+  transform: rotate(45deg) translate(0.15rem, 0.15rem);
 }
 #side-menu.show ~ #menu-toggle span:last-child {
-  transform: rotate(-45deg) translate(0.2rem, -0.2rem);
+  transform: rotate(-45deg) translate(0.15rem, -0.15rem);
 }
+
 
 /* =================================================
    Off-canvas Menu (Painel Lateral da Direita)
