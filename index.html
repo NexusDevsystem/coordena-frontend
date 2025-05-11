@@ -54,14 +54,13 @@
     }
 
     /* ================================================
-       Off-canvas Menu GTA VI Style
+       Off-canvas Menu GTA VI Style (full-screen)
        ================================================ */
     #side-menu {
       position: fixed;
       top: 0; right: 0;
-      width: 50vw;
-      max-width: 480px;
-      height: 100vh;
+      width: 100vw;        /* ocupa toda a largura */
+      height: 100vh;       /* ocupa toda a altura */
       transform: translateX(100%);
       transition: transform .35s cubic-bezier(0.22,1,0.36,1);
       z-index: 50;
@@ -102,6 +101,10 @@
       margin-bottom: 20px;
       color: white;
     }
+    #side-menu .right .overflow-y-auto {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
     #side-menu .right .person {
       font-size: 1.5rem;
       margin: 8px 0;
@@ -114,7 +117,7 @@
       color: white;
     }
 
-    /* ensure toggle is always on top */
+    /* garante que o toggle fique acima */
     #menu-toggle { z-index: 60; }
   </style>
 </head>
@@ -129,7 +132,7 @@
     <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
   </button>
 
-  <!-- Off-canvas Menu GTA VI -->
+  <!-- Off-canvas Menu GTA VI (full-screen) -->
   <div id="side-menu">
     <div class="container">
       <div class="left">
@@ -210,8 +213,6 @@
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
         <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
       </a>
-
-      <!-- Placeholder cards -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -233,7 +234,7 @@
                   d="M4 8h16M4 16h16" />
           </svg>
         </div>
-        <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
+        <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>  
         <p class="text-gray-400">Funcionalidade futura</p>
       </div>
     </div>
