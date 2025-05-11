@@ -152,6 +152,8 @@
       gap: 0.5rem;
     }
     nav.menu .right .menu-actions button {
+      display: flex;
+      align-items: center;
       background: rgba(255,255,255,0.1);
       border: none;
       padding: 0.4rem 0.8rem;
@@ -160,6 +162,11 @@
       font-size: 0.875rem;
       cursor: pointer;
       transition: background 0.2s;
+    }
+    nav.menu .right .menu-actions button img {
+      width: 1em;
+      height: 1em;
+      margin-right: 0.4em;
     }
     nav.menu .right .menu-actions button:hover {
       background: rgba(255,255,255,0.2);
@@ -193,8 +200,14 @@
         </div>
         <div class="footer">Português do Brasil</div>
         <div class="menu-actions">
-          <button id="menu-theme-btn">Tema</button>
-          <button id="menu-logout-btn">Sair</button>
+          <button id="menu-theme-btn">
+            <!-- ícone de tema poderia vir aqui -->
+            Tema
+          </button>
+          <button id="menu-logout-btn">
+            <img src="assets/img/logout.gif" alt="Sair" />
+            Sair
+          </button>
         </div>
       </div>
     </div>
