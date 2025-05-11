@@ -407,7 +407,20 @@ onReady(async () => {
 
   CalendarModule.init(
     data,
-    info => FormModule.open(null, { date: info.dateStr, start: '00:00', end: '00:00', resource: '', sala: '', type: '', responsible: '', department: '', materia: '', status: '', description: '', time: '' }),
+    info => FormModule.open(null, {
+      date:        info.dateStr,
+      start:       '00:00',
+      end:         '00:00',
+      resource:    '',
+      sala:        '',
+      type:        '',
+      responsible: '',
+      department:  '',
+      materia:     '',
+      status:      '',
+      description: '',
+      time:        ''
+    }),
     info => {
       const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
       if (ev) DetailModule.open(ev);
@@ -415,8 +428,7 @@ onReady(async () => {
   );
 
   // controle UI por papel
-  const role = currentUser?.role?.toLowerCase();
-  if (role === 'student') {
+  if (currentUser?.role === 'student') {
     document.getElementById('open-form-modal')?.style.display = 'none';
     document.getElementById('modal-edit')?.style.display       = 'none';
     document.getElementById('modal-cancel')?.style.display     = 'none';
@@ -427,28 +439,18 @@ onReady(async () => {
   // ----------------------
   const menuToggle = document.getElementById('menu-toggle');
   const sideMenu   = document.getElementById('side-menu');
-  const menuClose  = document.getElementById('menu-close');
   const bars       = menuToggle.querySelectorAll('span');
 
   menuToggle.addEventListener('click', () => {
-    sideMenu.classList.toggle('show');
-    const opened = sideMenu.classList.contains('show');
+    const opened = sideMenu.classList.toggle('show');
+    document.body.classList.toggle('menu-open', opened);
 
     if (opened) {
       bars[0].classList.add('rotate-45', 'translate-y-1.5');
       bars[1].classList.add('-rotate-45', '-translate-y-1.5');
-      sideMenu.style.width = '50vw';
     } else {
       bars[0].classList.remove('rotate-45', 'translate-y-1.5');
       bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
-      sideMenu.style.width = '';
     }
-  });
-
-  menuClose.addEventListener('click', () => {
-    sideMenu.classList.remove('show');
-    bars[0].classList.remove('rotate-45', 'translate-y-1.5');
-    bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
-    sideMenu.style.width = '';
   });
 });

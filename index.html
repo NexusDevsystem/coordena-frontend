@@ -46,38 +46,115 @@
     .dark body {
       background-image: url("assets/img/backgrounddark.png");
     }
-    /* bloqueia scroll somente em telas mobile */
     @media (max-width: 768px) {
-      html, body {
-        height: 100vh;
-        overflow: hidden;
-      }
+      html, body { height: 100vh; overflow: hidden; }
     }
-    /* mantém scroll normal em desktop */
     @media (min-width: 769px) {
-      body {
-        overflow-y: auto;
-      }
+      body { overflow-y: auto; }
     }
+
+    /* ================================================
+       Off-canvas Menu GTA VI Style
+       ================================================ */
+    #side-menu {
+      position: fixed;
+      top: 0; right: 0;
+      width: 50vw;
+      max-width: 480px;
+      height: 100vh;
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(0.22,1,0.36,1);
+      z-index: 50;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    #side-menu.show {
+      transform: translateX(0);
+    }
+    #side-menu .container {
+      display: flex;
+      height: 100%;
+    }
+    #side-menu .left {
+      flex: 1;
+      background: linear-gradient(to bottom, #2f395e, #116897);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #side-menu .left h1 {
+      font-size: 5rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+    }
+    #side-menu .right {
+      flex: 1;
+      background-color: #1e1e2f;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    #side-menu .right h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: white;
+    }
+    #side-menu .right .person {
+      font-size: 1.5rem;
+      margin: 8px 0;
+      color: white;
+    }
+    #side-menu .right .footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 1rem;
+      color: white;
+    }
+
+    /* ensure toggle is always on top */
+    #menu-toggle { z-index: 60; }
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <script>
-    // Agora que window.user é garantido, blocamos o acesso à aba Agendamento se for aluno
-    if (window.user.role === 'student') {
-      const agLink = document.querySelector('a[href="pages/agendamento.html"]');
-      if (agLink) {
-        agLink.classList.add('opacity-50', 'cursor-not-allowed');
-        agLink.href = '#';
-      }
-    }
-  </script>
+  <!-- Toggle off-canvas Menu (Rockstar style) -->
+  <button id="menu-toggle"
+          class="fixed top-4 left-4 w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
+                 bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center space-y-1
+                 focus:outline-none transition duration-200">
+    <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
+    <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
+  </button>
+
+  <!-- Off-canvas Menu GTA VI -->
+  <div id="side-menu">
+    <div class="container">
+      <div class="left">
+        <h1>VI</h1>
+      </div>
+      <div class="right">
+        <h2>Pessoas</h2>
+        <div class="overflow-y-auto flex-grow">
+          <div class="person">JASON DUVAL</div>
+          <div class="person">LUCIA CAMINOS</div>
+          <div class="person">CAL HAMPTON</div>
+          <div class="person">BOOBIE IKE</div>
+          <div class="person">DRE'QUAN PRIEST</div>
+          <div class="person">REAL DIMEZ</div>
+          <div class="person">RAUL BAUTISTA</div>
+          <div class="person">BRIAN HEDER</div>
+        </div>
+        <div class="footer">Português do Brasil</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Saudação com nome do usuário -->
   <div id="user-info"
-       class="fixed top-4 left-4 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
-    <!-- ícone de usuário -->
+       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
@@ -115,10 +192,10 @@
     </svg>
   </button>
 
+  <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-      <!-- Aba Agendamento -->
       <a href="pages/agendamento.html"
          class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
         <div class="mb-4">
@@ -126,14 +203,15 @@
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z" />
+                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0
+                     002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
         <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
       </a>
 
-      <!-- Aba Coordenadores (placeholder “Em breve”) -->
+      <!-- Placeholder cards -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -146,8 +224,6 @@
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
         <p class="text-gray-400">Funcionalidade futura</p>
       </div>
-
-      <!-- Outro placeholder -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg"
@@ -164,21 +240,35 @@
   </main>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
-   Copyright© 2025 - Nexus Devsystem - Todos os direitos reservados.
+    Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
   <script>
+    // Toggle off-canvas menu
+    const toggleBtn = document.getElementById('menu-toggle');
+    const sideMenu  = document.getElementById('side-menu');
+    toggleBtn.addEventListener('click', () => {
+      const opened = sideMenu.classList.toggle('show');
+      document.body.classList.toggle('overflow-hidden', opened);
+      const spans = toggleBtn.querySelectorAll('span');
+      if (opened) {
+        spans[0].classList.add('rotate-45','translate-y-1');
+        spans[1].classList.add('-rotate-45','-translate-y-1');
+      } else {
+        spans[0].classList.remove('rotate-45','translate-y-1');
+        spans[1].classList.remove('-rotate-45','-translate-y-1');
+      }
+    });
+
     // Dark/Light Toggle
     const themeBtn = document.getElementById('theme-toggle');
     const rootEl   = document.documentElement;
-    const saved    = localStorage.getItem('theme') || 'light';
-    if (saved === 'dark') rootEl.classList.add('dark');
     themeBtn.addEventListener('click', () => {
       rootEl.classList.toggle('dark');
       localStorage.setItem('theme', rootEl.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout: limpa token e redireciona
+    // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';

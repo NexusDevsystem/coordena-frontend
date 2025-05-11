@@ -83,20 +83,24 @@ body {
   transition: transform .3s;
 }
 /* animação do X quando aberto */
-#side-menu.show ~ #menu-toggle span:first-child { transform: rotate(45deg) translate(0.2rem, 0.2rem); }
-#side-menu.show ~ #menu-toggle span:last-child  { transform: rotate(-45deg) translate(0.2rem, -0.2rem); }
+#side-menu.show ~ #menu-toggle span:first-child {
+  transform: rotate(45deg) translate(0.2rem, 0.2rem);
+}
+#side-menu.show ~ #menu-toggle span:last-child {
+  transform: rotate(-45deg) translate(0.2rem, -0.2rem);
+}
 
 /* =================================================
-   Off‑canvas Menu (Painel Lateral da Direita)
+   Off-canvas Menu (Painel Lateral da Direita)
    ================================================= */
 #side-menu {
   position: fixed;
   top: 0;
-  right: 0;                        /* agora sai da direita */
+  right: 0;                        /* sai da direita */
   width: 50vw;                     /* ocupa metade da tela */
-  max-width: 400px;                
+  max-width: 400px;
   height: 100vh;
-  background: #14141f;             
+  background: #14141f;
   color: #f3f3f3;
   box-shadow: -2px 0 12px rgba(0,0,0,0.5);
   transform: translateX(100%);     /* inicia escondido à direita */
@@ -119,14 +123,6 @@ body {
   font-size: 1.125rem;
   font-weight: 600;
   color: #fff;
-}
-
-/* botão fechar */
-#menu-close.notification-btn {
-  background: transparent;
-  border-color: transparent;
-  color: #fff;
-  font-size: 1.5rem;
 }
 
 /* links */
