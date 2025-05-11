@@ -175,10 +175,10 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-   <!-- Botão do menu (☰) -->
-  <div class="menu-button" style="left: auto; right: 1rem;" onclick="toggleMenu()">
-  <img src="assets/img/menu.png" alt="Menu" class="w-6 h-6" />
-</div>
+  <!-- Botão do menu (agora com seu ícone) -->
+  <div class="menu-button" onclick="toggleMenu()">
+    <img src="assets/img/menu.png" alt="Abrir menu" class="w-6 h-6" />
+  </div>
 
   <!-- Off-canvas Menu GTA VI -->
   <nav class="menu">
@@ -203,7 +203,6 @@
         <div class="footer">Português do Brasil</div>
         <div class="menu-actions">
           <button id="menu-theme-btn">
-            <!-- ícone de tema poderia vir aqui -->
             Tema
           </button>
           <button id="menu-logout-btn">
@@ -229,20 +228,6 @@
     </span>
   </div>
 
-  <!-- Toggle Dark/Light (fora do menu) -->
-  <button id="theme-toggle"
-          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-gray-800 dark:text-gray-200"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
-               m0 12.02l.7-.7M17.66 6.34l.7-.7
-               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
-
   <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
     <h1 class="text-4xl font-bold">Coordena+</h1>
@@ -263,7 +248,7 @@
       </a>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
+          <svg xmlns="http:// www.w3.org/2000/svg"
                class="h-12 w-12 text-gray-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -275,7 +260,7 @@
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
+          <svg xmlns="http:// www.w3.org/2000/svg"
                class="h-12 w-12 text-gray-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -319,11 +304,7 @@
       window.location.href = 'login.html';
     });
 
-    // Toggle externos continuam
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-    });
+    // Logout externo continua funcionando
     document.getElementById('logout-btn')?.addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
