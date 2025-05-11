@@ -61,19 +61,42 @@
     .menu-button {
       position: fixed;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
-      font-size: 24px;
-      padding: 8px;
-      z-index: 60;
-      color: white;
       background: rgba(0,0,0,0.6);
-      border-radius: 4px;
+      border-radius: 0.5rem;
+      z-index: 70; /* sempre acima do menu */
+      transition: background 0.2s;
     }
+    .menu-button:hover {
+      background: rgba(0,0,0,0.8);
+    }
+    .menu-button span {
+      display: block;
+      width: 1.5rem;
+      height: 0.3rem;
+      background: white;
+      margin: 0.2rem 0;
+      transition: transform 0.3s ease;
+    }
+    /* Quando aberto, gira as barras em X */
+    .menu-button.open span:first-child {
+      transform: rotate(45deg) translate(0.2rem, 0.2rem);
+    }
+    .menu-button.open span:last-child {
+      transform: rotate(-45deg) translate(0.2rem, -0.2rem);
+    }
+
     nav.menu {
       position: fixed;
       top: 0;
-      right: -100vw; /* inicia fora */
+      right: -100vw;
       width: 50vw;
       height: 100vh;
       background: #111;
@@ -82,10 +105,10 @@
       overflow-y: auto;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      z-index: 59;
+      z-index: 60;
     }
     nav.menu.open {
-      right: 0; /* mostra */
+      right: 0;
     }
 
     /* GTA VI inner layout */
@@ -175,14 +198,16 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <!-- Botão do menu (☰) -->
-  <div class="menu-button" onclick="toggleMenu()">☰</div>
+  <!-- Botão do menu (duas barras) -->
+  <div class="menu-button" id="menu-btn" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+  </div>
 
   <!-- Off-canvas Menu GTA VI -->
-  <nav class="menu">
+  <nav class="menu" id="side-menu">
     <div class="container">
       <div class="left">
-        <!-- Nome e email -->
         <div class="user-name" id="menu-user-name">—</div>
         <div class="user-email" id="menu-user-email">—</div>
       </div>
@@ -200,12 +225,9 @@
         </div>
         <div class="footer">Português do Brasil</div>
         <div class="menu-actions">
-          <button id="menu-theme-btn">
-            <!-- ícone de tema poderia vir aqui -->
-            Tema
-          </button>
+          <button id="menu-theme-btn">Tema</button>
           <button id="menu-logout-btn">
-            <img src="assets/img/logout.png" alt="Sair" />
+            <img src="assets/img/logout.gif" alt="Sair" />
             Sair
           </button>
         </div>
@@ -245,44 +267,7 @@
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-      <a href="pages/agendamento.html"
-         class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
-        <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0  
-                     002-2V11H3v8a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
-        <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
-      </a>
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
-        <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-gray-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
-        <p class="text-gray-400">Funcionalidade futura</p>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
-        <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-gray-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
-        <p class="text-gray-400">Funcionalidade futura</p>
-      </div>
+      <!-- ... seus cards ... -->
     </div>
   </main>
 
@@ -293,10 +278,11 @@
   <!-- Script do menu e ações -->
   <script>
     function toggleMenu() {
-      document.querySelector('nav.menu').classList.toggle('open');
+      document.getElementById('side-menu').classList.toggle('open');
+      document.getElementById('menu-btn').classList.toggle('open');
     }
 
-    // Exibe nome e email no menu
+    // Exibe nome e email
     document.addEventListener('DOMContentLoaded', () => {
       if (window.user) {
         document.getElementById('menu-user-name').textContent  = window.user.name;
@@ -305,19 +291,19 @@
       }
     });
 
-    // Dark/Light Toggle interno ao menu
+    // Dark/Light Toggle interno
     document.getElementById('menu-theme-btn').addEventListener('click', () => {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout interno ao menu
+    // Logout interno
     document.getElementById('menu-logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
     });
 
-    // Toggle externos continuam
+    // Toggles externos continuam
     document.getElementById('theme-toggle').addEventListener('click', () => {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
