@@ -35,15 +35,14 @@
     }
   </script>
 
-  <!-- Background styling + scroll lock + menu off-canvas -->
+  <!-- Background styling for light/dark + mobile scroll lock -->
   <style>
-    /* fundo e scroll lock */
     body {
-      font-family: Arial, sans-serif;
       background-image: url("assets/img/background.png");
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
+      font-family: Arial, sans-serif;
       overflow-x: hidden;
     }
     .dark body {
@@ -56,16 +55,9 @@
       body { overflow-y: auto; }
     }
 
-    /* overlay atrás do menu */
-    body.menu-open::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 999;
-    }
-
-    /* botão de abrir/fechar menu */
+    /* ================================================
+       Off-canvas Menu GTA VI Style (full-screen)
+       ================================================ */
     .menu-button {
       position: fixed;
       top: 1rem;
@@ -73,18 +65,16 @@
       cursor: pointer;
       font-size: 30px;
       padding: 10px;
-      z-index: 1001;
+      z-index: 60;
       color: white;
       background: rgba(0,0,0,0.6);
       border-radius: 4px;
     }
-
-    /* menu off-canvas */
-    .menu {
+    nav.menu {
       position: fixed;
       top: 0;
-      right: -100vw;      /* fora da tela */
-      width: 50vw;        /* metade da tela */
+      right: -100vw; /* inicia totalmente fora da tela */
+      width: 50vw;
       height: 100vh;
       background: #111;
       color: white;
@@ -92,62 +82,83 @@
       overflow-y: auto;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      z-index: 1000;      /* acima de todo conteúdo */
+      z-index: 59;
     }
-    .menu.open {
-      right: 0;           /* traz para a tela */
+    nav.menu.open {
+      right: 0; /* traz o menu para a tela toda */
     }
 
-    /* layout interno do menu */
-    .menu .container {
+    /* GTA VI inner layout */
+    nav.menu .container {
       display: flex;
       height: 100%;
     }
-    .menu .left {
+    nav.menu .left {
       flex: 1;
       background: linear-gradient(to bottom, #2f395e, #116897);
       display: flex;
       justify-content: center;
       align-items: center;
-    }
-    .menu .left h1 {
-      font-size: 5rem;
-      background-color: rgba(255,255,255,0.1);
+      flex-direction: column;
       padding: 20px;
-      border-radius: 10px;
-      color: white;
-      text-align: center;
     }
-    .menu .right {
+    nav.menu .left .user-name {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    nav.menu .left .user-email {
+      font-size: 1rem;
+      color: #e5e7eb;
+    }
+    nav.menu .right {
       flex: 1;
       background-color: #1e1e2f;
       padding: 20px;
       display: flex;
       flex-direction: column;
     }
-    .menu .right h2 {
+    nav.menu .right h2 {
       font-size: 2rem;
-      margin-bottom: 20px;
+      margin-bottom: 1rem;
       color: white;
     }
-    .menu .right .overflow-y-auto {
+    nav.menu .right .overflow-y-auto {
       flex-grow: 1;
       overflow-y: auto;
+      margin-bottom: 1rem;
     }
-    .menu .right .person {
+    nav.menu .right .person {
       font-size: 1.5rem;
       margin: 8px 0;
       color: white;
     }
-    .menu .right .footer {
+    nav.menu .right .footer {
       margin-top: auto;
       text-align: center;
       font-size: 1rem;
       color: white;
+      margin-bottom: 1rem;
+    }
+    nav.menu .right .menu-actions {
+      display: flex;
+      justify-content: space-around;
+    }
+    nav.menu .right .menu-actions button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    nav.menu .right .menu-actions button:hover {
+      background: rgba(255,255,255,0.2);
     }
   </style>
 </head>
-
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <!-- Botão do menu (☰) -->
@@ -157,26 +168,33 @@
   <nav class="menu">
     <div class="container">
       <div class="left">
-        <h1>VI</h1>
+        <!-- Exibe nome e email do usuário -->
+        <div class="user-name" id="menu-user-name">—</div>
+        <div class="user-email" id="menu-user-email">—</div>
       </div>
       <div class="right">
         <h2>Pessoas</h2>
-        <div class="overflow-y-auto flex-grow">
-          <div class="person">JASON DUVAL</div>
-          <div class="person">LUCIA CAMINOS</div>
-          <div class="person">CAL HAMPTON</div>
-          <div class="person">BOOBIE IKE</div>
-          <div class="person">DRE'QUAN PRIEST</div>
-          <div class="person">REAL DIMEZ</div>
-          <div class="person">RAUL BAUTISTA</div>
-          <div class="person">BRIAN HEDER</div>
+        <div class="overflow-y-auto">
+          <!-- Todos os itens substituídos por "teste" -->
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
         </div>
         <div class="footer">Português do Brasil</div>
+        <!-- Ações: DarkMode + Logout -->
+        <div class="menu-actions">
+          <button id="menu-theme-btn">🌙 Dark/Light</button>
+          <button id="menu-logout-btn">⎋ Sair</button>
+        </div>
       </div>
     </div>
   </nav>
 
-  <!-- Resto da página... -->
   <!-- Saudação com nome do usuário -->
   <div id="user-info"
        class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-4 py-2 shadow-md z-50">
@@ -191,30 +209,17 @@
     </span>
   </div>
 
-  <!-- Toggle Dark/Light -->
+  <!-- Toggle Dark/Light (fora do menu) -->
   <button id="theme-toggle"
-          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition z-50">
+          class="fixed top-4 right-16 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-50">
     <svg xmlns="http://www.w3.org/2000/svg"
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1 
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 
-               m0 12.02l.7-.7M17.66 6.34l.7-.7 
+            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
+               m0 12.02l.7-.7M17.66 6.34l.7-.7
                M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
-
-  <!-- Logout -->
-  <button id="logout-btn"
-          class="fixed top-4 right-4 p-2 rounded-full bg-red-500 hover:bg-red-600 transform hover:scale-105 z-50">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-white"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 
-               01-2 2H5a2 2 0 01-2-2V7a2 2 0 
-               012-2h6a2 2 0 012 2v1"/>
     </svg>
   </button>
 
@@ -229,7 +234,7 @@
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0 
+                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0  
                      002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
@@ -267,32 +272,43 @@
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
-  <!-- Script do menu e demais controles -->
+  <!-- Script do menu e ações -->
   <script>
     function toggleMenu() {
-      const menu = document.querySelector('.menu');
-      menu.classList.toggle('open');
-      document.body.classList.toggle('menu-open');
+      document.querySelector('nav.menu').classList.toggle('open');
     }
 
-    // Dark/Light Toggle
-    document.getElementById('theme-toggle').addEventListener('click', () => {
+    // Exibe nome e email no menu
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.user) {
+        document.getElementById('menu-user-name').textContent  = window.user.name;
+        document.getElementById('menu-user-email').textContent = window.user.email;
+        document.getElementById('user-name').textContent       = window.user.name;
+      }
+    });
+
+    // Dark/Light Toggle interno ao menu
+    document.getElementById('menu-theme-btn').addEventListener('click', () => {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', () => {
+    // Logout interno ao menu
+    document.getElementById('menu-logout-btn').addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
     });
 
-    // Exibe nome do usuário logado
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.user?.name) {
-        document.getElementById('user-name').textContent = window.user.name;
-      }
+    // Logout/Toggle externos continuam funcionando
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Auth.logout();
+      window.location.href = 'login.html';
     });
   </script>
+
 </body>
 </html>
