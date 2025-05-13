@@ -84,7 +84,7 @@
       padding: 0.5rem 1.5rem;
       border-radius: 9999px;
       font-weight: 600;
-      font-size: 1.125rem;      /* aumenta fonte das abas */
+      font-size: 1.125rem;
       line-height: 1.5rem;
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
@@ -118,7 +118,7 @@
       padding: 1rem 1.5rem;
     }
     #side-menu .menu-content p {
-      font-size: 1.25rem;         /* aumenta fonte dos itens */
+      font-size: 1.25rem;
       line-height: 1.75rem;
       font-weight: 600;
       color: white;
@@ -259,7 +259,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -269,7 +269,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -282,7 +282,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -290,19 +290,19 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
@@ -311,7 +311,7 @@
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
@@ -321,7 +321,7 @@
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
@@ -821,8 +821,8 @@
           time:        ''
         }),
         info => {
-          const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
-          if (ev) DetailModule.open(ev);
+          const ev = CalendarModule.get
+        if (ev) DetailModule.open(ev);
         }
       );
 
