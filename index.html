@@ -61,15 +61,20 @@
     .menu-button {
       position: fixed;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
+      z-index: 70;
       cursor: pointer;
-      font-size: 24px;
-      padding: 8px;
-      z-index: 60;
-      color: white;
-      background: rgba(0,0,0,0.6);
-      border-radius: 4px;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+    .menu-button img {
+      width: 2rem;
+      height: 2rem;
+    }
+
     nav.menu {
       position: fixed;
       top: 0;
@@ -82,7 +87,7 @@
       overflow-y: auto;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      z-index: 59;
+      z-index: 65;
     }
     nav.menu.open {
       right: 0; /* mostra */
@@ -175,15 +180,10 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <!-- Botão do menu (agora com seu ícone) -->
-<div 
-  class="menu-button" 
-  style="left: auto; right: 1rem;" 
-  onclick="toggleMenu()"
->
-  <img src="assets/img/menu.png" alt="Menu" class="w-6 h-6" />
-</div>
-
+  <!-- Botão do menu (agora com seu ícone sem fundo) -->
+  <div class="menu-button" onclick="toggleMenu()">
+    <img src="assets/img/menu.png" alt="Menu" />
+  </div>
 
   <!-- Off-canvas Menu GTA VI -->
   <nav class="menu">
@@ -219,24 +219,11 @@
     </div>
   </nav>
 
-  <!-- Saudação com nome do usuário -->
-  <div id="user-info"
-       class="fixed top-4 left-20 flex items-center space-x-2 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-60 backdrop-blur-md rounded-full px-3 py-2 shadow-md z-50">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M5.121 17.804A9 9 0 1119.879 6.196a9 9 0 01-14.758 11.608z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    <span class="text-gray-800 dark:text-gray-200 font-medium text-sm">
-      Olá, <span id="user-name">—</span>!
-    </span>
-  </div>
-
   <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
     <h1 class="text-4xl font-bold">Coordena+</h1>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <!-- Agendamento -->
       <a href="pages/agendamento.html"
          class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
         <div class="mb-4">
@@ -244,20 +231,21 @@
                class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18M5 21h14a2 2 0  
-                     002-2V11H3v8a2 2 0 002 2z" />
+                  d="M8 7V3M16 7V3M3 11h18
+                     M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z"/>
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
         <p class="text-gray-600 dark:text-gray-300">Agende laboratórios, salas e auditórios.</p>
       </a>
+      <!-- Placeholders -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http:// www.w3.org/2000/svg"
+          <svg xmlns="http://www.w3.org/2000/svg"
                class="h-12 w-12 text-gray-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16" />
+                  d="M4 8h16M4 16h16"/>
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
@@ -265,11 +253,11 @@
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http:// www.w3.org/2000/svg"
+          <svg xmlns="http://www.w3.org/2000/svg"
                class="h-12 w-12 text-gray-400 mx-auto"
                fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16" />
+                  d="M4 8h16M4 16h16"/>
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
@@ -293,7 +281,6 @@
       if (window.user) {
         document.getElementById('menu-user-name').textContent  = window.user.name;
         document.getElementById('menu-user-email').textContent = window.user.email;
-        document.getElementById('user-name').textContent       = window.user.name;
       }
     });
 
@@ -305,12 +292,6 @@
 
     // Logout interno ao menu
     document.getElementById('menu-logout-btn').addEventListener('click', () => {
-      Auth.logout();
-      window.location.href = 'login.html';
-    });
-
-    // Logout externo continua funcionando
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
       Auth.logout();
       window.location.href = 'login.html';
     });
