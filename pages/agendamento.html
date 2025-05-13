@@ -84,7 +84,7 @@
       padding: 0.5rem 1.5rem;
       border-radius: 9999px;
       font-weight: 600;
-      font-size: 1.125rem;
+      font-size: 1.125rem;      /* aumenta fonte das abas */
       line-height: 1.5rem;
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
@@ -118,7 +118,7 @@
       padding: 1rem 1.5rem;
     }
     #side-menu .menu-content p {
-      font-size: 1.25rem;
+      font-size: 1.25rem;         /* aumenta fonte dos itens */
       line-height: 1.75rem;
       font-weight: 600;
       color: white;
@@ -190,8 +190,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 12l9-9 9 9m-1 9h-4a2 2 0
-                 01-2-2v-5H9v5a2 2 0
-                 01-2 2H5"/>
+                 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
       </svg>
     </a>
     <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
@@ -227,14 +226,119 @@
       <button id="form-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">✕</button>
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Novo Agendamento</h3>
       <form id="agendamento-form" class="space-y-4">
-        <!-- ... form fields permanecem inalterados ... -->
+        <!-- Data -->
+        <div>
+          <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
+          <input type="date" id="data" required
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+        </div>
+        <!-- Horário -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
+            <input type="time" id="start" min="07:00" max="22:00" step="60" required
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+          </div>
+          <div>
+            <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
+            <input type="time" id="end" min="07:00" max="22:00" step="60" required
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+          </div>
+        </div>
+        <!-- Recurso / Tipo -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
+            <select id="recurso" required
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              <option value="">Selecione...</option>
+              <option>Laboratório</option>
+              <option>Sala de Aula</option>
+              <option>Auditório</option>
+            </select>
+          </div>
+          <div>
+            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
+            <select id="tipo-evento" required
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              <option value="">Selecione...</option>
+              <option>Aula</option>
+              <option>Reunião</option>
+              <option>Palestra</option>
+              <option>Workshop</option>
+            </select>
+          </div>
+        </div>
+        <!-- Sala (condicional) -->
+        <div id="sala-container" class="hidden">
+          <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
+          <select id="sala"
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <!-- Responsável -->
+        <div>
+          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
+          <input type="text" id="responsavel" placeholder="Nome do professor" required
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+        </div>
+        <!-- Curso / Matéria -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
+            <input type="text" id="departamento" placeholder="Ex: Computação" required
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+          </div>
+          <div>
+            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
+            <select id="curso" required
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+              <option value="">Selecione o curso primeiro</option>
+            </select>
+          </div>
+        </div>
+        <!-- Status -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <select id="status" required
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            <option value="Pendente">Pendente</option>
+            <option value="Aprovado">Aprovado</option>
+            <option value="Rejeitado">Rejeitado</option>
+          </select>
+        </div>
+        <!-- Descrição -->
+        <div>
+          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <textarea id="descricao" rows="3"
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+        </div>
+        <!-- Botão Confirmar -->
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
+          Confirmar
+        </button>
       </form>
     </div>
   </div>
 
   <!-- Modal de Detalhes -->
   <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
-    <!-- ... permanece igual ... -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
+      <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
+      <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
+      <p id="modal-date"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-resource" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-type"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-resp"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-dept"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-status"   class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-desc"     class="mb-4 text-gray-700 dark:text-gray-300"></p>
+      <div class="flex justify-end space-x-4">
+        <button id="modal-edit"   class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
+        <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
+      </div>
+    </div>
   </div>
 
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
@@ -260,10 +364,12 @@
   const ThemeToggle = (() => {
     const themeKey = 'theme';
     const root     = document.documentElement;
+
     function applyTheme(mode) {
       root.classList.toggle('dark', mode === 'dark');
       localStorage.setItem(themeKey, mode);
     }
+
     function init() {
       const saved = localStorage.getItem(themeKey) || 'light';
       applyTheme(saved);
@@ -272,6 +378,7 @@
         applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
       });
     }
+
     return { init };
   })();
 
@@ -294,6 +401,7 @@
       if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
       return res.json();
     }
+
     async function createEvent(data) {
       const res = await fetch(BASE, {
         method: 'POST',
@@ -303,6 +411,7 @@
       if (!res.ok) throw new Error('Falha ao criar reserva');
       return res.json();
     }
+
     async function updateEvent(id, data) {
       const res = await fetch(`${BASE}/${id}`, {
         method: 'PUT',
@@ -312,6 +421,7 @@
       if (!res.ok) throw new Error('Falha ao atualizar reserva');
       return res.json();
     }
+
     async function deleteEvent(id) {
       const res = await fetch(`${BASE}/${id}`, {
         method: 'DELETE',
@@ -319,6 +429,7 @@
       });
       if (!res.ok) throw new Error('Falha ao excluir reserva');
     }
+
     return { fetchEvents, createEvent, updateEvent, deleteEvent };
   })();
 
@@ -349,42 +460,12 @@
           start: `${e.date}T${e.start}`,
           end:   `${e.date}T${e.end}`
         })),
-        dateClick:  async info => {
-          onDateClick(info);
-          // BLOQUEAR horários da grade para o LAB selecionado e Data clicada
-          const lab = document.getElementById('recurso').value;
-          const date = info.dateStr;
-          if (lab) {
-            const resp = await fetch(`/api/scheduled-blocks?lab=${encodeURIComponent(lab)}&date=${date}`);
-            const blocks = await resp.json();
-            // remove fontes anteriores de background
-            window.calendar.getEventSources().forEach(src => {
-              if (src.internalEventSource.def.rendering === 'background') src.remove();
-            });
-            // adiciona novos blocos
-            window.calendar.addEventSource(blocks.map(b => ({
-              start:     `${date}T${b.startTime}`,
-              end:       `${date}T${b.endTime}`,
-              rendering: 'background',
-              color:     '#f87171',
-              overlap:   false
-            })));
-          }
-        },
+        dateClick:  onDateClick,
         eventClick: onEventClick,
         height:     el.clientHeight,
-        allDaySlot: false,
-        selectAllow: selectInfo => {
-          // impede seleção dentro de blocos de grade
-          return !window.calendar.getEvents().some(ev =>
-            ev.rendering === 'background' &&
-            selectInfo.start < ev.end && selectInfo.end > ev.start
-          );
-        }
+        allDaySlot: false
       });
 
-      // expõe o calendário globalmente
-      window.calendar = calendar;
       calendar.render();
       window.addEventListener('resize', () => {
         const nowMobile = window.innerWidth < 640;
@@ -454,10 +535,181 @@
       };
     }
 
-    function open(id = null, evData = null) { /* ... idêntico ... */ }
-    function close() { /* ... idêntico ... */ }
-    function handleSubmit(e) { /* ... idêntico ... */ }
-    function init() { /* ... idêntico ... */ }
+    function open(id = null, evData = null) {
+      currentId = id;
+      selectors.form.reset();
+      selectors.fields.salaContainer.classList.add('hidden');
+
+      // reiniciar seleção de curso/matéria
+      selectors.fields.dept.value = '';
+      selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+      selectors.fields.materia.disabled = true;
+
+      if (evData) {
+        selectors.fields.data.value    = evData.date;
+        selectors.fields.start.value   = evData.start;
+        selectors.fields.end.value     = evData.end;
+        selectors.fields.recurso.value = evData.resource;
+        selectors.fields.recurso.dispatchEvent(new Event('change'));
+        selectors.fields.sala.value    = evData.sala || '';
+        selectors.fields.type.value    = evData.type;
+        selectors.fields.resp.value    = evData.responsible;
+        selectors.fields.dept.value    = evData.department;
+        selectors.fields.status.value  = evData.status;
+        selectors.fields.desc.value    = evData.description;
+
+        if (evData.materia) {
+          selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
+          selectors.fields.materia.disabled = false;
+        }
+      }
+
+      if (!currentId) {
+        const user = Auth.getCurrentUser();
+        if (user?.name) {
+          selectors.fields.resp.value = user.name;
+          selectors.fields.resp.setAttribute('readonly','readonly');
+        }
+      }
+
+      selectors.modal.classList.remove('hidden');
+    }
+
+    function close() {
+      selectors.modal.classList.add('hidden');
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const f = selectors.fields;
+      const payload = {
+        date:        f.data.value,
+        start:       f.start.value,
+        end:         f.end.value,
+        resource:    f.recurso.value,
+        sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+        type:        f.type.value,
+        responsible: f.resp.value,
+        department:  f.dept.value,
+        materia:     f.materia.value,
+        status:      f.status.value,
+        description: f.desc.value,
+        time:        `${f.start.value}-${f.end.value}`,
+        title:       f.salaContainer.classList.contains('hidden')
+                      ? f.type.value
+                      : `${f.type.value} - ${f.sala.value}`
+      };
+
+      (async () => {
+        try {
+          let saved;
+          if (currentId) {
+            saved = await Api.updateEvent(currentId, payload);
+            CalendarModule.update(currentId, saved);
+          } else {
+            saved = await Api.createEvent(payload);
+            CalendarModule.add(saved);
+          }
+          close();
+        } catch (err) {
+          alert(err.message);
+        }
+      })();
+    }
+
+    function init() {
+      cacheSelectors();
+
+      // inicia matéria desabilitado
+      selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+      selectors.fields.materia.disabled = true;
+
+      selectors.btnOpen?.addEventListener('click', () => open());
+      selectors.btnClose?.addEventListener('click', close);
+      selectors.form?.addEventListener('submit', handleSubmit);
+
+      // mapa de salas
+      const salaOpts = {
+        'Laboratório': ['Lab401','Lab402','Lab403'],
+        'Sala de Aula': ['Sala101','Sala102','Sala103'],
+        'Auditório': ['Auditório A','Auditório B']
+      };
+      selectors.fields.recurso?.addEventListener('change', () => {
+        const tipo = selectors.fields.recurso.value;
+        if (salaOpts[tipo]) {
+          selectors.fields.salaContainer.classList.remove('hidden');
+          selectors.fields.sala.innerHTML =
+            '<option value="">Selecione...</option>' +
+            salaOpts[tipo].map(s => `<option>${s}</option>`).join('');
+        } else {
+          selectors.fields.salaContainer.classList.add('hidden');
+        }
+      });
+
+      // mapa de cursos × matérias
+      const courseMap = {
+        'Engenharia de Computação': [
+          'ARA0003 - PRINCÍPIOS DE GESTÃO',
+          'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
+          'ARA0039 - ARQUITETURA DE COMPUTADORES',
+          'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
+          'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
+          'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+          'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
+          'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
+          'ARA1386 - SISTEMAS OPERACIONAIS',
+          'ARA0002 - PENSAMENTO COMPUTACIONAL',
+          'ARA0014 - ANÁLISE DE DADOS',
+          'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+          'ARA0044 - ELETRICIDADE E MAGNETISMO',
+          'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
+          'ARA1398 - MECÂNICA DOS SÓLIDOS',
+          'ARA0029 - ELETRICIDADE APLICADA',
+          'ARA0030 - EQUAÇÕES DIFERENCIAIS',
+          'ARA0046 - FENÔMENOS DE TRANSPORTE',
+          'ARA0056 - QUÍMICA TECNOLÓGICA',
+          'ARA2042 - SISTEMAS DIGITAIS',
+          'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+          'ARA0083 - ELETRÔNICA ANALÓGICA',
+          'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
+          'ARA1943 - MODELAGEM MATEMÁTICA',
+          'ARA0040 - BANCO DE DADOS',
+          'ARA0098 - ESTRUTURA DE DADOS',
+          'COMPILADORES',
+          'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
+          'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
+          'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+          'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
+          'ARA2086 - ALGORITMOS EM GRAFOS',
+          'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+          'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
+          'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
+          'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+          'ARA0115 - SISTEMAS EMBARCADOS',
+          'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
+          'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+          'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
+          'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+          'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+          'ARA2074 - SEGURANÇA CIBERNÉTICA'
+        ]
+      };
+
+      selectors.fields.dept?.addEventListener('change', () => {
+        const curso = selectors.fields.dept.value;
+        const lista = courseMap[curso] || [];
+        const sel   = selectors.fields.materia;
+        if (lista.length) {
+          sel.innerHTML =
+            '<option value="">Selecione a matéria...</option>' +
+            lista.map(m => `<option value="${m}">${m}</option>`).join('');
+          sel.disabled = false;
+        } else {
+          sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+          sel.disabled = true;
+        }
+      });
+    }
 
     return { init, open };
   })();
@@ -465,7 +717,68 @@
   // ----------------------
   // MÓDULO MODAL DETALHES
   // ----------------------
-  const DetailModule = (() => { /* ... idêntico ... */ })();
+  const DetailModule = (() => {
+    let currentId = null;
+    const selectors = {};
+
+    function cacheSelectors() {
+      selectors.modal     = document.getElementById('event-modal');
+      selectors.btnClose  = document.getElementById('modal-close');
+      selectors.btnEdit   = document.getElementById('modal-edit');
+      selectors.btnDelete = document.getElementById('modal-cancel');
+      selectors.fields    = {
+        date:     document.getElementById('modal-date'),
+        resource: document.getElementById('modal-resource'),
+        type:     document.getElementById('modal-type'),
+        resp:     document.getElementById('modal-resp'),
+        dept:     document.getElementById('modal-dept'),
+        materia:  document.getElementById('modal-materia'),
+        status:   document.getElementById('modal-status'),
+        desc:     document.getElementById('modal-desc')
+      };
+    }
+
+    function open(ev) {
+      currentId = ev._id;
+      const f = selectors.fields;
+      f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
+      f.resource.textContent = `Recurso: ${ev.resource}`;
+      f.type.textContent     = `Evento: ${ev.type}`;
+      f.resp.textContent     = `Responsável: ${ev.responsible}`;
+      f.dept.textContent     = `Curso: ${ev.department}`;
+      f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
+      f.status.textContent   = `Status: ${ev.status}`;
+      f.desc.textContent     = ev.description || 'Sem descrição';
+      selectors.modal.classList.remove('hidden');
+    }
+
+    function close() {
+      selectors.modal.classList.add('hidden');
+    }
+
+    function init() {
+      cacheSelectors();
+      selectors.btnClose?.addEventListener('click', close);
+      selectors.btnEdit?.addEventListener('click', () => {
+        if (!currentId) return;
+        const ev = CalendarModule.getEvents().find(e => e._id === currentId);
+        if (ev) FormModule.open(currentId, ev);
+        close();
+      });
+      selectors.btnDelete?.addEventListener('click', async () => {
+        if (!currentId) return;
+        try {
+          await Api.deleteEvent(currentId);
+          CalendarModule.remove(currentId);
+          close();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    }
+
+    return { init, open };
+  })();
 
   // ----------------------
   // INICIALIZAÇÃO PRINCIPAL
@@ -475,6 +788,7 @@
     FormModule.init();
     DetailModule.init();
 
+    const currentUser = Auth.getCurrentUser();
     let data = [];
     try {
       data = await Api.fetchEvents();
@@ -485,10 +799,17 @@
     CalendarModule.init(
       data,
       info => FormModule.open(null, {
-        date: info.dateStr, start: '00:00', end: '00:00',
-        resource: '', sala: '', type: '',
-        responsible: '', department: '',
-        status: '', description: '', time: ''
+        date:        info.dateStr,
+        start:       '00:00',
+        end:         '00:00',
+        resource:    '',
+        sala:        '',
+        type:        '',
+        responsible: '',
+        department:  '',
+        status:      '',
+        description: '',
+        time:        ''
       }),
       info => {
         const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
@@ -496,7 +817,7 @@
       }
     );
 
-    // Toggle off-canvas
+    // Toggle off‑canvas
     const toggle = document.getElementById('menu-toggle');
     const menu   = document.getElementById('side-menu');
     toggle.addEventListener('click', () => {
