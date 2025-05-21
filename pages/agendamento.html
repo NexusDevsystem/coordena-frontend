@@ -32,6 +32,9 @@
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
+  <!-- SheetJS para ler XLSX no cliente -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
     /* ================================================
        Background & Scroll Lock
@@ -173,7 +176,7 @@
     </div>
   </div>
 
-  <!-- Menu Toggle Rockstar Style -->
+  <!-- Menu Toggle Rockstar Style (esquerda) -->
   <div class="fixed top-4 left-4 z-50">
     <button id="menu-toggle"
             class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
@@ -212,7 +215,7 @@
               class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
       </button>
-      <!-- input e botão para importar planilha -->
+      <!-- ADICIONADO: input e botão para importar planilha -->
       <input type="file" id="schedule-file" accept=".xlsx,.xls"
              class="border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"/>
       <button id="import-schedule"
@@ -221,6 +224,7 @@
       </button>
     </div>
 
+    <!-- Calendário Dinâmico -->
     <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         Calendário de Reservas
@@ -228,9 +232,9 @@
       <div id="calendar" class="w-full h-[600px]"></div>
     </section>
 
-    <!-- ============================================= -->
-    <!-- Grade de ocupação estática dos laboratórios -->
-    <!-- ============================================= -->
+    <!-- =============================================
+         Grade de ocupação estática dos laboratórios
+         ============================================= -->
     <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300 mt-8 overflow-auto">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 text-center">
         Ocupação dos laboratórios fixos
@@ -239,6 +243,7 @@
         <thead>
           <tr>
             <th class="px-2 py-1 border text-left">Horário</th>
+            <!-- Gerar cabeçalhos de 50 em 50 minutos -->
             <th class="px-2 py-1 border text-center">08:00–08:50</th>
             <th class="px-2 py-1 border text-center">08:50–09:40</th>
             <th class="px-2 py-1 border text-center">09:50–10:40</th>
@@ -257,6 +262,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- Linha de cada laboratório -->
           <!-- L101 -->
           <tr>
             <td class="px-2 py-1 border font-semibold">L101</td>
@@ -405,7 +411,6 @@
         </tbody>
       </table>
     </section>
-
   </main>
 
   <!-- Modal de Form -->
@@ -438,7 +443,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -448,7 +453,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -461,7 +466,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -469,19 +474,19 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
@@ -490,7 +495,7 @@
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
@@ -500,7 +505,7 @@
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
@@ -622,11 +627,12 @@
     })();
 
     // ----------------------
-    // MÓDULO CALENDÁRIO (SUPORTE MOBILE)
+    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
     // ----------------------
     const CalendarModule = (() => {
       let calendar;
-      let events = [];
+      let events      = [];
+      let fixedEvents = []; // background events
 
       function init(rawEvents, onDateClick, onEventClick) {
         events = rawEvents;
@@ -651,7 +657,15 @@
           dateClick:  onDateClick,
           eventClick: onEventClick,
           height:     el.clientHeight,
-          allDaySlot: false
+          allDaySlot: false,
+          // impede seleção em cima de background events
+          selectAllow: selectInfo => {
+            return !calendar.getEvents().some(ev =>
+              ev.rendering === 'background' &&
+              ev.start < selectInfo.end && ev.end > selectInfo.start
+            );
+          },
+          selectable: true
         });
 
         calendar.render();
@@ -692,7 +706,34 @@
         calendar.getEventById(id)?.remove();
       }
 
-      return { init, add, update, remove, getEvents: () => events };
+      // limpa todos os bloqueios fixos
+      function clearFixed() {
+        fixedEvents.forEach(ev => ev.remove());
+        fixedEvents = [];
+      }
+
+      // adiciona um bloqueio fixo (background event)
+      function addFixedEvent({ dayIndex, start, end, lab }) {
+        const ev = calendar.addEvent({
+          daysOfWeek: [dayIndex],
+          startTime:  start,
+          endTime:    end,
+          display:    'background',
+          backgroundColor: '#ff0000',
+          extendedProps: { fixed: true, lab }
+        });
+        fixedEvents.push(ev);
+      }
+
+      return {
+        init,
+        add,
+        update,
+        remove,
+        getEvents: () => events,
+        clearFixed,
+        addFixedEvent
+      };
     })();
 
     // ----------------------
@@ -976,6 +1017,7 @@
       FormModule.init();
       DetailModule.init();
 
+      const currentUser = Auth.getCurrentUser();
       let data = [];
       try {
         data = await Api.fetchEvents();
@@ -1033,7 +1075,39 @@
         if (!fileInput.files.length) {
           return alert('Selecione um arquivo .xlsx antes.');
         }
-        console.log('Importando planilha:', fileInput.files[0]);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const data = e.target.result;
+          const wb = XLSX.read(data, { type: 'binary' });
+          // limpa os bloqueios atuais
+          CalendarModule.clearFixed();
+          wb.SheetNames.forEach(sheetName => {
+            const ws   = wb.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+            const header = rows[0]; // ["HORÁRIOS", "SEGUNDA", , "TERÇA", ...]
+            // percorre cada linha de horário
+            for (let r = 2; r < rows.length; r++) {
+              const row = rows[r];
+              const timeRange = row[0];
+              if (!timeRange) continue;
+              const [start, end] = timeRange.split('-').map(s => s.trim());
+              // percorre colunas de 1 em 2 para cada dia
+              for (let c = 1; c < header.length; c += 2) {
+                const dayName   = header[c];
+                const discipline= row[c+1];
+                if (discipline) {
+                  // converte dia em índice FullCalendar (0=Dom,1=Seg,...)
+                  const map = { 'SEGUNDA':1, 'TERÇA':2, 'QUARTA':3, 'QUINTA':4, 'SEXTA':5 };
+                  const dayIndex = map[dayName.toUpperCase()] || null;
+                  if (dayIndex !== null) {
+                    CalendarModule.addFixedEvent({ dayIndex, start, end, lab: sheetName });
+                  }
+                }
+              }
+            }
+          });
+        };
+        reader.readAsBinaryString(fileInput.files[0]);
       });
     });
   </script>
