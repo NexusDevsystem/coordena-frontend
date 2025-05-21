@@ -84,7 +84,7 @@
       padding: 0.5rem 1.5rem;
       border-radius: 9999px;
       font-weight: 600;
-      font-size: 1.125rem;      /* aumenta fonte das abas */
+      font-size: 1.125rem;
       line-height: 1.5rem;
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
@@ -118,7 +118,7 @@
       padding: 1rem 1.5rem;
     }
     #side-menu .menu-content p {
-      font-size: 1.25rem;         /* aumenta fonte dos itens */
+      font-size: 1.25rem;
       line-height: 1.75rem;
       font-weight: 600;
       color: white;
@@ -173,7 +173,7 @@
     </div>
   </div>
 
-  <!-- Menu Toggle Rockstar Style (esquerda) -->
+  <!-- Menu Toggle Rockstar Style -->
   <div class="fixed top-4 left-4 z-50">
     <button id="menu-toggle"
             class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
@@ -212,7 +212,7 @@
               class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
       </button>
-      <!-- ADICIONADO: input e botão para importar planilha -->
+      <!-- input e botão para importar planilha -->
       <input type="file" id="schedule-file" accept=".xlsx,.xls"
              class="border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"/>
       <button id="import-schedule"
@@ -227,6 +227,185 @@
       </h2>
       <div id="calendar" class="w-full h-[600px]"></div>
     </section>
+
+    <!-- ============================================= -->
+    <!-- Grade de ocupação estática dos laboratórios -->
+    <!-- ============================================= -->
+    <section class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300 mt-8 overflow-auto">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 text-center">
+        Ocupação dos laboratórios fixos
+      </h2>
+      <table class="min-w-full table-auto border-collapse">
+        <thead>
+          <tr>
+            <th class="px-2 py-1 border text-left">Horário</th>
+            <th class="px-2 py-1 border text-center">08:00–08:50</th>
+            <th class="px-2 py-1 border text-center">08:50–09:40</th>
+            <th class="px-2 py-1 border text-center">09:50–10:40</th>
+            <th class="px-2 py-1 border text-center">10:40–11:30</th>
+            <th class="px-2 py-1 border text-center">11:30–12:20</th>
+            <th class="px-2 py-1 border text-center">12:20–13:10</th>
+            <th class="px-2 py-1 border text-center">13:30–14:20</th>
+            <th class="px-2 py-1 border text-center">14:20–15:10</th>
+            <th class="px-2 py-1 border text-center">15:20–16:10</th>
+            <th class="px-2 py-1 border text-center">16:10–17:00</th>
+            <th class="px-2 py-1 border text-center">17:00–17:50</th>
+            <th class="px-2 py-1 border text-center">17:50–18:30</th>
+            <th class="px-2 py-1 border text-center">18:30–19:20</th>
+            <th class="px-2 py-1 border text-center">19:20–20:10</th>
+            <th class="px-2 py-1 border text-center">20:20–21:10</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- L101 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L101</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+          <!-- L102 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L102</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+          <!-- L103 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L103</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+          <!-- L104 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L104</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+          </tr>
+          <!-- L105 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L105</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+          <!-- L106 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L106</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+          </tr>
+          <!-- L107 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L107</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+          <!-- L308 -->
+          <tr>
+            <td class="px-2 py-1 border font-semibold">L308</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+            <td class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
   </main>
 
   <!-- Modal de Form -->
@@ -259,7 +438,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -269,7 +448,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -282,7 +461,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -290,19 +469,19 @@
         <div>
           <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
@@ -311,7 +490,7 @@
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
@@ -321,7 +500,7 @@
         <div>
           <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2 transform hover:scale-105 transition">
@@ -797,7 +976,6 @@
       FormModule.init();
       DetailModule.init();
 
-      const currentUser = Auth.getCurrentUser();
       let data = [];
       try {
         data = await Api.fetchEvents();
@@ -855,7 +1033,6 @@
         if (!fileInput.files.length) {
           return alert('Selecione um arquivo .xlsx antes.');
         }
-        // Aqui você pode chamar sua API de upload ou ler o arquivo com uma lib como SheetJS
         console.log('Importando planilha:', fileInput.files[0]);
       });
     });
