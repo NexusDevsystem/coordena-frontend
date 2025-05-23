@@ -763,64 +763,64 @@
     // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
     // ----------------------
     function buildOccupancyTable() {
-      const events = CalendarModule.getEvents(); // mantém todos os eventos
-      const now = new Date();
+  const events = CalendarModule.getEvents();
+  const now    = new Date();
 
-      // pega todas as salas/recurso
-      const labs = [...new Set(events.map(e => e.sala || e.resource))];
+  // lista de labs e faixas de horário
+  const labs      = [...new Set(events.map(e => e.sala || e.resource))];
+  const timeRanges= [...new Set(events.map(e => `${e.start}-${e.end}`))];
+  timeRanges.sort((a,b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-      // pega todos os intervalos de horário
-      const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
-      timeRanges.sort((a, b) =>
-        a.split('-')[0].localeCompare(b.split('-')[0])
-      );
+  const table = document.getElementById('occupancy-table');
+  table.innerHTML = '';
 
-      const table = document.getElementById('occupancy-table');
-      table.innerHTML = '';
-
-      // Cabeçalho
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
-      headerRow.innerHTML = `
+  // cabeçalho
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
-    ${timeRanges
-          .map(r => `<th class="px-2 py-1 border text-center">${r}</th>`)
-          .join('')}
+    ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
   `;
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
 
-      // Corpo
-      const tbody = document.createElement('tbody');
-      labs.forEach(lab => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+  // corpo
+  const tbody = document.createElement('tbody');
+  labs.forEach(lab => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-        timeRanges.forEach(range => {
-          const [start, end] = range.split('-');
+    timeRanges.forEach(range => {
+      const [start, end] = range.split('-');
 
-          // só marca "ocupado" se o evento deste lab e horário estiver em andamento agora
-          const aindaOcupado = events.some(e => {
-            if ((e.sala || e.resource) !== lab) return false;
-            if (e.start !== start || e.end !== end) return false;
-            const dtStart = new Date(`${e.date}T${e.start}`);
-            const dtEnd = new Date(`${e.date}T${e.end}`);
-            return dtStart <= now && now < dtEnd;
-          });
-
-          tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${aindaOcupado ? 'bg-red-600' : 'bg-green-600'
-            }">
-          ${aindaOcupado ? 'ocupado' : 'livre'}
-        </td>
-      `;
-        });
-
-        tbody.appendChild(tr);
+      // interpreta de forma local:
+      const ocupadoAgora = events.some(evt => {
+        const salaMatch = (evt.sala||evt.resource) === lab;
+        if (!salaMatch || evt.start!==start || evt.end!==end) return false;
+        const [h1,m1] = start.split(':').map(Number);
+        const [h2,m2] = end  .split(':').map(Number);
+        const dtStart = new Date(evt.date);
+        dtStart.setHours(h1,m1,0,0);
+        const dtEnd   = new Date(evt.date);
+        dtEnd.setHours(h2,m2,0,0);
+        return dtStart <= now && now < dtEnd;
       });
 
-      table.appendChild(tbody);
-    }
+      tr.innerHTML += `
+        <td class="px-2 py-1 border text-white text-center ${
+          ocupadoAgora ? 'bg-red-600' : 'bg-green-600'
+        }">
+          ${ocupadoAgora ? 'ocupado' : 'livre'}
+        </td>
+      `;
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+}
+
 
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
