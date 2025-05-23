@@ -376,112 +376,101 @@
 
       return { fetchEvents, createEvent, updateEvent, deleteEvent }
     })()
-    
-    // ----------------------
-    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-    // ----------------------
-    const CalendarModule = (() => {
-      let calendar
-      let events = []
 
-      function init(rawEvents, onDateClick, onEventClick) {
-        // 1) Filtra somente eventos cujo término ainda não passou
-        const now = new Date()
-        events = rawEvents.filter(e =>
-          new Date(`${e.date}T${e.end}`) > now
+    // ----------------------
+// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
+// ----------------------
+const CalendarModule = (() => {
+  let calendar
+  let events = []
+
+  function init(rawEvents, onDateClick, onEventClick) {
+    // inicializa todos os eventos
+    events = rawEvents
+
+    const el = document.getElementById('calendar')
+    if (!el) return console.error('#calendar não encontrado')
+
+    const isMobile = window.innerWidth < 640
+    calendar = new FullCalendar.Calendar(el, {
+      locale: 'pt-br',
+      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+      headerToolbar: {
+        left:   isMobile ? 'prev,next' : 'prev,next today',
+        center: 'title',
+        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      events: events.map(e => ({
+        id:    e._id,
+        title: `${e.title} (${e.time})`,
+        start: `${e.date}T${e.start}`,
+        end:   `${e.date}T${e.end}`
+      })),
+      dateClick:  onDateClick,
+      eventClick: onEventClick,
+      height:     el.clientHeight,
+      allDaySlot: false,
+      selectAllow: selectInfo => {
+        return !calendar.getEvents().some(ev =>
+          ev.rendering === 'background' &&
+          ev.start < selectInfo.end && ev.end > selectInfo.start
         )
+      },
+      selectable: true
+    })
 
-        const el = document.getElementById('calendar')
-        if (!el) return console.error('#calendar não encontrado')
+    calendar.render()
 
-        const isMobile = window.innerWidth < 640
-        calendar = new FullCalendar.Calendar(el, {
-          locale: 'pt-br',
-          initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-          headerToolbar: {
-            left: isMobile ? 'prev,next' : 'prev,next today',
-            center: 'title',
-            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          },
-          events: events.map(e => ({
-            id: e._id,
-            title: `${e.title} (${e.time})`,
-            start: `${e.date}T${e.start}`,
-            end: `${e.date}T${e.end}`
-          })),
-          dateClick: onDateClick,
-          eventClick: onEventClick,
-          height: el.clientHeight,
-          allDaySlot: false,
-          selectAllow: selectInfo => {
-            return !calendar.getEvents().some(ev =>
-              ev.rendering === 'background' &&
-              ev.start < selectInfo.end && ev.end > selectInfo.start
-            )
-          },
-          selectable: true
-        })
+    // A cada minuto, apenas reconstrói a tabela de ocupação
+    setInterval(() => {
+      buildOccupancyTable()
+    }, 60 * 1000)
 
-        calendar.render()
+    // Ajusta a view no resize
+    window.addEventListener('resize', () => {
+      const nowMobile = window.innerWidth < 640
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
+      calendar.setOption('headerToolbar', {
+        left:   nowMobile ? 'prev,next' : 'prev,next today',
+        center: 'title',
+        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      })
+    })
+  }
 
-        // 2) A cada minuto, remove eventos vencidos do calendário E do array interno
-        setInterval(() => {
-          const now2 = new Date()
-          calendar.getEvents().forEach(ev => {
-            if (ev.end && ev.end < now2) {
-              // remove do FullCalendar
-              ev.remove()
-              // remove do array interno
-              events = events.filter(e => e._id !== ev.id)
-            }
-          })
-        }, 60 * 1000)
+  function add(ev) {
+    calendar.addEvent({
+      id:    ev._id,
+      title: `${ev.title} (${ev.time})`,
+      start: `${ev.date}T${ev.start}`,
+      end:   `${ev.date}T${ev.end}`
+    })
+    events.push(ev)
+  }
 
-        // 3) Ajusta a view no resize
-        window.addEventListener('resize', () => {
-          const nowMobile = window.innerWidth < 640
-          calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
-          calendar.setOption('headerToolbar', {
-            left: nowMobile ? 'prev,next' : 'prev,next today',
-            center: 'title',
-            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          })
-        })
-      }
+  function update(id, ev) {
+    events = events.map(e => (e._id === id ? ev : e))
+    const obj = calendar.getEventById(id)
+    if (obj) {
+      obj.setProp('title', `${ev.title} (${ev.time})`)
+      obj.setStart(`${ev.date}T${ev.start}`)
+      obj.setEnd(`${e.date}T${e.end}`)
+    }
+  }
 
-      function add(ev) {
-        calendar.addEvent({
-          id: ev._id,
-          title: `${ev.title} (${ev.time})`,
-          start: `${ev.date}T${ev.start}`,
-          end: `${ev.date}T${ev.end}`
-        })
-        events.push(ev)
-      }
+  function remove(id) {
+    events = events.filter(e => e._id !== id)
+    calendar.getEventById(id)?.remove()
+  }
 
-      function update(id, ev) {
-        events = events.map(e => (e._id === id ? ev : e))
-        const obj = calendar.getEventById(id)
-        if (obj) {
-          obj.setProp('title', `${ev.title} (${ev.time})`)
-          obj.setStart(`${ev.date}T${ev.start}`)
-          obj.setEnd(`${ev.date}T${ev.end}`)
-        }
-      }
-
-      function remove(id) {
-        events = events.filter(e => e._id !== id)
-        calendar.getEventById(id)?.remove()
-      }
-
-      return {
-        init,
-        add,
-        update,
-        remove,
-        getEvents: () => events
-      }
-    })()
+  return {
+    init,
+    add,
+    update,
+    remove,
+    getEvents: () => events
+  }
+})()
 
     // ----------------------
     // MÓDULO FORMULÁRIO
