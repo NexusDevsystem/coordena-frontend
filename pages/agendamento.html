@@ -127,13 +127,17 @@
       color: white;
       margin-bottom: 0.75rem;
     }
-  </style>
 
-  <!-- Auth library -->
-  <script src="../assets/js/auth.js"></script>
+    /* ================================================
+       Resto do seu CSS original SEM ALTERAÇÕES
+       ================================================ */
+
+  </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
+  <!-- Auth library -->
+  <script src="../assets/js/auth.js"></script>
   <script>
     // Proteção de rota
     const user = Auth.getCurrentUser()
@@ -232,9 +236,7 @@
       <div id="calendar" class="w-full h-[600px]"></div>
     </section>
 
-    <!-- =============================================
-         Grade de ocupação dinâmica dos laboratórios
-         ============================================= -->
+    <!-- Grade de ocupação dinâmica dos laboratórios -->
     <section id="occupancy-section" class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300 mt-8 overflow-auto">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 text-center">
         Ocupação dos laboratórios
@@ -275,7 +277,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -283,9 +285,9 @@
             </select>
           </div>
           <div>
-            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
+            <label for="tipo-evento" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt1 px-3 py-2 border roundedmd bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -298,36 +300,36 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ringblue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
         <!-- Responsável -->
         <div>
-          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
+          <label for="responsavel" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400">
         </div>
         <!-- Curso / Matéria -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols1 sm:grid-cols-2 gap4">
           <div>
-            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
+            <label for="departamento" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                   class="w-full mt-1 px-3 py-2 border roundedmd:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400">
           </div>
           <div>
-            <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
+            <label for="curso" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+                    class="w-full mt-1 px-3 py-2 border roundedmd:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400" disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
         </div>
         <!-- Status da Reserva -->
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <label for="status" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Status da Reserva</label>
           <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border roundedmd:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
@@ -335,12 +337,12 @@
         </div>
         <!-- Descrição -->
         <div>
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <label for="descricao" class="block text-sm fontmedium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+                    class="w-full mt-1 px-3 py-2 border roundedmd:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 textwhite rounded-md py2 mt-2 transform hover:scale-105 transition">
           Confirmar
         </button>
       </form>
@@ -348,34 +350,32 @@
   </div>
 
   <!-- Modal de Detalhes -->
-  <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
-      <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
-      <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
-      <p id="modal-date"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-resource" class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-type"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-resp"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-dept"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-materia"  class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-status"   class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-desc"     class="mb-4 text-gray-700 dark:text-gray-300"></p>
-      <div class="flex justify-end space-x-4">
-        <button id="modal-edit"   class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
-        <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
+  <div id="eventmodal" class="fixed inset0 bg-black bg-opacity-50 flex itemscenter justifycenter hidden z-20">
+    <div class="bgwhite dark:bggray-800 roundedxl p6 w11/12 maxw-md relative">
+      <button id="modalclose" class="absolute top3 right3 textgray-600 dark:textgray-300 hover:textgray-800 dark:hover:textwhite">✕</button>
+      <h3 class="textxl fontsemibold mb2">Detalhes da Reserva</h3>
+      <p id="modaldate"     class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modalresource" class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modaltype"     class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modalresp"     class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modaldept"     class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modalmateria"  class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modalstatus"   class="mb1 textgray-700 dark:textgray-300"></p>
+      <p id="modaldesc"     class="mb4 textgray-700 dark:textgray-300"></p>
+      <div class="flex justifyend spacex-4">
+        <button id="modaledit"   class="px4 py2 bgyellow-500 hover:bgyellow-600 textwhite rounded">Editar</button>
+        <button id="modalcancel" class="px4 py2 bgred-500 hover:bgred-600 textwhite rounded">Cancelar reserva</button>
       </div>
     </div>
   </div>
 
-  <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
+  <footer class="text-center textsm textgray-600 dark:textgray-400 pb6">
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
-  <!-- Todos os módulos JS inline -->
   <script>
-    // ----------------------
+    // ========================
     // UTILIDADES
-    // ----------------------
     function onReady(fn) {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', fn)
@@ -384,18 +384,15 @@
       }
     }
 
-    // ----------------------
+    // ========================
     // MÓDULO DE TEMA (Dark/Light)
-    // ----------------------
     const ThemeToggle = (() => {
       const themeKey = 'theme'
       const root     = document.documentElement
-
       function applyTheme(mode) {
         root.classList.toggle('dark', mode === 'dark')
         localStorage.setItem(themeKey, mode)
       }
-
       function init() {
         const saved = localStorage.getItem(themeKey) || 'light'
         applyTheme(saved)
@@ -404,30 +401,25 @@
           applyTheme(root.classList.contains('dark') ? 'light' : 'dark')
         })
       }
-
       return { init }
     })()
 
-    // ----------------------
+    // ========================
     // MÓDULO DE API
-    // ----------------------
     const Api = (() => {
       const BASE = window.location.hostname.includes('localhost')
         ? 'http://localhost:10000/api/reservas'
         : 'https://coordena-backend.onrender.com/api/reservas'
-
       function authHeaders(isJson = false) {
         const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` }
         if (isJson) headers['Content-Type'] = 'application/json'
         return headers
       }
-
       async function fetchEvents() {
         const res = await fetch(BASE, { headers: authHeaders(false) })
         if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`)
         return res.json()
       }
-
       async function createEvent(data) {
         const res = await fetch(BASE, {
           method: 'POST',
@@ -437,7 +429,6 @@
         if (!res.ok) throw new Error('Falha ao criar reserva')
         return res.json()
       }
-
       async function updateEvent(id, data) {
         const res = await fetch(`${BASE}/${id}`, {
           method: 'PUT',
@@ -447,7 +438,6 @@
         if (!res.ok) throw new Error('Falha ao atualizar reserva')
         return res.json()
       }
-
       async function deleteEvent(id) {
         const res = await fetch(`${BASE}/${id}`, {
           method: 'DELETE',
@@ -455,72 +445,66 @@
         })
         if (!res.ok) throw new Error('Falha ao excluir reserva')
       }
-
       return { fetchEvents, createEvent, updateEvent, deleteEvent }
     })()
 
-    // ----------------------
+    // ========================
     // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-    // ----------------------
     const CalendarModule = (() => {
       let calendar
-      let events      = []
-
+      let events = []
       function init(rawEvents, onDateClick, onEventClick) {
         events = rawEvents
         const el = document.getElementById('calendar')
         if (!el) return console.error('#calendar não encontrado')
-
         const isMobile = window.innerWidth < 640
         calendar = new FullCalendar.Calendar(el, {
           locale: 'pt-br',
           initialView: isMobile ? 'listWeek' : 'dayGridMonth',
           headerToolbar: {
-            left:   isMobile ? 'prev,next' : 'prev,next today',
+            left: isMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
-            right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           },
           events: events.map(e => ({
-            id:    e._id,
+            id: e._id,
             title: `${e.title} (${e.time})`,
             start: `${e.date}T${e.start}`,
-            end:   `${e.date}T${e.end}`
+            end: `${e.date}T${e.end}`
           })),
-          dateClick:  onDateClick,
+          dateClick: onDateClick,
           eventClick: onEventClick,
-          height:     el.clientHeight,
+          height: el.clientHeight,
           allDaySlot: false,
+          selectable: true,
           selectAllow: selectInfo => {
             return !calendar.getEvents().some(ev =>
               ev.rendering === 'background' &&
-              ev.start < selectInfo.end && ev.end > selectInfo.start
+              ev.start < selectInfo.end &&
+              ev.end > selectInfo.start
             )
-          },
-          selectable: true
+          }
         })
-
         calendar.render()
         window.addEventListener('resize', () => {
           const nowMobile = window.innerWidth < 640
           calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
           calendar.setOption('headerToolbar', {
-            left:   nowMobile ? 'prev,next' : 'prev,next today',
+            left: nowMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
-            right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           })
         })
       }
-
       function add(ev) {
         calendar.addEvent({
-          id:    ev._id,
+          id: ev._id,
           title: `${ev.title} (${ev.time})`,
           start: `${ev.date}T${ev.start}`,
-          end:   `${ev.date}T${ev.end}`
+          end: `${ev.date}T${ev.end}`
         })
         events.push(ev)
       }
-
       function update(id, ev) {
         events = events.map(e => (e._id === id ? ev : e))
         const obj = calendar.getEventById(id)
@@ -530,114 +514,94 @@
           obj.setEnd(`${ev.date}T${ev.end}`)
         }
       }
-
       function remove(id) {
         events = events.filter(e => e._id !== id)
         calendar.getEventById(id)?.remove()
       }
-
-      return {
-        init,
-        add,
-        update,
-        remove,
-        getEvents: () => events
-      }
+      return { init, add, update, remove, getEvents: () => events }
     })()
 
-    // ----------------------
+    // ========================
     // MÓDULO FORMULÁRIO
-    // ----------------------
     const FormModule = (() => {
       let currentId = null
       const selectors = {}
-
       function cacheSelectors() {
-        selectors.modal    = document.getElementById('form-modal')
-        selectors.form     = document.getElementById('agendamento-form')
-        selectors.btnOpen  = document.getElementById('open-form-modal')
+        selectors.modal = document.getElementById('form-modal')
+        selectors.form = document.getElementById('agendamento-form')
+        selectors.btnOpen = document.getElementById('open-form-modal')
         selectors.btnClose = document.getElementById('form-close')
-        selectors.fields   = {
-          data:          document.getElementById('data'),
-          start:         document.getElementById('start'),
-          end:           document.getElementById('end'),
-          recurso:       document.getElementById('recurso'),
+        selectors.fields = {
+          data: document.getElementById('data'),
+          start: document.getElementById('start'),
+          end: document.getElementById('end'),
+          recurso: document.getElementById('recurso'),
           salaContainer: document.getElementById('sala-container'),
-          sala:          document.getElementById('sala'),
-          type:          document.getElementById('tipo-evento'),
-          resp:          document.getElementById('responsavel'),
-          dept:          document.getElementById('departamento'),
-          materia:       document.getElementById('curso'),
-          status:        document.getElementById('status'),
-          desc:          document.getElementById('descricao')
+          sala: document.getElementById('sala'),
+          type: document.getElementById('tipo-evento'),
+          resp: document.getElementById('responsavel'),
+          dept: document.getElementById('departamento'),
+          materia: document.getElementById('curso'),
+          status: document.getElementById('status'),
+          desc: document.getElementById('descricao')
         }
       }
-
       function open(id = null, evData = null) {
         currentId = id
         selectors.form.reset()
         selectors.fields.salaContainer.classList.add('hidden')
-
-        // reiniciar seleção de curso/matéria
         selectors.fields.dept.value = ''
         selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
         selectors.fields.materia.disabled = true
-
         if (evData) {
-          selectors.fields.data.value    = evData.date
-          selectors.fields.start.value   = evData.start
-          selectors.fields.end.value     = evData.end
+          selectors.fields.data.value = evData.date
+          selectors.fields.start.value = evData.start
+          selectors.fields.end.value = evData.end
           selectors.fields.recurso.value = evData.resource
           selectors.fields.recurso.dispatchEvent(new Event('change'))
-          selectors.fields.sala.value    = evData.sala || ''
-          selectors.fields.type.value    = evData.type
-          selectors.fields.resp.value    = evData.responsible
-          selectors.fields.dept.value    = evData.department
-          selectors.fields.status.value  = evData.status
-          selectors.fields.desc.value    = evData.description
-
+          selectors.fields.sala.value = evData.sala || ''
+          selectors.fields.type.value = evData.type
+          selectors.fields.resp.value = evData.responsible
+          selectors.fields.dept.value = evData.department
+          selectors.fields.status.value = evData.status
+          selectors.fields.desc.value = evData.description
           if (evData.materia) {
             selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`
             selectors.fields.materia.disabled = false
           }
         }
-
         if (!currentId) {
           const user = Auth.getCurrentUser()
           if (user?.name) {
             selectors.fields.resp.value = user.name
-            selectors.fields.resp.setAttribute('readonly','readonly')
+            selectors.fields.resp.setAttribute('readonly', 'readonly')
           }
         }
-
         selectors.modal.classList.remove('hidden')
       }
-
       function close() {
         selectors.modal.classList.add('hidden')
       }
-
       function handleSubmit(e) {
         e.preventDefault()
         const f = selectors.fields
         const payload = {
-          date:        f.data.value,
-          start:       f.start.value,
-          end:         f.end.value,
-          resource:    f.recurso.value,
-          sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-          type:        f.type.value,
+          date: f.data.value,
+          start: f.start.value,
+          end: f.end.value,
+          resource: f.recurso.value,
+          sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+          type: f.type.value,
           responsible: f.resp.value,
-          department:  f.dept.value,
-          materia:     f.materia.value,
-          status:      f.status.value,
+          department: f.dept.value,
+          materia: f.materia.value,
+          status: f.status.value,
           description: f.desc.value,
-          time:        `${f.start.value}-${f.end.value}`,
-          title:       f.salaContainer.classList.contains('hidden')
-                        ? f.type.value
-                        : `${f.type.value} - ${f.sala.value}`
+          time: `${f.start.value}-${f.end.value}`,
+          title: f.salaContainer.classList.contains('hidden')
+            ? f.type.value
+            : `${f.type.value} - ${f.sala.value}`
         }
-
         ;(async () => {
           try {
             let saved
@@ -655,23 +619,15 @@
           }
         })()
       }
-
       function init() {
         cacheSelectors()
-
-        // inicia matéria desabilitado
-        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
-        selectors.fields.materia.disabled = true
-
         selectors.btnOpen?.addEventListener('click', () => open())
         selectors.btnClose?.addEventListener('click', close)
         selectors.form?.addEventListener('submit', handleSubmit)
-
-        // mapa de salas
         const salaOpts = {
-          'Laboratório': ['Lab401','Lab402','Lab403'],
-          'Sala de Aula': ['Sala101','Sala102','Sala103'],
-          'Auditório': ['Auditório A','Auditório B']
+          'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
+          'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
+          'Auditório': ['Auditório A', 'Auditório B']
         }
         selectors.fields.recurso?.addEventListener('change', () => {
           const tipo = selectors.fields.recurso.value
@@ -684,8 +640,6 @@
             selectors.fields.salaContainer.classList.add('hidden')
           }
         })
-
-        // mapa de cursos × matérias (completo)
         const courseMap = {
           'Engenharia de Computação': [
             'ARA0003 - PRINCÍPIOS DE GESTÃO',
@@ -733,10 +687,9 @@
             'ARA2074 - SEGURANÇA CIBERNÉTICA'
           ]
         }
-
         selectors.fields.dept?.addEventListener('change', () => {
           const lista = courseMap[selectors.fields.dept.value] || []
-          const sel   = selectors.fields.materia
+          const sel = selectors.fields.materia
           if (lista.length) {
             sel.innerHTML =
               '<option value="">Selecione a matéria...</option>' +
@@ -748,52 +701,46 @@
           }
         })
       }
-
       return { init, open }
     })()
 
-    // ----------------------
+    // ========================
     // MÓDULO MODAL DETALHES
-    // ----------------------
     const DetailModule = (() => {
       let currentId = null
       const selectors = {}
-
       function cacheSelectors() {
-        selectors.modal     = document.getElementById('event-modal')
-        selectors.btnClose  = document.getElementById('modal-close')
-        selectors.btnEdit   = document.getElementById('modal-edit')
+        selectors.modal = document.getElementById('event-modal')
+        selectors.btnClose = document.getElementById('modal-close')
+        selectors.btnEdit = document.getElementById('modal-edit')
         selectors.btnDelete = document.getElementById('modal-cancel')
-        selectors.fields    = {
-          date:     document.getElementById('modal-date'),
+        selectors.fields = {
+          date: document.getElementById('modal-date'),
           resource: document.getElementById('modal-resource'),
-          type:     document.getElementById('modal-type'),
-          resp:     document.getElementById('modal-resp'),
-          dept:     document.getElementById('modal-dept'),
-          materia:  document.getElementById('modal-materia'),
-          status:   document.getElementById('modal-status'),
-          desc:     document.getElementById('modal-desc')
+          type: document.getElementById('modal-type'),
+          resp: document.getElementById('modal-resp'),
+          dept: document.getElementById('modal-dept'),
+          materia: document.getElementById('modal-materia'),
+          status: document.getElementById('modal-status'),
+          desc: document.getElementById('modal-desc')
         }
       }
-
       function open(ev) {
         currentId = ev._id
         const f = selectors.fields
-        f.date.textContent     = `Data: ${ev.date} (${ev.time})`
+        f.date.textContent = `Data: ${ev.date} (${ev.time})`
         f.resource.textContent = `Recurso: ${ev.resource}`
-        f.type.textContent     = `Evento: ${ev.type}`
-        f.resp.textContent     = `Responsável: ${ev.responsible}`
-        f.dept.textContent     = `Curso: ${ev.department}`
-        f.materia.textContent  = `Matéria: ${ev.materia || '—'}`
-        f.status.textContent   = `Status: ${ev.status}`
-        f.desc.textContent     = ev.description || 'Sem descrição'
+        f.type.textContent = `Evento: ${ev.type}`
+        f.resp.textContent = `Responsável: ${ev.responsible}`
+        f.dept.textContent = `Curso: ${ev.department}`
+        f.materia.textContent = `Matéria: ${ev.materia || '—'}`
+        f.status.textContent = `Status: ${ev.status}`
+        f.desc.textContent = ev.description || 'Sem descrição'
         selectors.modal.classList.remove('hidden')
       }
-
       function close() {
         selectors.modal.classList.add('hidden')
       }
-
       function init() {
         cacheSelectors()
         selectors.btnClose?.addEventListener('click', close)
@@ -815,22 +762,23 @@
           }
         })
       }
-
       return { init, open }
     })()
 
-    // ----------------------
-    // Função para montar a tabela dinâmica
-    // ----------------------
+    // ========================
+    // Função buildOccupancyTable
     function buildOccupancyTable() {
       const events = CalendarModule.getEvents()
-      const labs = [...new Set(events.map(e => e.sala || e.resource))]
-      const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))]
+      const now = new Date()
+      const upcoming = events.filter(e => {
+        const endDate = new Date(`${e.date}T${e.end}`)
+        return endDate > now
+      })
+      const labs = [...new Set(upcoming.map(e => e.sala || e.resource))]
+      const timeRanges = [...new Set(upcoming.map(e => `${e.start}-${e.end}`))]
       timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]))
       const table = document.getElementById('occupancy-table')
       table.innerHTML = ''
-
-      // Cabeçalho
       const thead = document.createElement('thead')
       const headerRow = document.createElement('tr')
       headerRow.innerHTML = `
@@ -839,15 +787,13 @@
       `
       thead.appendChild(headerRow)
       table.appendChild(thead)
-
-      // Corpo
       const tbody = document.createElement('tbody')
       labs.forEach(lab => {
         const tr = document.createElement('tr')
         tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`
         timeRanges.forEach(range => {
           const [start, end] = range.split('-')
-          const ocupado = events.some(e =>
+          const ocupado = upcoming.some(e =>
             (e.sala || e.resource) === lab &&
             e.start === start &&
             e.end === end
@@ -863,9 +809,8 @@
       table.appendChild(tbody)
     }
 
-    // ----------------------
+    // ========================
     // INICIALIZAÇÃO PRINCIPAL
-    // ----------------------
     onReady(async () => {
       ThemeToggle.init()
       FormModule.init()
@@ -875,23 +820,15 @@
       try {
         data = await Api.fetchEvents()
       } catch (err) {
-        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
+        console.warn('Falha ao buscar reservas, iniciando vazio', err)
       }
 
       CalendarModule.init(
         data,
         info => FormModule.open(null, {
-          date:        info.dateStr,
-          start:       '00:00',
-          end:         '00:00',
-          resource:    '',
-          sala:        '',
-          type:        '',
-          responsible: '',
-          department:  '',
-          status:      '',
-          description: '',
-          time:        ''
+          date: info.dateStr, start: '00:00', end: '00:00',
+          resource: '', sala: '', type: '', responsible: '',
+          department: '', status: '', description: '', time: ''
         }),
         info => {
           const ev = CalendarModule.getEvents().find(e => e._id === info.event.id)
@@ -899,27 +836,30 @@
         }
       )
 
-      // Monta tabela dinâmica após carregar eventos
+      // monta a tabela na carga inicial
       buildOccupancyTable()
 
-      // Desativa importação de fixos nesta versão:
+      // atualiza a tabela automaticamente a cada minuto
+      setInterval(buildOccupancyTable, 60 * 1000)
+
+      // opcional: desativa importação de horários fixos
       document.getElementById('import-schedule').addEventListener('click', () => {
         alert('Importação de horários fixos desativada nesta versão.')
       })
 
-      // Toggle off-canvas
+      // toggle menu off-canvas
       const toggle = document.getElementById('menu-toggle')
-      const menu   = document.getElementById('side-menu')
+      const menu = document.getElementById('side-menu')
       toggle.addEventListener('click', () => {
         const open = menu.classList.toggle('show')
         document.body.classList.toggle('overflow-hidden', open)
         const bars = toggle.querySelectorAll('span')
         if (open) {
-          bars[0].classList.add('rotate-45','translate-y-1')
-          bars[1].classList.add('-rotate-45','-translate-y-1')
+          bars[0].classList.add('rotate-45', 'translate-y-1')
+          bars[1].classList.add('-rotate-45', '-translate-y-1')
         } else {
-          bars[0].classList.remove('rotate-45','translate-y-1')
-          bars[1].classList.remove('-rotate-45','-translate-y-1')
+          bars[0].classList.remove('rotate-45', 'translate-y-1')
+          bars[1].classList.remove('-rotate-45', '-translate-y-1')
         }
       })
       document.getElementById('menu-close').addEventListener('click', () => {
