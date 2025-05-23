@@ -21,9 +21,9 @@
 
   <!-- Aplica imediatamente o tema salvo (evita flash) -->
   <script>
-    const _theme = localStorage.getItem('theme') || 'light';
-    document.documentElement.classList.remove('light');
-    if (_theme === 'dark') document.documentElement.classList.add('dark');
+    const _theme = localStorage.getItem('theme') || 'light'
+    document.documentElement.classList.remove('light')
+    if (_theme === 'dark') document.documentElement.classList.add('dark')
   </script>
 
   <link rel="stylesheet" href="../assets/css/styles.css" />
@@ -136,14 +136,14 @@
 
   <script>
     // Proteção de rota
-    const user = Auth.getCurrentUser();
-    if (!user) window.location.href = '../login.html';
+    const user = Auth.getCurrentUser()
+    if (!user) window.location.href = '../login.html'
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('open-form-modal')?.classList.add('hidden');
-        document.getElementById('modal-edit')?.classList.add('hidden');
-        document.getElementById('modal-cancel')?.classList.add('hidden');
-      });
+        document.getElementById('open-form-modal')?.classList.add('hidden')
+        document.getElementById('modal-edit')?.classList.add('hidden')
+        document.getElementById('modal-cancel')?.classList.add('hidden')
+      })
     }
   </script>
 
@@ -443,7 +443,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -453,7 +453,7 @@
           <div>
             <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -466,7 +466,7 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+                  class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -545,9 +545,9 @@
     // ----------------------
     function onReady(fn) {
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fn);
+        document.addEventListener('DOMContentLoaded', fn)
       } else {
-        fn();
+        fn()
       }
     }
 
@@ -555,25 +555,25 @@
     // MÓDULO DE TEMA (Dark/Light)
     // ----------------------
     const ThemeToggle = (() => {
-      const themeKey = 'theme';
-      const root     = document.documentElement;
+      const themeKey = 'theme'
+      const root     = document.documentElement
 
       function applyTheme(mode) {
-        root.classList.toggle('dark', mode === 'dark');
-        localStorage.setItem(themeKey, mode);
+        root.classList.toggle('dark', mode === 'dark')
+        localStorage.setItem(themeKey, mode)
       }
 
       function init() {
-        const saved = localStorage.getItem(themeKey) || 'light';
-        applyTheme(saved);
-        const btn = document.getElementById('menu-theme');
+        const saved = localStorage.getItem(themeKey) || 'light'
+        applyTheme(saved)
+        const btn = document.getElementById('menu-theme')
         if (btn) btn.addEventListener('click', () => {
-          applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
-        });
+          applyTheme(root.classList.contains('dark') ? 'light' : 'dark')
+        })
       }
 
-      return { init };
-    })();
+      return { init }
+    })()
 
     // ----------------------
     // MÓDULO DE API
@@ -581,18 +581,18 @@
     const Api = (() => {
       const BASE = window.location.hostname.includes('localhost')
         ? 'http://localhost:10000/api/reservas'
-        : 'https://coordena-backend.onrender.com/api/reservas';
+        : 'https://coordena-backend.onrender.com/api/reservas'
 
       function authHeaders(isJson = false) {
-        const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
-        if (isJson) headers['Content-Type'] = 'application/json';
-        return headers;
+        const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` }
+        if (isJson) headers['Content-Type'] = 'application/json'
+        return headers
       }
 
       async function fetchEvents() {
-        const res = await fetch(BASE, { headers: authHeaders(false) });
-        if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
-        return res.json();
+        const res = await fetch(BASE, { headers: authHeaders(false) })
+        if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`)
+        return res.json()
       }
 
       async function createEvent(data) {
@@ -600,9 +600,9 @@
           method: 'POST',
           headers: authHeaders(true),
           body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error('Falha ao criar reserva');
-        return res.json();
+        })
+        if (!res.ok) throw new Error('Falha ao criar reserva')
+        return res.json()
       }
 
       async function updateEvent(id, data) {
@@ -610,36 +610,36 @@
           method: 'PUT',
           headers: authHeaders(true),
           body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error('Falha ao atualizar reserva');
-        return res.json();
+        })
+        if (!res.ok) throw new Error('Falha ao atualizar reserva')
+        return res.json()
       }
 
       async function deleteEvent(id) {
         const res = await fetch(`${BASE}/${id}`, {
           method: 'DELETE',
           headers: authHeaders(false)
-        });
-        if (!res.ok) throw new Error('Falha ao excluir reserva');
+        })
+        if (!res.ok) throw new Error('Falha ao excluir reserva')
       }
 
-      return { fetchEvents, createEvent, updateEvent, deleteEvent };
-    })();
+      return { fetchEvents, createEvent, updateEvent, deleteEvent }
+    })()
 
     // ----------------------
     // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
     // ----------------------
     const CalendarModule = (() => {
-      let calendar;
-      let events      = [];
-      let fixedEvents = []; // background events
+      let calendar
+      let events      = []
+      let fixedEvents = [] // background events
 
       function init(rawEvents, onDateClick, onEventClick) {
-        events = rawEvents;
-        const el = document.getElementById('calendar');
-        if (!el) return console.error('#calendar não encontrado');
+        events = rawEvents
+        const el = document.getElementById('calendar')
+        if (!el) return console.error('#calendar não encontrado')
 
-        const isMobile = window.innerWidth < 640;
+        const isMobile = window.innerWidth < 640
         calendar = new FullCalendar.Calendar(el, {
           locale: 'pt-br',
           initialView: isMobile ? 'listWeek' : 'dayGridMonth',
@@ -658,27 +658,26 @@
           eventClick: onEventClick,
           height:     el.clientHeight,
           allDaySlot: false,
-          // impede seleção em cima de background events
           selectAllow: selectInfo => {
             return !calendar.getEvents().some(ev =>
               ev.rendering === 'background' &&
               ev.start < selectInfo.end && ev.end > selectInfo.start
-            );
+            )
           },
           selectable: true
-        });
+        })
 
-        calendar.render();
+        calendar.render()
         window.addEventListener('resize', () => {
-          const nowMobile = window.innerWidth < 640;
-          const newView   = nowMobile ? 'listWeek' : 'dayGridMonth';
-          calendar.changeView(newView);
+          const nowMobile = window.innerWidth < 640
+          const newView   = nowMobile ? 'listWeek' : 'dayGridMonth'
+          calendar.changeView(newView)
           calendar.setOption('headerToolbar', {
             left:   nowMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
             right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          });
-        });
+          })
+        })
       }
 
       function add(ev) {
@@ -687,29 +686,29 @@
           title: `${ev.title} (${ev.time})`,
           start: `${ev.date}T${ev.start}`,
           end:   `${ev.date}T${ev.end}`
-        });
-        events.push(ev);
+        })
+        events.push(ev)
       }
 
       function update(id, ev) {
-        events = events.map(e => (e._id === id ? ev : e));
-        const obj = calendar.getEventById(id);
+        events = events.map(e => (e._id === id ? ev : e))
+        const obj = calendar.getEventById(id)
         if (obj) {
-          obj.setProp('title', `${ev.title} (${ev.time})`);
-          obj.setStart(`${ev.date}T${ev.start}`);
-          obj.setEnd(`${ev.date}T${ev.end}`);
+          obj.setProp('title', `${ev.title} (${ev.time})`)
+          obj.setStart(`${ev.date}T${ev.start}`)
+          obj.setEnd(`${ev.date}T${ev.end}`)
         }
       }
 
       function remove(id) {
-        events = events.filter(e => e._id !== id);
-        calendar.getEventById(id)?.remove();
+        events = events.filter(e => e._id !== id)
+        calendar.getEventById(id)?.remove()
       }
 
       // limpa todos os bloqueios fixos
       function clearFixed() {
-        fixedEvents.forEach(ev => ev.remove());
-        fixedEvents = [];
+        fixedEvents.forEach(ev => ev.remove())
+        fixedEvents = []
       }
 
       // adiciona um bloqueio fixo (background event)
@@ -721,8 +720,8 @@
           display:    'background',
           backgroundColor: '#ff0000',
           extendedProps: { fixed: true, lab }
-        });
-        fixedEvents.push(ev);
+        })
+        fixedEvents.push(ev)
       }
 
       return {
@@ -733,21 +732,21 @@
         getEvents: () => events,
         clearFixed,
         addFixedEvent
-      };
-    })();
+      }
+    })()
 
     // ----------------------
     // MÓDULO FORMULÁRIO
     // ----------------------
     const FormModule = (() => {
-      let currentId = null;
-      const selectors = {};
+      let currentId = null
+      const selectors = {}
 
       function cacheSelectors() {
-        selectors.modal    = document.getElementById('form-modal');
-        selectors.form     = document.getElementById('agendamento-form');
-        selectors.btnOpen  = document.getElementById('open-form-modal');
-        selectors.btnClose = document.getElementById('form-close');
+        selectors.modal    = document.getElementById('form-modal')
+        selectors.form     = document.getElementById('agendamento-form')
+        selectors.btnOpen  = document.getElementById('open-form-modal')
+        selectors.btnClose = document.getElementById('form-close')
         selectors.fields   = {
           data:          document.getElementById('data'),
           start:         document.getElementById('start'),
@@ -761,56 +760,56 @@
           materia:       document.getElementById('curso'),
           status:        document.getElementById('status'),
           desc:          document.getElementById('descricao')
-        };
+        }
       }
 
       function open(id = null, evData = null) {
-        currentId = id;
-        selectors.form.reset();
-        selectors.fields.salaContainer.classList.add('hidden');
+        currentId = id
+        selectors.form.reset()
+        selectors.fields.salaContainer.classList.add('hidden')
 
         // reiniciar seleção de curso/matéria
-        selectors.fields.dept.value = '';
-        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-        selectors.fields.materia.disabled = true;
+        selectors.fields.dept.value = ''
+        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
+        selectors.fields.materia.disabled = true
 
         if (evData) {
-          selectors.fields.data.value    = evData.date;
-          selectors.fields.start.value   = evData.start;
-          selectors.fields.end.value     = evData.end;
-          selectors.fields.recurso.value = evData.resource;
-          selectors.fields.recurso.dispatchEvent(new Event('change'));
-          selectors.fields.sala.value    = evData.sala || '';
-          selectors.fields.type.value    = evData.type;
-          selectors.fields.resp.value    = evData.responsible;
-          selectors.fields.dept.value    = evData.department;
-          selectors.fields.status.value  = evData.status;
-          selectors.fields.desc.value    = evData.description;
+          selectors.fields.data.value    = evData.date
+          selectors.fields.start.value   = evData.start
+          selectors.fields.end.value     = evData.end
+          selectors.fields.recurso.value = evData.resource
+          selectors.fields.recurso.dispatchEvent(new Event('change'))
+          selectors.fields.sala.value    = evData.sala || ''
+          selectors.fields.type.value    = evData.type
+          selectors.fields.resp.value    = evData.responsible
+          selectors.fields.dept.value    = evData.department
+          selectors.fields.status.value  = evData.status
+          selectors.fields.desc.value    = evData.description
 
           if (evData.materia) {
-            selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
-            selectors.fields.materia.disabled = false;
+            selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`
+            selectors.fields.materia.disabled = false
           }
         }
 
         if (!currentId) {
-          const user = Auth.getCurrentUser();
+          const user = Auth.getCurrentUser()
           if (user?.name) {
-            selectors.fields.resp.value = user.name;
-            selectors.fields.resp.setAttribute('readonly','readonly');
+            selectors.fields.resp.value = user.name
+            selectors.fields.resp.setAttribute('readonly','readonly')
           }
         }
 
-        selectors.modal.classList.remove('hidden');
+        selectors.modal.classList.remove('hidden')
       }
 
       function close() {
-        selectors.modal.classList.add('hidden');
+        selectors.modal.classList.add('hidden')
       }
 
       function handleSubmit(e) {
-        e.preventDefault();
-        const f = selectors.fields;
+        e.preventDefault()
+        const f = selectors.fields
         const payload = {
           date:        f.data.value,
           start:       f.start.value,
@@ -827,55 +826,55 @@
           title:       f.salaContainer.classList.contains('hidden')
                         ? f.type.value
                         : `${f.type.value} - ${f.sala.value}`
-        };
+        }
 
-        (async () => {
+        ;(async () => {
           try {
-            let saved;
+            let saved
             if (currentId) {
-              saved = await Api.updateEvent(currentId, payload);
-              CalendarModule.update(currentId, saved);
+              saved = await Api.updateEvent(currentId, payload)
+              CalendarModule.update(currentId, saved)
             } else {
-              saved = await Api.createEvent(payload);
-              CalendarModule.add(saved);
+              saved = await Api.createEvent(payload)
+              CalendarModule.add(saved)
             }
-            close();
+            close()
           } catch (err) {
-            alert(err.message);
+            alert(err.message)
           }
-        })();
+        })()
       }
 
       function init() {
-        cacheSelectors();
+        cacheSelectors()
 
         // inicia matéria desabilitado
-        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-        selectors.fields.materia.disabled = true;
+        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
+        selectors.fields.materia.disabled = true
 
-        selectors.btnOpen?.addEventListener('click', () => open());
-        selectors.btnClose?.addEventListener('click', close);
-        selectors.form?.addEventListener('submit', handleSubmit);
+        selectors.btnOpen?.addEventListener('click', () => open())
+        selectors.btnClose?.addEventListener('click', close)
+        selectors.form?.addEventListener('submit', handleSubmit)
 
         // mapa de salas
         const salaOpts = {
           'Laboratório': ['Lab401','Lab402','Lab403'],
           'Sala de Aula': ['Sala101','Sala102','Sala103'],
           'Auditório': ['Auditório A','Auditório B']
-        };
+        }
         selectors.fields.recurso?.addEventListener('change', () => {
-          const tipo = selectors.fields.recurso.value;
+          const tipo = selectors.fields.recurso.value
           if (salaOpts[tipo]) {
-            selectors.fields.salaContainer.classList.remove('hidden');
+            selectors.fields.salaContainer.classList.remove('hidden')
             selectors.fields.sala.innerHTML =
               '<option value="">Selecione...</option>' +
-              salaOpts[tipo].map(s => `<option>${s}</option>`).join('');
+              salaOpts[tipo].map(s => `<option>${s}</option>`).join('')
           } else {
-            selectors.fields.salaContainer.classList.add('hidden');
+            selectors.fields.salaContainer.classList.add('hidden')
           }
-        });
+        })
 
-        // mapa de cursos × matérias
+        // mapa de cursos × matérias (completo)
         const courseMap = {
           'Engenharia de Computação': [
             'ARA0003 - PRINCÍPIOS DE GESTÃO',
@@ -922,39 +921,38 @@
             'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
             'ARA2074 - SEGURANÇA CIBERNÉTICA'
           ]
-        };
+        }
 
         selectors.fields.dept?.addEventListener('change', () => {
-          const curso = selectors.fields.dept.value;
-          const lista = courseMap[curso] || [];
-          const sel   = selectors.fields.materia;
+          const lista = courseMap[selectors.fields.dept.value] || []
+          const sel   = selectors.fields.materia
           if (lista.length) {
             sel.innerHTML =
               '<option value="">Selecione a matéria...</option>' +
-              lista.map(m => `<option value="${m}">${m}</option>`).join('');
-            sel.disabled = false;
+              lista.map(m => `<option value="${m}">${m}</option>`).join('')
+            sel.disabled = false
           } else {
-            sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-            sel.disabled = true;
+            sel.innerHTML = '<option value="">Selecione o curso primeiro</option>'
+            sel.disabled = true
           }
-        });
+        })
       }
 
-      return { init, open };
-    })();
+      return { init, open }
+    })()
 
     // ----------------------
     // MÓDULO MODAL DETALHES
     // ----------------------
     const DetailModule = (() => {
-      let currentId = null;
-      const selectors = {};
+      let currentId = null
+      const selectors = {}
 
       function cacheSelectors() {
-        selectors.modal     = document.getElementById('event-modal');
-        selectors.btnClose  = document.getElementById('modal-close');
-        selectors.btnEdit   = document.getElementById('modal-edit');
-        selectors.btnDelete = document.getElementById('modal-cancel');
+        selectors.modal     = document.getElementById('event-modal')
+        selectors.btnClose  = document.getElementById('modal-close')
+        selectors.btnEdit   = document.getElementById('modal-edit')
+        selectors.btnDelete = document.getElementById('modal-cancel')
         selectors.fields    = {
           date:     document.getElementById('modal-date'),
           resource: document.getElementById('modal-resource'),
@@ -964,65 +962,64 @@
           materia:  document.getElementById('modal-materia'),
           status:   document.getElementById('modal-status'),
           desc:     document.getElementById('modal-desc')
-        };
+        }
       }
 
       function open(ev) {
-        currentId = ev._id;
-        const f = selectors.fields;
-        f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
-        f.resource.textContent = `Recurso: ${ev.resource}`;
-        f.type.textContent     = `Evento: ${ev.type}`;
-        f.resp.textContent     = `Responsável: ${ev.responsible}`;
-        f.dept.textContent     = `Curso: ${ev.department}`;
-        f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
-        f.status.textContent   = `Status: ${ev.status}`;
-        f.desc.textContent     = ev.description || 'Sem descrição';
-        selectors.modal.classList.remove('hidden');
+        currentId = ev._id
+        const f = selectors.fields
+        f.date.textContent     = `Data: ${ev.date} (${ev.time})`
+        f.resource.textContent = `Recurso: ${ev.resource}`
+        f.type.textContent     = `Evento: ${ev.type}`
+        f.resp.textContent     = `Responsável: ${ev.responsible}`
+        f.dept.textContent     = `Curso: ${ev.department}`
+        f.materia.textContent  = `Matéria: ${ev.materia || '—'}`
+        f.status.textContent   = `Status: ${ev.status}`
+        f.desc.textContent     = ev.description || 'Sem descrição'
+        selectors.modal.classList.remove('hidden')
       }
 
       function close() {
-        selectors.modal.classList.add('hidden');
+        selectors.modal.classList.add('hidden')
       }
 
       function init() {
-        cacheSelectors();
-        selectors.btnClose?.addEventListener('click', close);
+        cacheSelectors()
+        selectors.btnClose?.addEventListener('click', close)
         selectors.btnEdit?.addEventListener('click', () => {
-          if (!currentId) return;
-          const ev = CalendarModule.getEvents().find(e => e._id === currentId);
-          if (ev) FormModule.open(currentId, ev);
-          close();
-        });
+          if (!currentId) return
+          const ev = CalendarModule.getEvents().find(e => e._id === currentId)
+          if (ev) FormModule.open(currentId, ev)
+          close()
+        })
         selectors.btnDelete?.addEventListener('click', async () => {
-          if (!currentId) return;
+          if (!currentId) return
           try {
-            await Api.deleteEvent(currentId);
-            CalendarModule.remove(currentId);
-            close();
+            await Api.deleteEvent(currentId)
+            CalendarModule.remove(currentId)
+            close()
           } catch (err) {
-            alert(err.message);
+            alert(err.message)
           }
-        });
+        })
       }
 
-      return { init, open };
-    })();
+      return { init, open }
+    })()
 
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
     // ----------------------
     onReady(async () => {
-      ThemeToggle.init();
-      FormModule.init();
-      DetailModule.init();
+      ThemeToggle.init()
+      FormModule.init()
+      DetailModule.init()
 
-      const currentUser = Auth.getCurrentUser();
-      let data = [];
+      let data = []
       try {
-        data = await Api.fetchEvents();
+        data = await Api.fetchEvents()
       } catch (err) {
-        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
+        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
       }
 
       CalendarModule.init(
@@ -1041,75 +1038,71 @@
           time:        ''
         }),
         info => {
-          const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
-          if (ev) DetailModule.open(ev);
+          const ev = CalendarModule.getEvents().find(e => e._id === info.event.id)
+          if (ev) DetailModule.open(ev)
         }
-      );
+      )
 
       // Toggle off-canvas
-      const toggle = document.getElementById('menu-toggle');
-      const menu   = document.getElementById('side-menu');
+      const toggle = document.getElementById('menu-toggle')
+      const menu   = document.getElementById('side-menu')
       toggle.addEventListener('click', () => {
-        const open = menu.classList.toggle('show');
-        const bars = toggle.querySelectorAll('span');
-        document.body.classList.toggle('overflow-hidden', open);
+        const open = menu.classList.toggle('show')
+        const bars = toggle.querySelectorAll('span')
+        document.body.classList.toggle('overflow-hidden', open)
         if (open) {
-          bars[0].classList.add('rotate-45','translate-y-1');
-          bars[1].classList.add('-rotate-45','-translate-y-1');
+          bars[0].classList.add('rotate-45','translate-y-1')
+          bars[1].classList.add('-rotate-45','-translate-y-1')
         } else {
-          bars[0].classList.remove('rotate-45','translate-y-1');
-          bars[1].classList.remove('-rotate-45','-translate-y-1');
+          bars[0].classList.remove('rotate-45','translate-y-1')
+          bars[1].classList.remove('-rotate-45','-translate-y-1')
         }
-      });
+      })
       document.getElementById('menu-close').addEventListener('click', () => {
-        menu.classList.remove('show');
-        const bars = toggle.querySelectorAll('span');
-        bars[0].classList.remove('rotate-45','translate-y-1');
-        bars[1].classList.remove('-rotate-45','-translate-y-1');
-        document.body.classList.remove('overflow-hidden');
-      });
+        menu.classList.remove('show')
+        const bars = toggle.querySelectorAll('span')
+        bars[0].classList.remove('rotate-45','translate-y-1')
+        bars[1].classList.remove('-rotate-45','-translate-y-1')
+        document.body.classList.remove('overflow-hidden')
+      })
 
-      // Listener para o novo botão de importar
+      // Listener para importar planilha e bloquear horários fixos
       document.getElementById('import-schedule').addEventListener('click', () => {
-        const fileInput = document.getElementById('schedule-file');
+        const fileInput = document.getElementById('schedule-file')
         if (!fileInput.files.length) {
-          return alert('Selecione um arquivo .xlsx antes.');
+          return alert('Selecione um arquivo .xlsx antes.')
         }
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.onload = function(e) {
-          const data = e.target.result;
-          const wb = XLSX.read(data, { type: 'binary' });
-          // limpa os bloqueios atuais
-          CalendarModule.clearFixed();
+          const data = e.target.result
+          const wb   = XLSX.read(data, { type: 'binary' })
+          CalendarModule.clearFixed()
           wb.SheetNames.forEach(sheetName => {
-            const ws   = wb.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-            const header = rows[0]; // ["HORÁRIOS", "SEGUNDA", , "TERÇA", ...]
-            // percorre cada linha de horário
+            const ws   = wb.Sheets[sheetName]
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1 })
+            const header = rows[0]
             for (let r = 2; r < rows.length; r++) {
-              const row = rows[r];
-              const timeRange = row[0];
-              if (!timeRange) continue;
-              const [start, end] = timeRange.split('-').map(s => s.trim());
-              // percorre colunas de 1 em 2 para cada dia
+              const row = rows[r]
+              const timeRange = row[0]
+              if (!timeRange) continue
+              const [start, end] = timeRange.split('-').map(s => s.trim())
               for (let c = 1; c < header.length; c += 2) {
-                const dayName   = header[c];
-                const discipline= row[c+1];
+                const dayName    = header[c]
+                const discipline = row[c+1]
                 if (discipline) {
-                  // converte dia em índice FullCalendar (0=Dom,1=Seg,...)
-                  const map = { 'SEGUNDA':1, 'TERÇA':2, 'QUARTA':3, 'QUINTA':4, 'SEXTA':5 };
-                  const dayIndex = map[dayName.toUpperCase()] || null;
+                  const map = { 'SEGUNDA':1, 'TERÇA':2, 'QUARTA':3, 'QUINTA':4, 'SEXTA':5 }
+                  const dayIndex = map[dayName.toUpperCase()] || null
                   if (dayIndex !== null) {
-                    CalendarModule.addFixedEvent({ dayIndex, start, end, lab: sheetName });
+                    CalendarModule.addFixedEvent({ dayIndex, start, end, lab: sheetName })
                   }
                 }
               }
             }
-          });
-        };
-        reader.readAsBinaryString(fileInput.files[0]);
-      });
-    });
+          })
+        }
+        reader.readAsBinaryString(fileInput.files[0])
+      })
+    })
   </script>
 </body>
 </html>
