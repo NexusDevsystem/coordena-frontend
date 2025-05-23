@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Agendamento de Recursos</title>
 
   <!-- Favicon -->
@@ -45,14 +46,24 @@
       background-position: center;
       background-attachment: fixed;
     }
+
     .dark body {
       background-image: url("../assets/img/backgrounddark.png");
     }
+
     @media (max-width: 768px) {
-      html, body { height: 100vh; overflow: hidden; }
+
+      html,
+      body {
+        height: 100vh;
+        overflow: hidden;
+      }
     }
+
     @media (min-width: 769px) {
-      body { overflow-y: auto; }
+      body {
+        overflow-y: auto;
+      }
     }
 
     /* ================================================
@@ -60,28 +71,37 @@
        ================================================ */
     #side-menu {
       position: fixed;
-      top: 0; right: 0;
+      top: 0;
+      right: 0;
       height: 100vh;
-      width: 50vw; max-width: 480px;
+      width: 50vw;
+      max-width: 480px;
       transform: translateX(100%);
-      background: rgba(22,21,31,0.95);
-      box-shadow: -2px 0 12px rgba(0,0,0,0.5);
-      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+      background: rgba(22, 21, 31, 0.95);
+      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       z-index: 50;
-      display: flex; flex-direction: column;
+      display: flex;
+      flex-direction: column;
     }
+
     #side-menu.show {
       transform: translateX(0);
     }
 
     /* cabeçalho com abas */
     #side-menu .menu-header {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 1rem 1.5rem;
     }
+
     #side-menu .menu-header ul {
-      display: flex; gap: 1rem;
+      display: flex;
+      gap: 1rem;
     }
+
     #side-menu .menu-header ul li a {
       display: block;
       padding: 0.5rem 1.5rem;
@@ -92,34 +112,44 @@
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
     }
+
     #side-menu .menu-header ul li a.active {
-      background: white; color: black;
+      background: white;
+      color: black;
     }
+
     #side-menu .menu-header ul li a:not(.active) {
       color: white;
     }
+
     #side-menu .menu-header ul li a:not(.active):hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
     }
 
     /* botão fechar */
     #side-menu .menu-header button {
-      background: rgba(255,255,255,0.1);
-      width: 2.5rem; height: 2.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      width: 2.5rem;
+      height: 2.5rem;
       border-radius: 9999px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: background 0.2s;
     }
+
     #side-menu .menu-header button:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     /* conteúdo interno */
     #side-menu .menu-content {
-      flex: 1; overflow-y: auto;
+      flex: 1;
+      overflow-y: auto;
       padding: 1rem 1.5rem;
     }
+
     #side-menu .menu-content p {
       font-size: 1.25rem;
       line-height: 1.75rem;
@@ -132,6 +162,7 @@
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
 </head>
+
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <script>
@@ -157,10 +188,9 @@
         <li><a href="#">Downloads</a></li>
       </ul>
       <button id="menu-close" aria-label="Fechar menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"/>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
@@ -178,8 +208,7 @@
 
   <!-- Menu Toggle Rockstar Style (esquerda) -->
   <div class="fixed top-4 left-4 z-50">
-    <button id="menu-toggle"
-            class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
+    <button id="menu-toggle" class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
                    bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center space-y-1
                    focus:outline-none transition duration-200">
       <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
@@ -188,20 +217,22 @@
   </div>
 
   <!-- Quick Access -->
-  <div class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
-    <a href="../index.html" class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l9-9 9 9m-1 9h-4a2 2 0
-                 01-2-2v-5H9v5a2 2 0 01-2 2H5"/>
+  <div
+    class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
+    <a href="../index.html"
+      class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9m-1 9h-4a2 2 0
+                 01-2-2v-5H9v5a2 2 0 01-2 2H5" />
       </svg>
     </a>
     <button class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5
                  21h14a2 2 0 002-2V7a2 2 0
-                 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     </button>
   </div>
@@ -212,14 +243,14 @@
 
     <div class="flex justify-center space-x-4">
       <button id="open-form-modal"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
+        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
       </button>
       <!-- ADICIONADO: input e botão para importar planilha -->
       <input type="file" id="schedule-file" accept=".xlsx,.xls"
-             class="border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"/>
+        class="border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" />
       <button id="import-schedule"
-              class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transform hover:scale-105 transition">
+        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transform hover:scale-105 transition">
         Importar Horários
       </button>
     </div>
@@ -235,7 +266,8 @@
     <!-- =============================================
          Grade de ocupação dinâmica dos laboratórios
          ============================================= -->
-    <section id="occupancy-section" class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300 mt-8 overflow-auto">
+    <section id="occupancy-section"
+      class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors duration-300 mt-8 overflow-auto">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 text-center">
         Ocupação dos laboratórios
       </h2>
@@ -248,26 +280,27 @@
   <!-- Modal de Form -->
   <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
     <div class="bg-white dark:bg-gray-800 relative w-full max-w-lg max-h-full rounded-xl overflow-auto p-6">
-      <button id="form-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">✕</button>
+      <button id="form-close"
+        class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white z-20">✕</button>
       <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Novo Agendamento</h3>
       <form id="agendamento-form" class="space-y-4">
         <!-- Data -->
         <div>
           <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
           <input type="date" id="data" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
         <!-- Horário -->
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label for="start" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
             <input type="time" id="start" min="07:00" max="22:00" step="60" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
           <div>
             <label for="end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Término</label>
             <input type="time" id="end" min="07:00" max="22:00" step="60" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
         </div>
         <!-- Recurso / Tipo -->
@@ -275,7 +308,7 @@
           <div>
             <label for="recurso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurso</label>
             <select id="recurso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Laboratório</option>
               <option>Sala de Aula</option>
@@ -283,9 +316,10 @@
             </select>
           </div>
           <div>
-            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Evento</label>
+            <label for="tipo-evento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de
+              Evento</label>
             <select id="tipo-evento" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
               <option value="">Selecione...</option>
               <option>Aula</option>
               <option>Reunião</option>
@@ -298,36 +332,39 @@
         <div id="sala-container" class="hidden">
           <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qual Sala?</label>
           <select id="sala"
-                  class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            class="w-full mt-1 px-3 py-2 border rounded-md.bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="">Selecione...</option>
           </select>
         </div>
         <!-- Responsável -->
         <div>
-          <label for="responsavel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
+          <label for="responsavel"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável</label>
           <input type="text" id="responsavel" placeholder="Nome do professor" required
-                 class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
             <input type="text" id="departamento" placeholder="Ex: Computação" required
-                   class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" disabled>
+              class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
         </div>
         <!-- Status da Reserva -->
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da Reserva</label>
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da
+            Reserva</label>
           <select id="status" required
-                  class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Rejeitado">Rejeitado</option>
@@ -335,9 +372,10 @@
         </div>
         <!-- Descrição -->
         <div>
-          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição
+            (opcional)</label>
           <textarea id="descricao" rows="3"
-                    class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
+            class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"></textarea>
         </div>
         <!-- Botão Confirmar -->
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 mt-2">
@@ -350,19 +388,21 @@
   <!-- Modal de Detalhes -->
   <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-11/12 max-w-md relative">
-      <button id="modal-close" class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
+      <button id="modal-close"
+        class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h3 class="text-xl font-semibold mb-2">Detalhes da Reserva</h3>
-      <p id="modal-date"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-date" class="mb-1 text-gray-700 dark:text-gray-300"></p>
       <p id="modal-resource" class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-type"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-resp"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-dept"     class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-materia"  class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-status"   class="mb-1 text-gray-700 dark:text-gray-300"></p>
-      <p id="modal-desc"     class="mb-4 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-type" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-resp" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-dept" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-materia" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-status" class="mb-1 text-gray-700 dark:text-gray-300"></p>
+      <p id="modal-desc" class="mb-4 text-gray-700 dark:text-gray-300"></p>
       <div class="flex justify-end space-x-4">
-        <button id="modal-edit"   class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
-        <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar reserva</button>
+        <button id="modal-edit" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">Editar</button>
+        <button id="modal-cancel" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Cancelar
+          reserva</button>
       </div>
     </div>
   </div>
@@ -389,7 +429,7 @@
     // ----------------------
     const ThemeToggle = (() => {
       const themeKey = 'theme'
-      const root     = document.documentElement
+      const root = document.documentElement
 
       function applyTheme(mode) {
         root.classList.toggle('dark', mode === 'dark')
@@ -464,7 +504,7 @@
     // ----------------------
     const CalendarModule = (() => {
       let calendar
-      let events      = []
+      let events = []
 
       function init(rawEvents, onDateClick, onEventClick) {
         events = rawEvents
@@ -476,19 +516,19 @@
           locale: 'pt-br',
           initialView: isMobile ? 'listWeek' : 'dayGridMonth',
           headerToolbar: {
-            left:   isMobile ? 'prev,next' : 'prev,next today',
+            left: isMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
-            right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           },
           events: events.map(e => ({
-            id:    e._id,
+            id: e._id,
             title: `${e.title} (${e.time})`,
             start: `${e.date}T${e.start}`,
-            end:   `${e.date}T${e.end}`
+            end: `${e.date}T${e.end}`
           })),
-          dateClick:  onDateClick,
+          dateClick: onDateClick,
           eventClick: onEventClick,
-          height:     el.clientHeight,
+          height: el.clientHeight,
           allDaySlot: false,
           selectAllow: selectInfo => {
             return !calendar.getEvents().some(ev =>
@@ -500,23 +540,35 @@
         })
 
         calendar.render()
+
+        // <-- inserção para remover eventos expirados do calendário
+        setInterval(() => {
+          const now = new Date()
+          calendar.getEvents().forEach(ev => {
+            if (ev.end && ev.end < now) {
+              ev.remove()
+            }
+          })
+        }, 60 * 1000)
+
         window.addEventListener('resize', () => {
           const nowMobile = window.innerWidth < 640
           calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
           calendar.setOption('headerToolbar', {
-            left:   nowMobile ? 'prev,next' : 'prev,next today',
+            left: nowMobile ? 'prev,next' : 'prev,next today',
             center: 'title',
-            right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           })
         })
       }
 
+
       function add(ev) {
         calendar.addEvent({
-          id:    ev._id,
+          id: ev._id,
           title: `${ev.title} (${ev.time})`,
           start: `${ev.date}T${ev.start}`,
-          end:   `${ev.date}T${ev.end}`
+          end: `${ev.date}T${ev.end}`
         })
         events.push(ev)
       }
@@ -553,23 +605,23 @@
       const selectors = {}
 
       function cacheSelectors() {
-        selectors.modal    = document.getElementById('form-modal')
-        selectors.form     = document.getElementById('agendamento-form')
-        selectors.btnOpen  = document.getElementById('open-form-modal')
+        selectors.modal = document.getElementById('form-modal')
+        selectors.form = document.getElementById('agendamento-form')
+        selectors.btnOpen = document.getElementById('open-form-modal')
         selectors.btnClose = document.getElementById('form-close')
-        selectors.fields   = {
-          data:          document.getElementById('data'),
-          start:         document.getElementById('start'),
-          end:           document.getElementById('end'),
-          recurso:       document.getElementById('recurso'),
+        selectors.fields = {
+          data: document.getElementById('data'),
+          start: document.getElementById('start'),
+          end: document.getElementById('end'),
+          recurso: document.getElementById('recurso'),
           salaContainer: document.getElementById('sala-container'),
-          sala:          document.getElementById('sala'),
-          type:          document.getElementById('tipo-evento'),
-          resp:          document.getElementById('responsavel'),
-          dept:          document.getElementById('departamento'),
-          materia:       document.getElementById('curso'),
-          status:        document.getElementById('status'),
-          desc:          document.getElementById('descricao')
+          sala: document.getElementById('sala'),
+          type: document.getElementById('tipo-evento'),
+          resp: document.getElementById('responsavel'),
+          dept: document.getElementById('departamento'),
+          materia: document.getElementById('curso'),
+          status: document.getElementById('status'),
+          desc: document.getElementById('descricao')
         }
       }
 
@@ -584,17 +636,17 @@
         selectors.fields.materia.disabled = true
 
         if (evData) {
-          selectors.fields.data.value    = evData.date
-          selectors.fields.start.value   = evData.start
-          selectors.fields.end.value     = evData.end
+          selectors.fields.data.value = evData.date
+          selectors.fields.start.value = evData.start
+          selectors.fields.end.value = evData.end
           selectors.fields.recurso.value = evData.resource
           selectors.fields.recurso.dispatchEvent(new Event('change'))
-          selectors.fields.sala.value    = evData.sala || ''
-          selectors.fields.type.value    = evData.type
-          selectors.fields.resp.value    = evData.responsible
-          selectors.fields.dept.value    = evData.department
-          selectors.fields.status.value  = evData.status
-          selectors.fields.desc.value    = evData.description
+          selectors.fields.sala.value = evData.sala || ''
+          selectors.fields.type.value = evData.type
+          selectors.fields.resp.value = evData.responsible
+          selectors.fields.dept.value = evData.department
+          selectors.fields.status.value = evData.status
+          selectors.fields.desc.value = evData.description
 
           if (evData.materia) {
             selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`
@@ -606,7 +658,7 @@
           const user = Auth.getCurrentUser()
           if (user?.name) {
             selectors.fields.resp.value = user.name
-            selectors.fields.resp.setAttribute('readonly','readonly')
+            selectors.fields.resp.setAttribute('readonly', 'readonly')
           }
         }
 
@@ -621,39 +673,39 @@
         e.preventDefault()
         const f = selectors.fields
         const payload = {
-          date:        f.data.value,
-          start:       f.start.value,
-          end:         f.end.value,
-          resource:    f.recurso.value,
-          sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-          type:        f.type.value,
+          date: f.data.value,
+          start: f.start.value,
+          end: f.end.value,
+          resource: f.recurso.value,
+          sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+          type: f.type.value,
           responsible: f.resp.value,
-          department:  f.dept.value,
-          materia:     f.materia.value,
-          status:      f.status.value,
+          department: f.dept.value,
+          materia: f.materia.value,
+          status: f.status.value,
           description: f.desc.value,
-          time:        `${f.start.value}-${f.end.value}`,
-          title:       f.salaContainer.classList.contains('hidden')
-                        ? f.type.value
-                        : `${f.type.value} - ${f.sala.value}`
+          time: `${f.start.value}-${f.end.value}`,
+          title: f.salaContainer.classList.contains('hidden')
+            ? f.type.value
+            : `${f.type.value} - ${f.sala.value}`
         }
 
-        ;(async () => {
-          try {
-            let saved
-            if (currentId) {
-              saved = await Api.updateEvent(currentId, payload)
-              CalendarModule.update(currentId, saved)
-            } else {
-              saved = await Api.createEvent(payload)
-              CalendarModule.add(saved)
+          ; (async () => {
+            try {
+              let saved
+              if (currentId) {
+                saved = await Api.updateEvent(currentId, payload)
+                CalendarModule.update(currentId, saved)
+              } else {
+                saved = await Api.createEvent(payload)
+                CalendarModule.add(saved)
+              }
+              buildOccupancyTable()
+              close()
+            } catch (err) {
+              alert(err.message)
             }
-            buildOccupancyTable()
-            close()
-          } catch (err) {
-            alert(err.message)
-          }
-        })()
+          })()
       }
 
       function init() {
@@ -669,9 +721,9 @@
 
         // mapa de salas
         const salaOpts = {
-          'Laboratório': ['Lab401','Lab402','Lab403'],
-          'Sala de Aula': ['Sala101','Sala102','Sala103'],
-          'Auditório': ['Auditório A','Auditório B']
+          'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
+          'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
+          'Auditório': ['Auditório A', 'Auditório B']
         }
         selectors.fields.recurso?.addEventListener('change', () => {
           const tipo = selectors.fields.recurso.value
@@ -736,7 +788,7 @@
 
         selectors.fields.dept?.addEventListener('change', () => {
           const lista = courseMap[selectors.fields.dept.value] || []
-          const sel   = selectors.fields.materia
+          const sel = selectors.fields.materia
           if (lista.length) {
             sel.innerHTML =
               '<option value="">Selecione a matéria...</option>' +
@@ -760,33 +812,33 @@
       const selectors = {}
 
       function cacheSelectors() {
-        selectors.modal     = document.getElementById('event-modal')
-        selectors.btnClose  = document.getElementById('modal-close')
-        selectors.btnEdit   = document.getElementById('modal-edit')
+        selectors.modal = document.getElementById('event-modal')
+        selectors.btnClose = document.getElementById('modal-close')
+        selectors.btnEdit = document.getElementById('modal-edit')
         selectors.btnDelete = document.getElementById('modal-cancel')
-        selectors.fields    = {
-          date:     document.getElementById('modal-date'),
+        selectors.fields = {
+          date: document.getElementById('modal-date'),
           resource: document.getElementById('modal-resource'),
-          type:     document.getElementById('modal-type'),
-          resp:     document.getElementById('modal-resp'),
-          dept:     document.getElementById('modal-dept'),
-          materia:  document.getElementById('modal-materia'),
-          status:   document.getElementById('modal-status'),
-          desc:     document.getElementById('modal-desc')
+          type: document.getElementById('modal-type'),
+          resp: document.getElementById('modal-resp'),
+          dept: document.getElementById('modal-dept'),
+          materia: document.getElementById('modal-materia'),
+          status: document.getElementById('modal-status'),
+          desc: document.getElementById('modal-desc')
         }
       }
 
       function open(ev) {
         currentId = ev._id
         const f = selectors.fields
-        f.date.textContent     = `Data: ${ev.date} (${ev.time})`
+        f.date.textContent = `Data: ${ev.date} (${ev.time})`
         f.resource.textContent = `Recurso: ${ev.resource}`
-        f.type.textContent     = `Evento: ${ev.type}`
-        f.resp.textContent     = `Responsável: ${ev.responsible}`
-        f.dept.textContent     = `Curso: ${ev.department}`
-        f.materia.textContent  = `Matéria: ${ev.materia || '—'}`
-        f.status.textContent   = `Status: ${ev.status}`
-        f.desc.textContent     = ev.description || 'Sem descrição'
+        f.type.textContent = `Evento: ${ev.type}`
+        f.resp.textContent = `Responsável: ${ev.responsible}`
+        f.dept.textContent = `Curso: ${ev.department}`
+        f.materia.textContent = `Matéria: ${ev.materia || '—'}`
+        f.status.textContent = `Status: ${ev.status}`
+        f.desc.textContent = ev.description || 'Sem descrição'
         selectors.modal.classList.remove('hidden')
       }
 
@@ -819,60 +871,60 @@
       return { init, open }
     })()
 
-// ----------------------
-// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
-// ----------------------
-function buildOccupancyTable() {
-  const events = CalendarModule.getEvents(); // mantém todos os eventos
+    // ----------------------
+    // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
+    // ----------------------
+    function buildOccupancyTable() {
+      const events = CalendarModule.getEvents(); // mantém todos os eventos
 
-  // pega todas as salas/recurso
-  const labs = [...new Set(events.map(e => e.sala || e.resource))];
+      // pega todas as salas/recurso
+      const labs = [...new Set(events.map(e => e.sala || e.resource))];
 
-  // pega todos os intervalos de horário
-  const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
-  timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+      // pega todos os intervalos de horário
+      const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
+      timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+      const table = document.getElementById('occupancy-table');
+      table.innerHTML = '';
 
-  // Cabeçalho
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = `
+      // Cabeçalho
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
     ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
   `;
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
 
-  // Corpo
-  const tbody = document.createElement('tbody');
-  labs.forEach(lab => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+      // Corpo
+      const tbody = document.createElement('tbody');
+      labs.forEach(lab => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-    timeRanges.forEach(range => {
-      const [start, end] = range.split('-');
+        timeRanges.forEach(range => {
+          const [start, end] = range.split('-');
 
-      // só considera "ocupado" se houver evento neste lab/horário E ele ainda não expirou
-      const aindaOcupado = events.some(e =>
-        (e.sala || e.resource) === lab &&
-        e.start === start &&
-        e.end === end &&
-        new Date(`${e.date}T${e.end}`) > new Date()
-      );
+          // só considera "ocupado" se houver evento neste lab/horário E ele ainda não expirou
+          const aindaOcupado = events.some(e =>
+            (e.sala || e.resource) === lab &&
+            e.start === start &&
+            e.end === end &&
+            new Date(`${e.date}T${e.end}`) > new Date()
+          );
 
-      tr.innerHTML += `
+          tr.innerHTML += `
         <td class="px-2 py-1 border text-white text-center ${aindaOcupado ? 'bg-red-600' : 'bg-green-600'}">
           ${aindaOcupado ? 'ocupado' : 'livre'}
         </td>
       `;
-    });
+        });
 
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-}
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    }
 
 
     // ----------------------
@@ -893,17 +945,17 @@ function buildOccupancyTable() {
       CalendarModule.init(
         data,
         info => FormModule.open(null, {
-          date:        info.dateStr,
-          start:       '00:00',
-          end:         '00:00',
-          resource:    '',
-          sala:        '',
-          type:        '',
+          date: info.dateStr,
+          start: '00:00',
+          end: '00:00',
+          resource: '',
+          sala: '',
+          type: '',
           responsible: '',
-          department:  '',
-          status:      '',
+          department: '',
+          status: '',
           description: '',
-          time:        ''
+          time: ''
         }),
         info => {
           const ev = CalendarModule.getEvents().find(e => e._id === info.event.id)
@@ -911,32 +963,32 @@ function buildOccupancyTable() {
         }
       )
 
-    // Monta tabela dinâmica após carregar eventos
-    buildOccupancyTable();
-    
-    // Atualiza tabela dinâmica a cada minuto
-    setInterval(buildOccupancyTable, 60 * 1000);
+      // Monta tabela dinâmica após carregar eventos
+      buildOccupancyTable();
 
-    // Desativa importação de fixos nesta versão:
-    document.getElementById('import-schedule')
-      .addEventListener('click', () => {
-        alert('Importação de horários fixos desativada nesta versão.')
-      })
+      // Atualiza tabela dinâmica a cada minuto
+      setInterval(buildOccupancyTable, 60 * 1000);
+
+      // Desativa importação de fixos nesta versão:
+      document.getElementById('import-schedule')
+        .addEventListener('click', () => {
+          alert('Importação de horários fixos desativada nesta versão.')
+        })
 
 
       // Toggle off-canvas
       const toggle = document.getElementById('menu-toggle')
-      const menu   = document.getElementById('side-menu')
+      const menu = document.getElementById('side-menu')
       toggle.addEventListener('click', () => {
         const open = menu.classList.toggle('show')
         document.body.classList.toggle('overflow-hidden', open)
         const bars = toggle.querySelectorAll('span')
         if (open) {
-          bars[0].classList.add('rotate-45','translate-y-1')
-          bars[1].classList.add('-rotate-45','-translate-y-1')
+          bars[0].classList.add('rotate-45', 'translate-y-1')
+          bars[1].classList.add('-rotate-45', '-translate-y-1')
         } else {
-          bars[0].classList.remove('rotate-45','translate-y-1')
-          bars[1].classList.remove('-rotate-45','-translate-y-1')
+          bars[0].classList.remove('rotate-45', 'translate-y-1')
+          bars[1].classList.remove('-rotate-45', '-translate-y-1')
         }
       })
       document.getElementById('menu-close').addEventListener('click', () => {
@@ -946,4 +998,5 @@ function buildOccupancyTable() {
     })
   </script>
 </body>
+
 </html>
