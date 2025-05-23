@@ -1,149 +1,30 @@
 /* ================================================
-   Background & Scroll Lock
-   ================================================
-*/
+   Background & Scroll Lock para Mobile/Desktop
+   ================================================ */
 body {
   background-image: url("../assets/img/background.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
-
 .dark body {
   background-image: url("../assets/img/backgrounddark.png");
 }
-
 @media (max-width: 768px) {
-  html,
-  body {
+  html, body {
     height: 100vh;
     overflow: hidden;
   }
 }
-
 @media (min-width: 769px) {
   body {
     overflow-y: auto;
   }
 }
 
-/* ================================================
-   Off-canvas Menu (direita → centro)
-   ================================================
-*/
-#side-menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  width: 50vw;
-  max-width: 480px;
-  transform: translateX(100%);
-  background: rgba(22, 21, 31, 0.95);
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.5);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-}
-
-#side-menu.show {
-  transform: translateX(0);
-}
-
-/* cabeçalho com abas */
-#side-menu .menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-}
-
-#side-menu .menu-header ul {
-  display: flex;
-  gap: 1rem;
-}
-
-#side-menu .menu-header ul li a {
-  display: block;
-  padding: 0.5rem 1.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 1.125rem;
-  line-height: 1.5rem;
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-#side-menu .menu-header ul li a.active {
-  background: white;
-  color: black;
-}
-
-#side-menu .menu-header ul li a:not(.active) {
-  color: white;
-}
-
-#side-menu .menu-header ul li a:not(.active):hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-/* botão fechar */
-#side-menu .menu-header button {
-  background: rgba(255, 255, 255, 0.1);
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-#side-menu .menu-header button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* conteúdo interno */
-#side-menu .menu-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem 1.5rem;
-}
-
-#side-menu .menu-content p {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 0.75rem;
-}
-
-
-/* ================================================
-   (Anterior estilo geral e calendário)
-   ================================================
-*/
-
-/* Background e Scroll Lock para Mobile/Desktop */
-body {
-  background-image: url("../assets/img/background.png");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-.dark body {
-  background-image: url("../assets/img/backgrounddark.png");
-}
-@media (max-width: 768px) {
-  html, body { height: 100vh; overflow: hidden; }
-}
-@media (min-width: 769px) {
-  body { overflow-y: auto; }
-}
-
-/* Correções de Dark Mode para FullCalendar (fc) */
+/* =================================================
+   Correções de Dark Mode para FullCalendar (fc)
+   ================================================= */
 .dark .fc .fc-col-header {
   background-color: #1f2937; /* gray-800 */
 }
@@ -152,10 +33,16 @@ body {
   border-color: #374151; /* gray-700 */
   color: #d1d5db;        /* gray-300 */
 }
-.dark .fc .fc-col-header-cell-cushion { color: #d1d5db; }
-.dark .fc .fc-list-head { background-color: #1f2937; }
+.dark .fc .fc-col-header-cell-cushion {
+  color: #d1d5db;
+}
+.dark .fc .fc-list-head {
+  background-color: #1f2937;
+}
 
-/* Botão de Notificações / Toggle do Menu */
+/* ==============================================
+   Botão de Notificações / Toggle do Menu
+   ============================================== */
 .notification-btn {
   width: 2.5rem;
   height: 2.5rem;
@@ -164,7 +51,7 @@ body {
   align-items: center;
   justify-content: center;
   border: 2px solid rgba(229,231,235);
-  background: var(--tw-bg-opacity,1) currentColor;
+  background: currentColor;
   transition: border-color .2s, box-shadow .2s;
 }
 .notification-btn:hover,
@@ -176,7 +63,9 @@ body {
   border-color: rgba(55,65,81);
 }
 
-/* Menu Toggle somente com 2 barras (sem fundo) */
+/* ================================================
+   Menu Toggle (2 barras, sem fundo)
+   ================================================ */
 #menu-toggle {
   position: fixed;
   top: 1rem;
@@ -201,6 +90,7 @@ body {
   margin: 0.3rem 0;
   transition: transform .3s;
 }
+/* animação de X */
 #side-menu.show ~ #menu-toggle span:first-child {
   transform: rotate(45deg) translate(0.2rem, 0.2rem);
 }
@@ -208,7 +98,9 @@ body {
   transform: rotate(-45deg) translate(0.2rem, -0.2rem);
 }
 
-/* Off-canvas Menu (Painel Lateral da Direita) */
+/* ================================================
+   Off-canvas Menu (painel lateral da direita)
+   ================================================ */
 #side-menu {
   position: fixed;
   top: 0;
@@ -222,10 +114,13 @@ body {
   transform: translateX(100%);
   transition: transform .35s cubic-bezier(0.22,1,0.36,1);
   z-index: 55;
+  display: flex;
+  flex-direction: column;
 }
 #side-menu.show {
   transform: translateX(0);
 }
+/* cabeçalho */
 #side-menu .menu-header {
   display: flex;
   align-items: center;
@@ -238,6 +133,7 @@ body {
   font-weight: 600;
   color: #fff;
 }
+/* links */
 #side-menu nav a {
   display: flex;
   align-items: center;
@@ -254,6 +150,7 @@ body {
 #side-menu nav a:hover {
   background: rgba(255,255,255,0.1);
 }
+/* overlay leve */
 body.menu-open::before {
   content: '';
   position: fixed;
@@ -262,46 +159,55 @@ body.menu-open::before {
   z-index: 54;
 }
 
-/* Grade de Ocupação Estilo “Mini-Calendário” */
+/* ================================================
+   Grade de Ocupação Estilo “Mini-Calendário”
+   ================================================ */
 #occupancy-section .overflow-auto {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 #occupancy-table {
-  table-layout: fixed;
-  width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+  width: max-content;  /* permite scroll horizontal */
+  min-width: 100%;
+  font-size: 0.875rem;
 }
 #occupancy-table th,
 #occupancy-table td {
   width: 80px;
   height: 50px;
+  padding: 0.25rem;
   text-align: center;
   vertical-align: middle;
-  padding: 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border: 1px solid #374151;
+  border: 1px solid #374151; /* gray-700 */
 }
+/* cabeçalho sempre visível */
 #occupancy-table thead th {
   position: sticky;
   top: 0;
-  background: #1f2937;
-  color: #f9fafb;
+  background: #1f2937; /* gray-800 */
+  color: #f9fafb;      /* gray-50 */
   z-index: 2;
 }
+/* primeira coluna fixa */
 #occupancy-table thead th:first-child,
 #occupancy-table tbody td:first-child {
   position: sticky;
   left: 0;
-  background: #111827;
+  background: #111827; /* gray-900 */
   color: #f9fafb;
   z-index: 3;
 }
+/* estados */
 #occupancy-table td.bg-red-600 {
-  background-color: #dc2626;
+  background-color: #dc2626 !important;
+  color: #fff;
 }
 #occupancy-table td.bg-green-600 {
-  background-color: #16a34a;
+  background-color: #16a34a !important;
+  color: #fff;
 }
