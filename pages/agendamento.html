@@ -764,13 +764,16 @@
     // ----------------------
     function buildOccupancyTable() {
       const events = CalendarModule.getEvents(); // mantém todos os eventos
+      const now = new Date();
 
       // pega todas as salas/recurso
       const labs = [...new Set(events.map(e => e.sala || e.resource))];
 
       // pega todos os intervalos de horário
       const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
-      timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+      timeRanges.sort((a, b) =>
+        a.split('-')[0].localeCompare(b.split('-')[0])
+      );
 
       const table = document.getElementById('occupancy-table');
       table.innerHTML = '';
@@ -780,15 +783,15 @@
       const headerRow = document.createElement('tr');
       headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
-    ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+    ${timeRanges
+          .map(r => `<th class="px-2 py-1 border text-center">${r}</th>`)
+          .join('')}
   `;
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
       // Corpo
       const tbody = document.createElement('tbody');
-      const now = new Date();
-
       labs.forEach(lab => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
@@ -796,7 +799,7 @@
         timeRanges.forEach(range => {
           const [start, end] = range.split('-');
 
-          // ocupado se houver evento neste lab/horário E agora está entre start e end
+          // só marca "ocupado" se o evento deste lab e horário estiver em andamento agora
           const aindaOcupado = events.some(e => {
             if ((e.sala || e.resource) !== lab) return false;
             if (e.start !== start || e.end !== end) return false;
@@ -806,7 +809,8 @@
           });
 
           tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${aindaOcupado ? 'bg-red-600' : 'bg-green-600'}">
+        <td class="px-2 py-1 border text-white text-center ${aindaOcupado ? 'bg-red-600' : 'bg-green-600'
+            }">
           ${aindaOcupado ? 'ocupado' : 'livre'}
         </td>
       `;
@@ -817,8 +821,6 @@
 
       table.appendChild(tbody);
     }
-
-
 
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
