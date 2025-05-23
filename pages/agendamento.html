@@ -378,99 +378,99 @@
     })()
 
     // ----------------------
-// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-// ----------------------
-const CalendarModule = (() => {
-  let calendar
-  let events = []
+    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
+    // ----------------------
+    const CalendarModule = (() => {
+      let calendar
+      let events = []
 
-  function init(rawEvents, onDateClick, onEventClick) {
-    // inicializa todos os eventos
-    events = rawEvents
+      function init(rawEvents, onDateClick, onEventClick) {
+        // inicializa todos os eventos
+        events = rawEvents
 
-    const el = document.getElementById('calendar')
-    if (!el) return console.error('#calendar não encontrado')
+        const el = document.getElementById('calendar')
+        if (!el) return console.error('#calendar não encontrado')
 
-    const isMobile = window.innerWidth < 640
-    calendar = new FullCalendar.Calendar(el, {
-      locale: 'pt-br',
-      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-      headerToolbar: {
-        left:   isMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
-      events: events.map(e => ({
-        id:    e._id,
-        title: `${e.title} (${e.time})`,
-        start: `${e.date}T${e.start}`,
-        end:   `${e.date}T${e.end}`
-      })),
-      dateClick:  onDateClick,
-      eventClick: onEventClick,
-      height:     el.clientHeight,
-      allDaySlot: false,
-      selectAllow: selectInfo => {
-        return !calendar.getEvents().some(ev =>
-          ev.rendering === 'background' &&
-          ev.start < selectInfo.end && ev.end > selectInfo.start
-        )
-      },
-      selectable: true
-    })
+        const isMobile = window.innerWidth < 640
+        calendar = new FullCalendar.Calendar(el, {
+          locale: 'pt-br',
+          initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+          headerToolbar: {
+            left: isMobile ? 'prev,next' : 'prev,next today',
+            center: 'title',
+            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          events: events.map(e => ({
+            id: e._id,
+            title: `${e.title} (${e.time})`,
+            start: `${e.date}T${e.start}`,
+            end: `${e.date}T${e.end}`
+          })),
+          dateClick: onDateClick,
+          eventClick: onEventClick,
+          height: el.clientHeight,
+          allDaySlot: false,
+          selectAllow: selectInfo => {
+            return !calendar.getEvents().some(ev =>
+              ev.rendering === 'background' &&
+              ev.start < selectInfo.end && ev.end > selectInfo.start
+            )
+          },
+          selectable: true
+        })
 
-    calendar.render()
+        calendar.render()
 
-    // A cada minuto, apenas reconstrói a tabela de ocupação
-    setInterval(() => {
-      buildOccupancyTable()
-    }, 60 * 1000)
+        // A cada minuto, apenas reconstrói a tabela de ocupação
+        setInterval(() => {
+          buildOccupancyTable()
+        }, 60 * 1000)
 
-    // Ajusta a view no resize
-    window.addEventListener('resize', () => {
-      const nowMobile = window.innerWidth < 640
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
-      calendar.setOption('headerToolbar', {
-        left:   nowMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      })
-    })
-  }
+        // Ajusta a view no resize
+        window.addEventListener('resize', () => {
+          const nowMobile = window.innerWidth < 640
+          calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
+          calendar.setOption('headerToolbar', {
+            left: nowMobile ? 'prev,next' : 'prev,next today',
+            center: 'title',
+            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+          })
+        })
+      }
 
-  function add(ev) {
-    calendar.addEvent({
-      id:    ev._id,
-      title: `${ev.title} (${ev.time})`,
-      start: `${ev.date}T${ev.start}`,
-      end:   `${ev.date}T${ev.end}`
-    })
-    events.push(ev)
-  }
+      function add(ev) {
+        calendar.addEvent({
+          id: ev._id,
+          title: `${ev.title} (${ev.time})`,
+          start: `${ev.date}T${ev.start}`,
+          end: `${ev.date}T${ev.end}`
+        })
+        events.push(ev)
+      }
 
-  function update(id, ev) {
-    events = events.map(e => (e._id === id ? ev : e))
-    const obj = calendar.getEventById(id)
-    if (obj) {
-      obj.setProp('title', `${ev.title} (${ev.time})`)
-      obj.setStart(`${ev.date}T${ev.start}`)
-      obj.setEnd(`${e.date}T${e.end}`)
-    }
-  }
+      function update(id, ev) {
+        events = events.map(e => (e._id === id ? ev : e))
+        const obj = calendar.getEventById(id)
+        if (obj) {
+          obj.setProp('title', `${ev.title} (${ev.time})`)
+          obj.setStart(`${ev.date}T${ev.start}`)
+          obj.setEnd(`${e.date}T${e.end}`)
+        }
+      }
 
-  function remove(id) {
-    events = events.filter(e => e._id !== id)
-    calendar.getEventById(id)?.remove()
-  }
+      function remove(id) {
+        events = events.filter(e => e._id !== id)
+        calendar.getEventById(id)?.remove()
+      }
 
-  return {
-    init,
-    add,
-    update,
-    remove,
-    getEvents: () => events
-  }
-})()
+      return {
+        init,
+        add,
+        update,
+        remove,
+        getEvents: () => events
+      }
+    })()
 
     // ----------------------
     // MÓDULO FORMULÁRIO
@@ -787,6 +787,8 @@ const CalendarModule = (() => {
 
       // Corpo
       const tbody = document.createElement('tbody');
+      const now = new Date();
+
       labs.forEach(lab => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
@@ -794,13 +796,14 @@ const CalendarModule = (() => {
         timeRanges.forEach(range => {
           const [start, end] = range.split('-');
 
-          // só considera "ocupado" se houver evento neste lab/horário E ele ainda não expirou
-          const aindaOcupado = events.some(e =>
-            (e.sala || e.resource) === lab &&
-            e.start === start &&
-            e.end === end &&
-            new Date(`${e.date}T${e.end}`) > new Date()
-          );
+          // ocupado se houver evento neste lab/horário E agora está entre start e end
+          const aindaOcupado = events.some(e => {
+            if ((e.sala || e.resource) !== lab) return false;
+            if (e.start !== start || e.end !== end) return false;
+            const dtStart = new Date(`${e.date}T${e.start}`);
+            const dtEnd = new Date(`${e.date}T${e.end}`);
+            return dtStart <= now && now < dtEnd;
+          });
 
           tr.innerHTML += `
         <td class="px-2 py-1 border text-white text-center ${aindaOcupado ? 'bg-red-600' : 'bg-green-600'}">
@@ -811,8 +814,10 @@ const CalendarModule = (() => {
 
         tbody.appendChild(tr);
       });
+
       table.appendChild(tbody);
     }
+
 
 
     // ----------------------
