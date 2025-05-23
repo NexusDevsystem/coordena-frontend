@@ -36,6 +36,7 @@
   <!-- SheetJS para ler XLSX no cliente -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
 </head>
@@ -476,211 +477,224 @@
     })()
 
     // ----------------------
-    // MÓDULO FORMULÁRIO
-    // ----------------------
-    const FormModule = (() => {
-      let currentId = null
-      const selectors = {}
+// MÓDULO FORMULÁRIO
+// ----------------------
+const FormModule = (() => {
+  let currentId = null;
+  const selectors = {};
 
-      function cacheSelectors() {
-        selectors.modal = document.getElementById('form-modal')
-        selectors.form = document.getElementById('agendamento-form')
-        selectors.btnOpen = document.getElementById('open-form-modal')
-        selectors.btnClose = document.getElementById('form-close')
-        selectors.fields = {
-          data: document.getElementById('data'),
-          start: document.getElementById('start'),
-          end: document.getElementById('end'),
-          recurso: document.getElementById('recurso'),
-          salaContainer: document.getElementById('sala-container'),
-          sala: document.getElementById('sala'),
-          type: document.getElementById('tipo-evento'),
-          resp: document.getElementById('responsavel'),
-          dept: document.getElementById('departamento'),
-          materia: document.getElementById('curso'),
-          status: document.getElementById('status'),
-          desc: document.getElementById('descricao')
-        }
+  function cacheSelectors() {
+    selectors.modal        = document.getElementById('form-modal');
+    selectors.form         = document.getElementById('agendamento-form');
+    selectors.btnOpen      = document.getElementById('open-form-modal');
+    selectors.btnClose     = document.getElementById('form-close');
+    selectors.fields       = {
+      data:          document.getElementById('data'),
+      start:         document.getElementById('start'),
+      end:           document.getElementById('end'),
+      recurso:       document.getElementById('recurso'),
+      salaContainer: document.getElementById('sala-container'),
+      sala:          document.getElementById('sala'),
+      type:          document.getElementById('tipo-evento'),
+      resp:          document.getElementById('responsavel'),
+      dept:          document.getElementById('departamento'),
+      materia:       document.getElementById('curso'),
+      status:        document.getElementById('status'),
+      desc:          document.getElementById('descricao')
+    };
+  }
+
+  function open(id = null, evData = null) {
+    currentId = id;
+    selectors.form.reset();
+    selectors.fields.salaContainer.classList.add('hidden');
+
+    selectors.fields.dept.value = '';
+    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+    selectors.fields.materia.disabled = true;
+
+    if (evData) {
+      selectors.fields.data.value     = evData.date;
+      selectors.fields.start.value    = evData.start;
+      selectors.fields.end.value      = evData.end;
+      selectors.fields.recurso.value  = evData.resource;
+      selectors.fields.recurso.dispatchEvent(new Event('change'));
+      selectors.fields.sala.value     = evData.sala || '';
+      selectors.fields.type.value     = evData.type;
+      selectors.fields.resp.value     = evData.responsible;
+      selectors.fields.dept.value     = evData.department;
+      selectors.fields.status.value   = evData.status;
+      selectors.fields.desc.value     = evData.description;
+      if (evData.materia) {
+        selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
+        selectors.fields.materia.disabled  = false;
       }
+    }
 
-      function open(id = null, evData = null) {
-        currentId = id
-        selectors.form.reset()
-        selectors.fields.salaContainer.classList.add('hidden')
-
-        // reiniciar seleção de curso/matéria
-        selectors.fields.dept.value = ''
-        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
-        selectors.fields.materia.disabled = true
-
-        if (evData) {
-          selectors.fields.data.value = evData.date
-          selectors.fields.start.value = evData.start
-          selectors.fields.end.value = evData.end
-          selectors.fields.recurso.value = evData.resource
-          selectors.fields.recurso.dispatchEvent(new Event('change'))
-          selectors.fields.sala.value = evData.sala || ''
-          selectors.fields.type.value = evData.type
-          selectors.fields.resp.value = evData.responsible
-          selectors.fields.dept.value = evData.department
-          selectors.fields.status.value = evData.status
-          selectors.fields.desc.value = evData.description
-
-          if (evData.materia) {
-            selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`
-            selectors.fields.materia.disabled = false
-          }
-        }
-
-        if (!currentId) {
-          const user = Auth.getCurrentUser()
-          if (user?.name) {
-            selectors.fields.resp.value = user.name
-            selectors.fields.resp.setAttribute('readonly', 'readonly')
-          }
-        }
-
-        selectors.modal.classList.remove('hidden')
+    if (!currentId) {
+      const user = Auth.getCurrentUser();
+      if (user?.name) {
+        selectors.fields.resp.value = user.name;
+        selectors.fields.resp.setAttribute('readonly','readonly');
       }
+    }
 
-      function close() {
-        selectors.modal.classList.add('hidden')
-      }
+    selectors.modal.classList.remove('hidden');
+  }
 
-      function handleSubmit(e) {
-        e.preventDefault()
-        const f = selectors.fields
-        const payload = {
-          date: f.data.value,
-          start: f.start.value,
-          end: f.end.value,
-          resource: f.recurso.value,
-          sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-          type: f.type.value,
-          responsible: f.resp.value,
-          department: f.dept.value,
-          materia: f.materia.value,
-          status: f.status.value,
-          description: f.desc.value,
-          time: `${f.start.value}-${f.end.value}`,
-          title: f.salaContainer.classList.contains('hidden')
-            ? f.type.value
-            : `${f.type.value} - ${f.sala.value}`
+  function close() {
+    selectors.modal.classList.add('hidden');
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const f = selectors.fields;
+    const payload = {
+      date:        f.data.value,
+      start:       f.start.value,
+      end:         f.end.value,
+      resource:    f.recurso.value,
+      sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+      type:        f.type.value,
+      responsible: f.resp.value,
+      department:  f.dept.value,
+      materia:     f.materia.value,
+      status:      f.status.value,
+      description: f.desc.value,
+      time:        `${f.start.value}-${f.end.value}`,
+      title:       f.salaContainer.classList.contains('hidden')
+                       ? f.type.value
+                       : `${f.type.value} - ${f.sala.value}`
+    };
+
+    ;(async () => {
+      try {
+        let saved;
+        if (currentId) {
+          saved = await Api.updateEvent(currentId, payload);
+          CalendarModule.update(currentId, saved);
+        } else {
+          saved = await Api.createEvent(payload);
+          CalendarModule.add(saved);
         }
-
-          ; (async () => {
-            try {
-              let saved
-              if (currentId) {
-                saved = await Api.updateEvent(currentId, payload)
-                CalendarModule.update(currentId, saved)
-              } else {
-                saved = await Api.createEvent(payload)
-                CalendarModule.add(saved)
-              }
-              buildOccupancyTable()
-              close()
-            } catch (err) {
-              alert(err.message)
-            }
-          })()
+        buildOccupancyTable();
+        close();
+      } catch (err) {
+        alert(err.message);
       }
+    })();
+  }
 
-      function init() {
-        cacheSelectors()
+  function init() {
+    cacheSelectors();
 
-        // inicia matéria desabilitado
-        selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>'
-        selectors.fields.materia.disabled = true
+    // ————————————————————————————————
+    // Cálculo automático de +50 minutos
+    // ————————————————————————————————
+    function addMinutes(timeString, minsToAdd) {
+      const [hh, mm] = timeString.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hh, mm + minsToAdd);
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+    selectors.fields.start.addEventListener('change', () => {
+      const start = selectors.fields.start.value;
+      if (start) selectors.fields.end.value = addMinutes(start, 50);
+    });
 
-        selectors.btnOpen?.addEventListener('click', () => open())
-        selectors.btnClose?.addEventListener('click', close)
-        selectors.form?.addEventListener('submit', handleSubmit)
+    // inicia matéria desabilitado
+    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+    selectors.fields.materia.disabled  = true;
 
-        // mapa de salas
-        const salaOpts = {
-          'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
-          'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
-          'Auditório': ['Auditório A', 'Auditório B']
-        }
-        selectors.fields.recurso?.addEventListener('change', () => {
-          const tipo = selectors.fields.recurso.value
-          if (salaOpts[tipo]) {
-            selectors.fields.salaContainer.classList.remove('hidden')
-            selectors.fields.sala.innerHTML =
-              '<option value="">Selecione...</option>' +
-              salaOpts[tipo].map(s => `<option>${s}</option>`).join('')
-          } else {
-            selectors.fields.salaContainer.classList.add('hidden')
-          }
-        })
+    selectors.btnOpen?.addEventListener('click', () => open());
+    selectors.btnClose?.addEventListener('click', close);
+    selectors.form?.addEventListener('submit', handleSubmit);
 
-        // mapa de cursos × matérias (completo)
-        const courseMap = {
-          'Engenharia de Computação': [
-            'ARA0003 - PRINCÍPIOS DE GESTÃO',
-            'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
-            'ARA0039 - ARQUITETURA DE COMPUTADORES',
-            'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
-            'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
-            'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
-            'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
-            'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
-            'ARA1386 - SISTEMAS OPERACIONAIS',
-            'ARA0002 - PENSAMENTO COMPUTACIONAL',
-            'ARA0014 - ANÁLISE DE DADOS',
-            'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
-            'ARA0044 - ELETRICIDADE E MAGNETISMO',
-            'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
-            'ARA1398 - MECÂNICA DOS SÓLIDOS',
-            'ARA0029 - ELETRICIDADE APLICADA',
-            'ARA0030 - EQUAÇÕES DIFERENCIAIS',
-            'ARA0046 - FENÔMENOS DE TRANSPORTE',
-            'ARA0056 - QUÍMICA TECNOLÓGICA',
-            'ARA2042 - SISTEMAS DIGITAIS',
-            'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
-            'ARA0083 - ELETRÔNICA ANALÓGICA',
-            'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
-            'ARA1943 - MODELAGEM MATEMÁTICA',
-            'ARA0040 - BANCO DE DADOS',
-            'ARA0098 - ESTRUTURA DE DADOS',
-            'COMPILADORES',
-            'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
-            'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
-            'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
-            'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
-            'ARA2086 - ALGORITMOS EM GRAFOS',
-            'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
-            'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
-            'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
-            'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
-            'ARA0115 - SISTEMAS EMBARCADOS',
-            'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
-            'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
-            'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
-            'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
-            'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
-            'ARA2074 - SEGURANÇA CIBERNÉTICA'
-          ]
-        }
-
-        selectors.fields.dept?.addEventListener('change', () => {
-          const lista = courseMap[selectors.fields.dept.value] || []
-          const sel = selectors.fields.materia
-          if (lista.length) {
-            sel.innerHTML =
-              '<option value="">Selecione a matéria...</option>' +
-              lista.map(m => `<option value="${m}">${m}</option>`).join('')
-            sel.disabled = false
-          } else {
-            sel.innerHTML = '<option value="">Selecione o curso primeiro</option>'
-            sel.disabled = true
-          }
-        })
+    // mapa de salas
+    const salaOpts = {
+      'Laboratório': ['Lab401','Lab402','Lab403'],
+      'Sala de Aula': ['Sala101','Sala102','Sala103'],
+      'Auditório': ['Auditório A','Auditório B']
+    };
+    selectors.fields.recurso?.addEventListener('change', () => {
+      const tipo = selectors.fields.recurso.value;
+      if (salaOpts[tipo]) {
+        selectors.fields.salaContainer.classList.remove('hidden');
+        selectors.fields.sala.innerHTML =
+          '<option value="">Selecione...</option>' +
+          salaOpts[tipo].map(s => `<option>${s}</option>`).join('');
+      } else {
+        selectors.fields.salaContainer.classList.add('hidden');
       }
+    });
 
-      return { init, open }
-    })()
+    // mapa de cursos × matérias (completo)
+    const courseMap = {
+      'Engenharia de Computação': [
+        'ARA0003 - PRINCÍPIOS DE GESTÃO',
+        'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
+        'ARA0039 - ARQUITETURA DE COMPUTADORES',
+        'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
+        'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
+        'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+        'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
+        'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
+        'ARA1386 - SISTEMAS OPERACIONAIS',
+        'ARA0002 - PENSAMENTO COMPUTACIONAL',
+        'ARA0014 - ANÁLISE DE DADOS',
+        'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+        'ARA0044 - ELETRICIDADE E MAGNETISMO',
+        'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
+        'ARA1398 - MECÂNICA DOS SÓLIDOS',
+        'ARA0029 - ELETRICIDADE APLICADA',
+        'ARA0030 - EQUAÇÕES DIFERENCIAIS',
+        'ARA0046 - FENÔMENOS DE TRANSPORTE',
+        'ARA0056 - QUÍMICA TECNOLÓGICA',
+        'ARA2042 - SISTEMAS DIGITAIS',
+        'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+        'ARA0083 - ELETRÔNICA ANALÓGICA',
+        'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
+        'ARA1943 - MODELAGEM MATEMÁTICA',
+        'ARA0040 - BANCO DE DADOS',
+        'ARA0098 - ESTRUTURA DE DADOS',
+        'COMPILADORES',
+        'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
+        'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
+        'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+        'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
+        'ARA2086 - ALGORITMOS EM GRAFOS',
+        'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+        'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
+        'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
+        'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+        'ARA0115 - SISTEMAS EMBARCADOS',
+        'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
+        'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+        'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
+        'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+        'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+        'ARA2074 - SEGURANÇA CIBERNÉTICA'
+      ]
+    };
+
+    selectors.fields.dept?.addEventListener('change', () => {
+      const lista = courseMap[selectors.fields.dept.value] || [];
+      const sel   = selectors.fields.materia;
+      if (lista.length) {
+        sel.innerHTML =
+          '<option value="">Selecione a matéria...</option>' +
+          lista.map(m => `<option value="${m}">${m}</option>`).join('');
+        sel.disabled = false;
+      } else {
+        sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
+        sel.disabled  = true;
+      }
+    });
+  }
+
+  return { init, open };
+})();
+
 
     // ----------------------
     // MÓDULO MODAL DETALHES
