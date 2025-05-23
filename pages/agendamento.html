@@ -499,15 +499,17 @@
       return { fetchEvents, createEvent, updateEvent, deleteEvent }
     })()
 
-    // ----------------------
-    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-    // ----------------------
     const CalendarModule = (() => {
       let calendar
       let events = []
 
       function init(rawEvents, onDateClick, onEventClick) {
-        events = rawEvents
+        // Filtra somente eventos cujo término ainda não passou
+        const now = new Date()
+        events = rawEvents.filter(e =>
+          new Date(`${e.date}T${e.end}`) > now
+        )
+
         const el = document.getElementById('calendar')
         if (!el) return console.error('#calendar não encontrado')
 
@@ -541,11 +543,11 @@
 
         calendar.render()
 
-        // <-- inserção para remover eventos expirados do calendário
+        // Remove eventos vencidos a cada minuto
         setInterval(() => {
-          const now = new Date()
+          const now2 = new Date()
           calendar.getEvents().forEach(ev => {
-            if (ev.end && ev.end < now) {
+            if (ev.end && ev.end < now2) {
               ev.remove()
             }
           })
@@ -561,7 +563,6 @@
           })
         })
       }
-
 
       function add(ev) {
         calendar.addEvent({
