@@ -35,51 +35,7 @@
 
   <!-- SheetJS para ler XLSX no cliente -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script>
-    // variável onde vamos guardar os blocos fixos
-    let fixedSchedules = [];
 
-    // listener para o input de planilha
-    document.addEventListener('DOMContentLoaded', () => {
-      const fileInput = document.getElementById('schedule-file');
-      fileInput.addEventListener('change', async evt => {
-        const file = evt.target.files[0];
-        if (!file) return;
-        const data = await file.arrayBuffer();
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-
-        // converte cada linha num evento de fundo (background)
-        fixedSchedules = rows.map(r => {
-          const mapDia = { 'segunda': 1, 'terca': 2, 'quarta': 3, 'quinta': 4, 'sexta': 5, 'sabado': 6, 'domingo': 0 };
-          let dow = Number(r.DiaDaSemana);
-          if (isNaN(dow)) dow = mapDia[r.DiaDaSemana.toLowerCase()] ?? 0;
-          return {
-            daysOfWeek: [dow],
-            startTime: r.Início,
-            endTime: r.Término,
-            resourceId: r.Sala,
-            title: r.Disciplina,
-            rendering: 'background',
-            color: 'rgba(200,200,200,0.3)'
-          };
-        });
-
-        // se o calendário já estiver criado, atualiza na hora
-        if (window.calendar) {
-          // remove antigos
-          window.calendar.getEvents()
-            .filter(ev => ev.rendering === 'background')
-            .forEach(ev => ev.remove());
-          // adiciona os novos
-          fixedSchedules.forEach(ev => window.calendar.addEvent(ev));
-        }
-
-        alert(`Importados ${fixedSchedules.length} horários fixos.`);
-      });
-    });
-  </script>
 
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
@@ -441,114 +397,99 @@
     })()
 
     // ----------------------
-// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-// ----------------------
-const CalendarModule = (() => {
-  let calendar;
-  let events = [];
+    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
+    // ----------------------
+    const CalendarModule = (() => {
+      let calendar
+      let events = []
 
-  function init(rawEvents, onDateClick, onEventClick) {
-    // 1) carrega os eventos da API
-    events = rawEvents;
+      function init(rawEvents, onDateClick, onEventClick) {
+        // inicializa todos os eventos
+        events = rawEvents
 
-    const el = document.getElementById('calendar');
-    if (!el) return console.error('#calendar não encontrado');
+        const el = document.getElementById('calendar')
+        if (!el) return console.error('#calendar não encontrado')
 
-    const isMobile = window.innerWidth < 640;
-    calendar = new FullCalendar.Calendar(el, {
-      locale: 'pt-br',
-      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-      headerToolbar: {
-        left:   isMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
+        const isMobile = window.innerWidth < 640
+        calendar = new FullCalendar.Calendar(el, {
+          locale: 'pt-br',
+          initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+          headerToolbar: {
+            left: isMobile ? 'prev,next' : 'prev,next today',
+            center: 'title',
+            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          events: events.map(e => ({
+            id: e._id,
+            title: `${e.title} (${e.time})`,
+            start: `${e.date}T${e.start}`,
+            end: `${e.date}T${e.end}`
+          })),
+          dateClick: onDateClick,
+          eventClick: onEventClick,
+          height: el.clientHeight,
+          allDaySlot: false,
+          selectAllow: selectInfo => {
+            return !calendar.getEvents().some(ev =>
+              ev.rendering === 'background' &&
+              ev.start < selectInfo.end && ev.end > selectInfo.start
+            )
+          },
+          selectable: true
+        })
 
-      // 2) fontes de evento: dinâmicos + fixos
-      eventSources: [
-        {
-          // seus eventos normais
-          events: (fetchInfo, successCallback) => {
-           successCallback(events.map(e => ({
-             id:    e._id,
-             title: `${e.title} (${e.time})`,
-             start: `${e.date}T${e.start}`,
-             end:   `${e.date}T${e.end}`
-           })));
-         }
-        },
-        {
-          // horários fixos, renderizados como background
-          events: () => window.fixedSchedules || [],
-          rendering: 'background',
-          color: '#ff9f89'
-        }
-      ],
+        calendar.render()
 
-      dateClick:  onDateClick,
-      eventClick: onEventClick,
-      height:     el.clientHeight,
-      allDaySlot: false,
-      selectable: true,
+        // A cada minuto, apenas reconstrói a tabela de ocupação
+        setInterval(() => {
+          buildOccupancyTable()
+        }, 60 * 1000)
 
-      selectAllow: selectInfo => {
-        // impede seleção sobre um bloco de fundo
-        return !calendar.getEvents().some(ev =>
-          ev.rendering === 'background' &&
-          ev.start < selectInfo.end &&
-          ev.end > selectInfo.start
-        );
+        // Ajusta a view no resize
+        window.addEventListener('resize', () => {
+          const nowMobile = window.innerWidth < 640
+          calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
+          calendar.setOption('headerToolbar', {
+            left: nowMobile ? 'prev,next' : 'prev,next today',
+            center: 'title',
+            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+          })
+        })
       }
-    });
 
-    // facilita acesso externo para re-adicionar horários fixos
-    window.calendar = calendar;
+      function add(ev) {
+        calendar.addEvent({
+          id: ev._id,
+          title: `${ev.title} (${ev.time})`,
+          start: `${ev.date}T${ev.start}`,
+          end: `${ev.date}T${ev.end}`
+        })
+        events.push(ev)
+      }
 
-    calendar.render();
+      function update(id, ev) {
+        events = events.map(e => (e._id === id ? ev : e))
+        const obj = calendar.getEventById(id)
+        if (obj) {
+          obj.setProp('title', `${ev.title} (${ev.time})`)
+          obj.setStart(`${ev.date}T${ev.start}`)
+          obj.setEnd(`${e.date}T${e.end}`)
+        }
+      }
 
-    // reconstrói tabela a cada minuto
-    setInterval(buildOccupancyTable, 60 * 1000);
+      function remove(id) {
+        events = events.filter(e => e._id !== id)
+        calendar.getEventById(id)?.remove()
+      }
 
-    // ajusta view no resize
-    window.addEventListener('resize', () => {
-      const nowMobile = window.innerWidth < 640;
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
-      calendar.setOption('headerToolbar', {
-        left:   nowMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      });
-    });
-  }
-
-  function add(ev) {
-    calendar.addEvent({
-      id:    ev._id,
-      title: `${ev.title} (${ev.time})`,
-      start: `${ev.date}T${ev.start}`,
-      end:   `${ev.date}T${ev.end}`
-    });
-    events.push(ev);
-  }
-
-  function update(id, ev) {
-    events = events.map(e => e._id === id ? ev : e);
-    const obj = calendar.getEventById(id);
-    if (obj) {
-      obj.setProp('title', `${ev.title} (${ev.time})`);
-      obj.setStart(`${ev.date}T${ev.start}`);
-      obj.setEnd(`${ev.date}T${ev.end}`);
-    }
-  }
-
-  function remove(id) {
-    events = events.filter(e => e._id !== id);
-    calendar.getEventById(id)?.remove();
-  }
-
-  return { init, add, update, remove, getEvents: () => events };
-})();
-
+      return {
+        init,
+        add,
+        update,
+        remove,
+        getEvents: () => events
+      }
+    })()
 
     // ----------------------
     // MÓDULO FORMULÁRIO
@@ -943,31 +884,21 @@ const CalendarModule = (() => {
     }
 
     function initOccupancyUpdates() {
-      const dateInput = document.getElementById('occupancy-date');
+      // atualiza só a tabela (sem re-buscar do backend) a cada 1s
+      const tableUpdateInterval = setInterval(buildOccupancyTable, 1 * 1000);
 
-      // pré-carrega com hoje
-      dateInput.value = new Date().toISOString().slice(0, 10);
+      // re-busca a cada 30 segundos
+      const dataUpdateInterval = setInterval(refreshEventsAndTable, 10 * 1000);
 
-      // monta tabela para a data inicial
-      buildOccupancyTable(dateInput.value);
 
-      // quando o usuário muda a data, refaz a tabela imediatamente
-      dateInput.addEventListener('change', () => {
-        buildOccupancyTable(dateInput.value);
-      });
+      // Recarrega dados do backend a cada 2 minutos e re-render
+      setInterval(() => buildOccupancyTable(dateInput.value), 5 * 1000);
+setInterval(async () => {
+  await refreshEvents();
+  buildOccupancyTable(dateInput.value);
+}, 2 * 60 * 1000);
 
-      // — Atualização só da tabela a cada 5 segundos —
-      const tableUpdateInterval = setInterval(() => {
-        buildOccupancyTable(dateInput.value);
-      }, 5 * 1000);
-
-      // — Atualização dos dados (backend) a cada 2 minutos —
-      const dataUpdateInterval = setInterval(async () => {
-        await refreshEvents();              // busca do backend
-        buildOccupancyTable(dateInput.value); // e refaz a tabela
-      }, 2 * 60 * 1000);
-
-      console.log("Tabela de ocupação: tabela a cada 5s, dados a cada 2min");
+      console.log("Tabela de ocupação atualizada a cada 1 segundo");
     }
 
     // ----------------------
@@ -978,7 +909,6 @@ const CalendarModule = (() => {
       FormModule.init()
       DetailModule.init()
 
-      // 1) Busca inicial dos dados
       let data = []
       try {
         data = await Api.fetchEvents()
@@ -986,7 +916,7 @@ const CalendarModule = (() => {
         console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
       }
 
-      // 2) Inicializa o calendário com seus callbacks originais
+      // Inicializa o calendário com seus callbacks originais
       CalendarModule.init(
         data,
         info => FormModule.open(null, {
@@ -1010,33 +940,16 @@ const CalendarModule = (() => {
         }
       )
 
-      // 3) Configura o filtro de data para a tabela de ocupação
-      const dateInput = document.createElement('input')
-      dateInput.type = 'date'
-      dateInput.id = 'occupancy-date'
-      dateInput.className = 'ml-auto mb-4 p-1 border rounded'
-      // valor padrão = hoje
-      dateInput.valueAsDate = new Date()
+      // === Chamada para ativar atualização automática da tabela ===
+      initOccupancyUpdates()
 
-      // injeta o datepicker no cabeçalho da seção
-      const header = document.querySelector('#occupancy-section h2')
-      header.insertAdjacentElement('afterend', dateInput)
-
-      // 4) Toda vez que mudar a data, refaz a tabela filtrada
-      dateInput.addEventListener('change', () => {
-        buildOccupancyTable(dateInput.value)
-      })
-
-      // 5) Ativa atualização automática da tabela (já filtrando pela data atual)
-      initOccupancyUpdates(dateInput)
-
-      // 6) Importação de horárarios desativada
+      // Desativa importação de fixos nesta versão:
       document.getElementById('import-schedule')
         .addEventListener('click', () => {
           alert('Importação de horários fixos desativada nesta versão.')
         })
 
-      // 7) Toggle do menu off-canvas
+      // Toggle off-canvas…
       const toggle = document.getElementById('menu-toggle')
       const menu = document.getElementById('side-menu')
       toggle.addEventListener('click', () => {
@@ -1051,11 +964,10 @@ const CalendarModule = (() => {
           bars[1].classList.remove('-rotate-45', '-translate-y-1')
         }
       })
-      document.getElementById('menu-close')
-        .addEventListener('click', () => {
-          menu.classList.remove('show')
-          document.body.classList.remove('overflow-hidden')
-        })
+      document.getElementById('menu-close').addEventListener('click', () => {
+        menu.classList.remove('show')
+        document.body.classList.remove('overflow-hidden')
+      })
     })
   </script>
 </body>
