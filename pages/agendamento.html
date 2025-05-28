@@ -448,7 +448,7 @@
       let events = [];
 
       function init(rawEvents, onDateClick, onEventClick) {
-        // 1) carrega os eventos da API
+        // 1) armazena seus eventos de API
         events = rawEvents;
 
         const el = document.getElementById('calendar');
@@ -464,20 +464,17 @@
             right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           },
 
-          // 2) fontes de evento: dinâmicos + fixos
+          // 2) eventos normais sempre vêm daqui
+          events: events.map(e => ({
+            id: e._id,
+            title: `${e.title} (${e.time})`,
+            start: `${e.date}T${e.start}`,
+            end: `${e.date}T${e.end}`
+          })),
+
+          // 3) e só um source para os horários fixos (fundo)
           eventSources: [
             {
-              // 1) eventos da API
-              id: 'apiEvents',
-              events: events.map(e => ({
-                id: e._id,
-                title: `${e.title} (${e.time})`,
-                start: `${e.date}T${e.start}`,
-                end: `${e.date}T${e.end}`
-              }))
-            },
-            {
-              // 2) horários fixos (render background)
               id: 'fixedSchedules',
               events: () => window.fixedSchedules || [],
               display: 'background',
@@ -485,14 +482,14 @@
             }
           ],
 
-          dateClick: onDateClick,
-          eventClick: onEventClick,
+          dateClick,
+          eventClick,
           height: el.clientHeight,
           allDaySlot: false,
           selectable: true,
 
+          // bloqueia seleção sobre fundo
           selectAllow: selectInfo => {
-            // impede seleção sobre um bloco de fundo
             return !calendar.getEvents().some(ev =>
               ev.display === 'background' &&
               ev.start < selectInfo.end &&
@@ -501,9 +498,7 @@
           }
         });
 
-        // expõe a instância para uso externo (importação de planilha, etc.)
         window.calendar = calendar;
-
         calendar.render();
 
         // reconstrói tabela de ocupação a cada minuto
@@ -522,6 +517,7 @@
       }
 
       function add(ev) {
+        // novo agendamento: mantém o eventSource principal intocado
         calendar.addEvent({
           id: ev._id,
           title: `${ev.title} (${ev.time})`,
@@ -548,6 +544,7 @@
 
       return { init, add, update, remove, getEvents: () => events };
     })();
+
 
     // ------------------------------------------------
     // IMPORTAÇÃO DE HORÁRIOS FIXOS A PARTIR DE XLSX
