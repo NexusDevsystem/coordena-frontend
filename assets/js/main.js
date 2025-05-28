@@ -111,85 +111,65 @@ const Api = (() => {
   };
 })();
 
-
 // ----------------------
-// MÓDULO CALENDÁRIO (SUPORTE MOBILE)
+// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
 // ----------------------
 const CalendarModule = (() => {
-  let calendar;
-  let events = [];
+  let calendar
+  let events = []
 
-  async function init(rawEvents, onDateClick, onEventClick) {
-    // 1) carrega reservas do backend
-    events = rawEvents;
+  function init(rawEvents, onDateClick, onEventClick) {
+    // inicializa todos os eventos
+    events = rawEvents
 
-    // 2) obtém container
-    const el = document.getElementById('calendar');
-    if (!el) return console.error('#calendar não encontrado');
+    const el = document.getElementById('calendar')
+    if (!el) return console.error('#calendar não encontrado')
 
-    // 3) configura view inicial
-    const isMobile = window.innerWidth < 640;
-
-    // 4) prepara seus eventos (front-end)
-    const userEvents = events.map(e => ({
-      id: e._id,
-      title: `${e.title} (${e.time})`,
-      start: `${e.date}T${e.start}`,
-      end: `${e.date}T${e.end}`
-    }));
-
-    // 5) busca horários fixos de aula e transforma em background events
-    let fixed = [];
-    try {
-      fixed = await Api.fetchFixedSchedules();
-    } catch (err) {
-      console.warn('Não foi possível carregar horários fixos', err);
-    }
-    const fixedEvents = fixed.map(h => ({
-      id: `fixed-${h.lab}-${h.dayOfWeek}-${h.startTime}`,
-      rendering: 'background',
-      daysOfWeek: [h.dayOfWeek],
-      startTime: h.startTime,
-      endTime: h.endTime,
-      backgroundColor: turnoColors[h.turno] || 'rgba(0,0,0,0.1)',
-      extendedProps: { lab: h.lab, turno: h.turno }
-    }));
-
-    // 6) instancia FullCalendar com ambos os conjuntos
+    const isMobile = window.innerWidth < 640
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
-      initialView: isMobile ? 'listWeek' : 'dayGridWeek',
+      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
       headerToolbar: {
         left: isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
         right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      events: [...fixedEvents, ...userEvents],
+      events: events.map(e => ({
+        id: e._id,
+        title: `${e.title} (${e.time})`,
+        start: `${e.date}T${e.start}`,
+        end: `${e.date}T${e.end}`
+      })),
       dateClick: onDateClick,
       eventClick: onEventClick,
-      selectable: true,
+      height: el.clientHeight,
       allDaySlot: false,
       selectAllow: selectInfo => {
-        // bloqueia seleção sobre aula fixa
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end && ev.end > selectInfo.start
-        );
-      }
-    });
+        )
+      },
+      selectable: true
+    })
 
-    calendar.render();
+    calendar.render()
 
-    // atualiza a view no resize
+    // A cada minuto, apenas reconstrói a tabela de ocupação
+    setInterval(() => {
+      buildOccupancyTable()
+    }, 60 * 1000)
+
+    // Ajusta a view no resize
     window.addEventListener('resize', () => {
-      const nowMobile = window.innerWidth < 640;
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridWeek');
+      const nowMobile = window.innerWidth < 640
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
       calendar.setOption('headerToolbar', {
         left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
         right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      });
-    });
+      })
+    })
   }
 
   function add(ev) {
@@ -198,23 +178,23 @@ const CalendarModule = (() => {
       title: `${ev.title} (${ev.time})`,
       start: `${ev.date}T${ev.start}`,
       end: `${ev.date}T${ev.end}`
-    });
-    events.push(ev);
+    })
+    events.push(ev)
   }
 
   function update(id, ev) {
-    events = events.map(e => e._id === id ? ev : e);
-    const obj = calendar.getEventById(id);
+    events = events.map(e => (e._id === id ? ev : e))
+    const obj = calendar.getEventById(id)
     if (obj) {
-      obj.setProp('title', `${ev.title} (${ev.time})`);
-      obj.setStart(`${ev.date}T${ev.start}`);
-      obj.setEnd(`${ev.date}T${ev.end}`);
+      obj.setProp('title', `${ev.title} (${ev.time})`)
+      obj.setStart(`${ev.date}T${ev.start}`)
+      obj.setEnd(`${e.date}T${e.end}`)
     }
   }
 
   function remove(id) {
-    events = events.filter(e => e._id !== id);
-    calendar.getEventById(id)?.remove();
+    events = events.filter(e => e._id !== id)
+    calendar.getEventById(id)?.remove()
   }
 
   return {
@@ -223,8 +203,9 @@ const CalendarModule = (() => {
     update,
     remove,
     getEvents: () => events
-  };
-})();
+  }
+})()
+
 
 
 // ----------------------
@@ -258,11 +239,9 @@ const FormModule = (() => {
   function open(id = null, evData = null) {
     currentId = id;
     selectors.form.reset();
-
-    // sempre esconder sala
     selectors.fields.salaContainer.classList.add('hidden');
 
-    // reset curso & matéria
+    // reset curso/matéria
     selectors.fields.dept.value = '';
     selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
     selectors.fields.materia.disabled = true;
@@ -279,8 +258,6 @@ const FormModule = (() => {
       selectors.fields.dept.value = evData.department;
       selectors.fields.status.value = evData.status;
       selectors.fields.desc.value = evData.description;
-
-      // se vier materia, preencher
       if (evData.materia) {
         selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
         selectors.fields.materia.disabled = false;
@@ -323,7 +300,31 @@ const FormModule = (() => {
         : `${f.type.value} - ${f.sala.value}`
     };
 
-    (async () => {
+    // ————————————————————————————————
+    // Validação de conflito de horários
+    // ————————————————————————————————
+    const allEvents = CalendarModule.getEvents();
+    const dtStart = new Date(`${payload.date}T${payload.start}`);
+    const dtEnd = new Date(`${payload.date}T${payload.end}`);
+
+    const conflict = allEvents.some(ev => {
+      const sameDate = ev.date === payload.date;
+      const sameRoom = (ev.sala || ev.resource) === (payload.sala || payload.resource);
+      if (!sameDate || !sameRoom) return false;
+      const evStart = new Date(`${ev.date}T${ev.start}`);
+      const evEnd = new Date(`${ev.date}T${ev.end}`);
+      return dtStart < evEnd && dtEnd > evStart;
+    });
+
+    if (conflict) {
+      alert('Conflito: já existe um agendamento para esta sala e horário.');
+      return;
+    }
+
+    // ————————————————————————————————
+    // Envia para o backend
+    // ————————————————————————————————
+    ; (async () => {
       try {
         let saved;
         if (currentId) {
@@ -333,6 +334,7 @@ const FormModule = (() => {
           saved = await Api.createEvent(payload);
           CalendarModule.add(saved);
         }
+        buildOccupancyTable();
         close();
       } catch (err) {
         alert(err.message);
@@ -343,6 +345,21 @@ const FormModule = (() => {
   function init() {
     cacheSelectors();
 
+    // ————————————————————————————————
+    // Cálculo automático de +50 minutos no “Término”
+    // ————————————————————————————————
+    function addMinutes(timeString, minsToAdd) {
+      const [hh, mm] = timeString.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hh, mm + minsToAdd);
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+    selectors.fields.start.addEventListener('change', () => {
+      const start = selectors.fields.start.value;
+      if (start) selectors.fields.end.value = addMinutes(start, 50);
+    });
+
+    // inicializa matéria
     selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
     selectors.fields.materia.disabled = true;
 
@@ -350,6 +367,7 @@ const FormModule = (() => {
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
+    // mapa de salas
     const salaOpts = {
       'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
       'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
@@ -367,15 +385,58 @@ const FormModule = (() => {
       }
     });
 
+    // mapa de cursos × matérias (completo)
     const courseMap = {
       'Engenharia de Computação': [
-        /* ... lista de disciplinas ... */
+        'ARA0003 - PRINCÍPIOS DE GESTÃO',
+        'ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES',
+        'ARA0039 - ARQUITETURA DE COMPUTADORES',
+        'ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE',
+        'ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL',
+        'ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR',
+        'ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO',
+        'ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA',
+        'ARA1386 - SISTEMAS OPERACIONAIS',
+        'ARA0002 - PENSAMENTO COMPUTACIONAL',
+        'ARA0014 - ANÁLISE DE DADOS',
+        'ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS',
+        'ARA0044 - ELETRICIDADE E MAGNETISMO',
+        'ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES',
+        'ARA1398 - MECÂNICA DOS SÓLIDOS',
+        'ARA0029 - ELETRICIDADE APLICADA',
+        'ARA0030 - EQUAÇÕES DIFERENCIAIS',
+        'ARA0046 - FENÔMENOS DE TRANSPORTE',
+        'ARA0056 - QUÍMICA TECNOLÓGICA',
+        'ARA2042 - SISTEMAS DIGITAIS',
+        'ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES',
+        'ARA0083 - ELETRÔNICA ANALÓGICA',
+        'ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS',
+        'ARA1943 - MODELAGEM MATEMÁTICA',
+        'ARA0040 - BANCO DE DADOS',
+        'ARA0098 - ESTRUTURA DE DADOS',
+        'COMPILADORES',
+        'ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA',
+        'ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON',
+        'ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL',
+        'ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C',
+        'ARA2086 - ALGORITMOS EM GRAFOS',
+        'ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES',
+        'ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS',
+        'ARA1879 - AUTOMAÇÃO INDUSTRIAL',
+        'ARA0085 - INTELIGÊNCIA ARTIFICIAL',
+        'ARA0115 - SISTEMAS EMBARCADOS',
+        'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
+        'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
+        'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
+        'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+        'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
+        'ARA2074 - SEGURANÇA CIBERNÉTICA'
       ]
     };
+
     selectors.fields.dept?.addEventListener('change', () => {
-      const curso = selectors.fields.dept.value;
-      const lista = courseMap[curso] || [];
-      const sel = selectors.fields.materia;
+      const lista = courseMap[selectors.fields.dept.value] || [];
+      const sel = selectors.fields.materia; // é o <select id="curso">
       if (lista.length) {
         sel.innerHTML =
           '<option value="">Selecione a matéria...</option>' +
@@ -390,19 +451,18 @@ const FormModule = (() => {
 
   return { init, open };
 })();
-
 // ----------------------
 // MÓDULO MODAL DETALHES
 // ----------------------
 const DetailModule = (() => {
-  let currentId = null;
-  const selectors = {};
+  let currentId = null
+  const selectors = {}
 
   function cacheSelectors() {
-    selectors.modal = document.getElementById('event-modal');
-    selectors.btnClose = document.getElementById('modal-close');
-    selectors.btnEdit = document.getElementById('modal-edit');
-    selectors.btnDelete = document.getElementById('modal-cancel');
+    selectors.modal = document.getElementById('event-modal')
+    selectors.btnClose = document.getElementById('modal-close')
+    selectors.btnEdit = document.getElementById('modal-edit')
+    selectors.btnDelete = document.getElementById('modal-cancel')
     selectors.fields = {
       date: document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
@@ -412,48 +472,171 @@ const DetailModule = (() => {
       materia: document.getElementById('modal-materia'),
       status: document.getElementById('modal-status'),
       desc: document.getElementById('modal-desc')
-    };
+    }
   }
 
   function open(ev) {
-    currentId = ev._id;
-    const f = selectors.fields;
-    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
-    f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent = `Evento: ${ev.type}`;
-    f.resp.textContent = `Responsável: ${ev.responsible}`;
-    f.dept.textContent = `Curso: ${ev.department}`;
-    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent = `Status: ${ev.status}`;
-    f.desc.textContent = ev.description || 'Sem descrição';
-    selectors.modal.classList.remove('hidden');
+    currentId = ev._id
+    const f = selectors.fields
+    f.date.textContent = `Data: ${ev.date} (${ev.time})`
+    f.resource.textContent = `Recurso: ${ev.resource}`
+    f.type.textContent = `Evento: ${ev.type}`
+    f.resp.textContent = `Responsável: ${ev.responsible}`
+    f.dept.textContent = `Curso: ${ev.department}`
+    f.materia.textContent = `Matéria: ${ev.materia || '—'}`
+    f.status.textContent = `Status: ${ev.status}`
+    f.desc.textContent = ev.description || 'Sem descrição'
+    selectors.modal.classList.remove('hidden')
   }
 
   function close() {
-    selectors.modal.classList.add('hidden');
+    selectors.modal.classList.add('hidden')
   }
 
   function init() {
-    cacheSelectors();
-    selectors.btnClose?.addEventListener('click', close);
+    cacheSelectors()
+    selectors.btnClose?.addEventListener('click', close)
     selectors.btnEdit?.addEventListener('click', () => {
-      if (!currentId) return;
-      const ev = CalendarModule.getEvents().find(e => e._id === currentId);
-      if (ev) FormModule.open(currentId, ev);
-      close();
-    });
+      if (!currentId) return
+      const ev = CalendarModule.getEvents().find(e => e._id === currentId)
+      if (ev) FormModule.open(currentId, ev)
+      close()
+    })
     selectors.btnDelete?.addEventListener('click', async () => {
-      if (!currentId) return;
+      if (!currentId) return
       try {
-        await Api.deleteEvent(currentId);
-        CalendarModule.remove(currentId);
-        close();
-      } catch (err) { alert(err.message); }
-    });
+        await Api.deleteEvent(currentId)
+        CalendarModule.remove(currentId)
+        buildOccupancyTable()
+        close()
+      } catch (err) {
+        alert(err.message)
+      }
+    })
   }
 
-  return { init, open };
-})();
+  return { init, open }
+})()
+
+// ----------------------
+// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
+// ----------------------
+/**
+ * Reconstrói a tabela de ocupação para a data informada.
+ *
+ * @param {string} filterDate — “YYYY-MM-DD” (ex: “2025-05-28”). 
+ *                              Se for falsy, usa hoje.
+ */
+function buildOccupancyTable(filterDate) {
+  // 1) coleta todos os eventos
+  const allEvents = CalendarModule.getEvents();
+
+  // 2) determina a data a usar no filtro
+  const dateStr = filterDate
+    ? filterDate
+    : new Date().toISOString().slice(0, 10);  // “YYYY-MM-DD”
+
+  // 3) filtra só os eventos cuja e.date bate com o dateStr
+  const events = allEvents.filter(e => e.date === dateStr);
+
+  // 4) lista de salas / recursos
+  const labs = [...new Set(events.map(e => e.sala || e.resource))];
+
+  // 5) lista de faixas de horário
+  const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
+  timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+
+  // 6) referência à tabela e limpa
+  const table = document.getElementById('occupancy-table');
+  table.innerHTML = '';
+
+  // --- Monta o cabeçalho ---
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th class="px-2 py-1 border text-left">Sala / Horário</th>
+    ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+  `;
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // --- Monta o corpo ---
+  const now = new Date();
+  const tbody = document.createElement('tbody');
+
+  labs.forEach(lab => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+
+    timeRanges.forEach(range => {
+      const [start, end] = range.split('-');
+
+      // verifica se existe evento exatamente nessa sala/faixa
+      // e se a hora atual está dentro do intervalo
+      const ocupadoAgora = events.some(evt => {
+        if ((evt.sala || evt.resource) !== lab) return false;
+        if (evt.start !== start || evt.end !== end) return false;
+
+        // monta Date de início/fim
+        const [Y, M, D] = evt.date.split('-').map(Number);
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        const dtStart = new Date(Y, M - 1, D, h1, m1, 0, 0);
+        const dtEnd = new Date(Y, M - 1, D, h2, m2, 0, 0);
+
+        return now >= dtStart && now < dtEnd;
+      });
+
+      tr.innerHTML += `
+        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
+          ${ocupadoAgora ? 'ocupado' : 'livre'}
+        </td>
+      `;
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+}
+
+// ----------------------
+// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
+// ----------------------
+async function refreshEvents() {
+  try {
+    const updated = await Api.fetchEvents();
+    // Limpa todos do CalendarModule
+    CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+    // Re-adiciona
+    updated.forEach(e => CalendarModule.add(e));
+  } catch (err) {
+    console.error('Erro ao buscar eventos:', err);
+  }
+}
+
+function initOccupancyUpdates() {
+  const dateInput = document.getElementById('occupancy-date');
+
+  // Função que reconstrói a tabela filtrando pela data selecionada
+  function refreshTable() {
+    buildOccupancyTable(dateInput.value);
+  }
+
+  // Monta a tabela imediatamente, com o valor atual do datepicker
+  refreshTable();
+
+  // Atualiza só a tabela (com filtro) a cada 5 segundos
+  const tableInterval = setInterval(refreshTable, 5 * 1000);
+
+  // Re-busca do backend a cada 2 minutos, e depois reconstrói a tabela filtrada
+  const dataInterval = setInterval(async () => {
+    await refreshEvents();
+    refreshTable();
+  }, 2 * 60 * 1000);
+
+  console.log('Tabela de ocupação filtrada por data e atualizada a cada 5s (dados a cada 2min).');
+}
 
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
