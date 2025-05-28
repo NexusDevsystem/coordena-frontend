@@ -464,16 +464,17 @@
             right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           },
 
-          // 2) eventos da API (sempre visíveis)
-          events: events.map(e => ({
-            id: e._id,
-            title: `${e.title} (${e.time})`,
-            start: `${e.date}T${e.start}`,
-            end: `${e.date}T${e.end}`
-          })),
-
-          // 3) horários fixos (renderização em background)
+          // todos os eventos agora via eventSources
           eventSources: [
+            {
+              id: 'apiEvents',
+              events: () => events.map(e => ({
+                id: e._id,
+                title: `${e.title} (${e.time})`,
+                start: `${e.date}T${e.start}`,
+                end: `${e.date}T${e.end}`
+              }))
+            },
             {
               id: 'fixedSchedules',
               events: () => window.fixedSchedules || [],
@@ -488,8 +489,8 @@
           allDaySlot: false,
           selectable: true,
 
-          // bloqueia seleção sobre os blocos de fundo
           selectAllow: selectInfo => {
+            // bloqueia seleção sobre blocos de fundo
             return !calendar.getEvents().some(ev =>
               ev.display === 'background' &&
               ev.start < selectInfo.end &&
@@ -498,7 +499,7 @@
           }
         });
 
-        // expõe a instância para uso externo
+        // expõe instância p/ importação de planilha, etc.
         window.calendar = calendar;
 
         calendar.render();
@@ -506,7 +507,7 @@
         // reconstrói tabela de ocupação a cada minuto
         setInterval(buildOccupancyTable, 60 * 1000);
 
-        // ajusta view no resize
+        // reajusta view ao redimensionar
         window.addEventListener('resize', () => {
           const nowMobile = window.innerWidth < 640;
           calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -519,28 +520,19 @@
       }
 
       function add(ev) {
-        calendar.addEvent({
-          id: ev._id,
-          title: `${ev.title} (${ev.time})`,
-          start: `${ev.date}T${ev.start}`,
-          end: `${ev.date}T${ev.end}`
-        });
+        // adiciona no source 'apiEvents'
         events.push(ev);
+        calendar.getEventSourceById('apiEvents').refetch();
       }
 
       function update(id, ev) {
         events = events.map(e => e._id === id ? ev : e);
-        const obj = calendar.getEventById(id);
-        if (obj) {
-          obj.setProp('title', `${ev.title} (${ev.time})`);
-          obj.setStart(`${ev.date}T${ev.start}`);
-          obj.setEnd(`${ev.date}T${ev.end}`);
-        }
+        calendar.getEventSourceById('apiEvents').refetch();
       }
 
       function remove(id) {
         events = events.filter(e => e._id !== id);
-        calendar.getEventById(id)?.remove();
+        calendar.getEventSourceById('apiEvents').refetch();
       }
 
       return { init, add, update, remove, getEvents: () => events };
