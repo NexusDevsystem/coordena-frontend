@@ -468,6 +468,7 @@
           eventSources: [
             {
               // 1) eventos da API
+              id: 'apiEvents',
               events: events.map(e => ({
                 id: e._id,
                 title: `${e.title} (${e.time})`,
@@ -476,10 +477,11 @@
               }))
             },
             {
-              // 2) horários fixos (fundo)
+              // 2) horários fixos (render background)
+              id: 'fixedSchedules',
               events: () => window.fixedSchedules || [],
-              color: '#ff9f89',
-              display: 'background'
+              display: 'background',
+              color: '#ff9f89'
             }
           ],
 
@@ -499,12 +501,12 @@
           }
         });
 
-        // expõe a instância para uso externo
+        // expõe a instância para uso externo (importação de planilha, etc.)
         window.calendar = calendar;
 
         calendar.render();
 
-        // reconstrói tabela a cada minuto
+        // reconstrói tabela de ocupação a cada minuto
         setInterval(buildOccupancyTable, 60 * 1000);
 
         // ajusta view no resize
@@ -565,21 +567,32 @@
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
-        // Exemplo: colunas "diaSemana", "início", "término"
+        // Ajuste os nomes das colunas conforme sua planilha:
         window.fixedSchedules = rows.map(r => ({
-          daysOfWeek: [Number(r.diaSemana)], // 0=domingo … 6=sábado
+          daysOfWeek: [Number(r.diaSemana)], // 0=domingo…6=sábado
           startTime: r.início,                // ex: "08:00"
           endTime: r.término,               // ex: "08:50"
           display: 'background',
           color: '#ff9f89'
         }));
 
-        // força o FullCalendar a refetchar os eventSources (inclusive o fixo)
-        window.calendar.refetchEvents();
+        // 1) remove o source antigo
+        const old = window.calendar.getEventSourceById('fixedSchedules');
+        if (old) old.remove();
+
+        // 2) adiciona o novo source
+        window.calendar.addEventSource({
+          id: 'fixedSchedules',
+          events: window.fixedSchedules,
+          display: 'background',
+          color: '#ff9f89'
+        });
+
         alert('Horários fixos importados com sucesso!');
       };
       reader.readAsArrayBuffer(file);
     });
+
 
     // ----------------------
     // MÓDULO FORMULÁRIO
