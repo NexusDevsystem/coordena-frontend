@@ -695,23 +695,27 @@ onReady(async () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // 5) Toggle off-canvas...
-  const toggle = document.getElementById('menu-toggle');
-  const menu = document.getElementById('side-menu');
-  toggle.addEventListener('click', () => {
-    const open = menu.classList.toggle('show');
-    document.body.classList.toggle('overflow-hidden', open);
-    const bars = toggle.querySelectorAll('span');
-    if (open) {
-      bars[0].classList.add('rotate-45', 'translate-y-1');
-      bars[1].classList.add('-rotate-45', '-translate-y-1');
+  // Off-canvas menu toggle
+  const menuToggle = document.getElementById('menu-toggle');
+  const sideMenu = document.getElementById('side-menu');
+  const menuClose = document.getElementById('menu-close');
+  const bars = menuToggle.querySelectorAll('span');
+
+  menuToggle.addEventListener('click', () => {
+    sideMenu.classList.toggle('-translate-x-full');
+    if (sideMenu.classList.contains('-translate-x-full')) {
+      bars[0].classList.remove('rotate-45', 'translate-y-1.5');
+      bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
     } else {
-      bars[0].classList.remove('rotate-45', 'translate-y-1');
-      bars[1].classList.remove('-rotate-45', '-translate-y-1');
+      bars[0].classList.add('rotate-45', 'translate-y-1.5');
+      bars[1].classList.add('-rotate-45', '-translate-y-1.5');
     }
   });
-  document.getElementById('menu-close').addEventListener('click', () => {
-    menu.classList.remove('show');
-    document.body.classList.remove('overflow-hidden');
+
+  menuClose.addEventListener('click', () => {
+    sideMenu.classList.add('-translate-x-full');
+    bars[0].classList.remove('rotate-45', 'translate-y-1.5');
+    bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
   });
+
 });
