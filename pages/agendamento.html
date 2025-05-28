@@ -949,11 +949,7 @@
         }
       )
 
-      // Monta tabela dinâmica após carregar eventos
-      buildOccupancyTable();
-
-      // Atualiza tabela dinâmica a cada minuto
-      setInterval(buildOccupancyTable, 60 * 1000);
+       initOccupancyTableUpdates();
 
       // Desativa importação de fixos nesta versão:
       document.getElementById('import-schedule')
