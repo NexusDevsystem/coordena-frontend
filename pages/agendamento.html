@@ -221,22 +221,28 @@
           <input type="text" id="responsavel" placeholder="Nome do professor" required
             class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
         </div>
+
         <!-- Curso / Matéria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-            <input type="text" id="departamento" placeholder="Ex: Computação" required
-              class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+            <select id="departamento" required
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400">
+              <option value="">Selecione...</option>
+              <option value="Engenharia de Computação">Engenharia de Computação</option>
+              <!-- (adicione outros cursos, se houver) -->
+            </select>
           </div>
           <div>
             <label for="curso" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matéria</label>
             <select id="curso" required
-              class="w-full mt-1 px-3 py-2 border rounded-md:bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
               disabled>
               <option value="">Selecione o curso primeiro</option>
             </select>
           </div>
         </div>
+
         <!-- Status da Reserva -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status da
@@ -700,7 +706,7 @@
 
         selectors.fields.dept?.addEventListener('change', () => {
           const lista = courseMap[selectors.fields.dept.value] || [];
-          const sel = selectors.fields.materia;
+          const sel = selectors.fields.materia; // é o <select id="curso">
           if (lista.length) {
             sel.innerHTML =
               '<option value="">Selecione a matéria...</option>' +
