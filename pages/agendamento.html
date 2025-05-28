@@ -56,33 +56,44 @@
     }
   </script>
 
-  <!-- Off-canvas Menu -->
-  <div id="side-menu">
-    <div class="menu-header">
-      <ul>
-        <li><a href="#" class="active">Pessoas</a></li>
-        <li><a href="#">Lugares</a></li>
-        <li><a href="#">Trailers</a></li>
-        <li><a href="#">Downloads</a></li>
-      </ul>
-      <button id="menu-close" aria-label="Fechar menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <div class="menu-content">
-      <p>Jason Duval</p>
-      <p>Lucia Caminos</p>
-      <p>Cal Hampton</p>
-      <p>Boobie Ike</p>
-      <p>Dre'quan Priest</p>
-      <p>Real Dimez</p>
-      <p>Raul Bautista</p>
-      <p>Brian Heder</p>
-    </div>
+  <!-- Botão do menu (agora com seu ícone sem fundo) -->
+  <div class="menu-button" onclick="toggleMenu()">
+    <img src="assets/img/menu.png" alt="Menu" />
   </div>
+
+  <!-- Off-canvas Menu GTA VI -->
+  <nav class="menu">
+    <div class="container">
+      <div class="left">
+        <!-- Nome e email -->
+        <div class="user-name" id="menu-user-name">—</div>
+        <div class="user-email" id="menu-user-email">—</div>
+      </div>
+      <div class="right">
+        <h2>Menu</h2>
+        <div class="overflow-y-auto">
+          <div class="person">PERFIL</div>
+          <div class="person">SEUS AGENDAMENTOS</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+          <div class="person">teste</div>
+        </div>
+        <div class="footer">Português do Brasil</div>
+        <div class="menu-actions">
+          <button id="menu-theme-btn">
+            Tema
+          </button>
+          <button id="menu-logout-btn">
+            <img src="assets/img/logout.png" alt="Sair" />
+            Sair
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- Menu Toggle Rockstar Style (esquerda) -->
   <div class="fixed top-4 left-4 z-50">
@@ -295,10 +306,10 @@
 
     <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
       Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
-    </footer>   
-    
+    </footer>
+
     <!-- importa todo o JS consolidado -->
-  <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/main.js"></script>
 </body>
 
 </html>
