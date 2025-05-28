@@ -841,11 +841,11 @@
     }
 
     function initOccupancyUpdates() {
-      // Primeiro render
-      buildOccupancyTable();
+      // atualiza só a tabela (sem re-buscar do backend) a cada 1s
+      const tableUpdateInterval = setInterval(buildOccupancyTable, 1 * 1000);
 
       // re-busca a cada 30 segundos
-      const dataUpdateInterval = setInterval(refreshEventsAndTable, 30 * 1000);
+      const dataUpdateInterval = setInterval(refreshEventsAndTable, 10 * 1000);
 
 
       // Recarrega dados do backend a cada 2 minutos e re-render
@@ -854,7 +854,7 @@
         buildOccupancyTable();
       }, 2 * 60 * 1000);
 
-      console.log('Ocupação: tabela a cada 1min, dados a cada 2min');
+      console.log("Tabela de ocupação atualizada a cada 1 segundo");
     }
 
     // ----------------------
