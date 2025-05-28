@@ -369,9 +369,9 @@ const FormModule = (() => {
 
     // mapa de salas
     const salaOpts = {
-      'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
-      'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
-      'Auditório': ['Auditório A', 'Auditório B']
+      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab imaginologia'],
+      //'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
+      //'Auditório': ['Auditório A', 'Auditório B']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
