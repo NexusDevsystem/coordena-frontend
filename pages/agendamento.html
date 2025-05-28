@@ -467,7 +467,7 @@
           // 2) fontes de evento: dinâmicos + fixos
           eventSources: [
             {
-              // seus eventos normais
+              // 1) eventos da API
               events: events.map(e => ({
                 id: e._id,
                 title: `${e.title} (${e.time})`,
@@ -476,10 +476,10 @@
               }))
             },
             {
-              // horários fixos, renderizados como background
+              // 2) horários fixos (fundo)
               events: () => window.fixedSchedules || [],
               color: '#ff9f89',
-              rendering: 'background'
+              display: 'background'
             }
           ],
 
@@ -492,14 +492,14 @@
           selectAllow: selectInfo => {
             // impede seleção sobre um bloco de fundo
             return !calendar.getEvents().some(ev =>
-              ev.rendering === 'background' &&
+              ev.display === 'background' &&
               ev.start < selectInfo.end &&
               ev.end > selectInfo.start
             );
           }
         });
 
-        // expõe a instância para uso externo (importação de planilha, etc.)
+        // expõe a instância para uso externo
         window.calendar = calendar;
 
         calendar.render();
@@ -547,7 +547,39 @@
       return { init, add, update, remove, getEvents: () => events };
     })();
 
+    // ------------------------------------------------
+    // IMPORTAÇÃO DE HORÁRIOS FIXOS A PARTIR DE XLSX
+    // ------------------------------------------------
+    document.getElementById('import-schedule').addEventListener('click', () => {
+      const fileInput = document.getElementById('schedule-file');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Selecione primeiro um arquivo .xlsx');
+        return;
+      }
 
+      const reader = new FileReader();
+      reader.onload = e => {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+
+        // Exemplo: colunas "diaSemana", "início", "término"
+        window.fixedSchedules = rows.map(r => ({
+          daysOfWeek: [Number(r.diaSemana)], // 0=domingo … 6=sábado
+          startTime: r.início,                // ex: "08:00"
+          endTime: r.término,               // ex: "08:50"
+          display: 'background',
+          color: '#ff9f89'
+        }));
+
+        // força o FullCalendar a refetchar os eventSources (inclusive o fixo)
+        window.calendar.refetchEvents();
+        alert('Horários fixos importados com sucesso!');
+      };
+      reader.readAsArrayBuffer(file);
+    });
 
     // ----------------------
     // MÓDULO FORMULÁRIO
