@@ -505,6 +505,7 @@
         selectors.form.reset();
         selectors.fields.salaContainer.classList.add('hidden');
 
+        // reset curso/matéria
         selectors.fields.dept.value = '';
         selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
         selectors.fields.materia.disabled = true;
@@ -563,6 +564,30 @@
             : `${f.type.value} - ${f.sala.value}`
         };
 
+        // ————————————————————————————————
+        // Validação de conflito de horários
+        // ————————————————————————————————
+        const allEvents = CalendarModule.getEvents();
+        const dtStart = new Date(`${payload.date}T${payload.start}`);
+        const dtEnd = new Date(`${payload.date}T${payload.end}`);
+
+        const conflict = allEvents.some(ev => {
+          const sameDate = ev.date === payload.date;
+          const sameRoom = (ev.sala || ev.resource) === (payload.sala || payload.resource);
+          if (!sameDate || !sameRoom) return false;
+          const evStart = new Date(`${ev.date}T${ev.start}`);
+          const evEnd = new Date(`${ev.date}T${ev.end}`);
+          return dtStart < evEnd && dtEnd > evStart;
+        });
+
+        if (conflict) {
+          alert('Conflito: já existe um agendamento para esta sala e horário.');
+          return;
+        }
+
+        // ————————————————————————————————
+        // Envia para o backend
+        // ————————————————————————————————
         ; (async () => {
           try {
             let saved;
@@ -585,7 +610,7 @@
         cacheSelectors();
 
         // ————————————————————————————————
-        // Cálculo automático de +50 minutos
+        // Cálculo automático de +50 minutos no “Término”
         // ————————————————————————————————
         function addMinutes(timeString, minsToAdd) {
           const [hh, mm] = timeString.split(':').map(Number);
@@ -598,7 +623,7 @@
           if (start) selectors.fields.end.value = addMinutes(start, 50);
         });
 
-        // inicia matéria desabilitado
+        // inicializa matéria
         selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
         selectors.fields.materia.disabled = true;
 
@@ -690,7 +715,6 @@
 
       return { init, open };
     })();
-
 
     // ----------------------
     // MÓDULO MODAL DETALHES
