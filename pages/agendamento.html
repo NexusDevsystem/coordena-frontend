@@ -448,7 +448,7 @@
       let events = [];
 
       function init(rawEvents, onDateClick, onEventClick) {
-        // 1) armazena seus eventos de API
+        // 1) carrega os eventos da API
         events = rawEvents;
 
         const el = document.getElementById('calendar');
@@ -464,7 +464,7 @@
             right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
           },
 
-          // 2) eventos normais sempre vêm daqui
+          // 2) eventos da API (sempre visíveis)
           events: events.map(e => ({
             id: e._id,
             title: `${e.title} (${e.time})`,
@@ -472,7 +472,7 @@
             end: `${e.date}T${e.end}`
           })),
 
-          // 3) e só um source para os horários fixos (fundo)
+          // 3) horários fixos (renderização em background)
           eventSources: [
             {
               id: 'fixedSchedules',
@@ -488,7 +488,7 @@
           allDaySlot: false,
           selectable: true,
 
-          // bloqueia seleção sobre fundo
+          // bloqueia seleção sobre os blocos de fundo
           selectAllow: selectInfo => {
             return !calendar.getEvents().some(ev =>
               ev.display === 'background' &&
@@ -498,7 +498,9 @@
           }
         });
 
+        // expõe a instância para uso externo
         window.calendar = calendar;
+
         calendar.render();
 
         // reconstrói tabela de ocupação a cada minuto
@@ -517,7 +519,6 @@
       }
 
       function add(ev) {
-        // novo agendamento: mantém o eventSource principal intocado
         calendar.addEvent({
           id: ev._id,
           title: `${ev.title} (${ev.time})`,
@@ -545,7 +546,6 @@
       return { init, add, update, remove, getEvents: () => events };
     })();
 
-
     // ------------------------------------------------
     // IMPORTAÇÃO DE HORÁRIOS FIXOS A PARTIR DE XLSX
     // ------------------------------------------------
@@ -564,20 +564,20 @@
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
-        // Ajuste os nomes das colunas conforme sua planilha:
+        // ajuste o nome dessas chaves conforme sua planilha
         window.fixedSchedules = rows.map(r => ({
           daysOfWeek: [Number(r.diaSemana)], // 0=domingo…6=sábado
-          startTime: r.início,                // ex: "08:00"
-          endTime: r.término,               // ex: "08:50"
+          startTime: r.início,               // ex: "08:00"
+          endTime: r.término,              // ex: "08:50"
           display: 'background',
           color: '#ff9f89'
         }));
 
-        // 1) remove o source antigo
+        // remove o source antigo de fixos
         const old = window.calendar.getEventSourceById('fixedSchedules');
         if (old) old.remove();
 
-        // 2) adiciona o novo source
+        // adiciona o novo source de fixos
         window.calendar.addEventSource({
           id: 'fixedSchedules',
           events: window.fixedSchedules,
@@ -589,6 +589,7 @@
       };
       reader.readAsArrayBuffer(file);
     });
+
 
 
     // ----------------------
