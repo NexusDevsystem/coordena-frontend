@@ -123,8 +123,8 @@
       <button id="open-form-modal"
         class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
-    </button>
-      
+      </button>
+
     </div>
 
     <!-- Calendário Dinâmico -->
@@ -143,15 +143,15 @@
       <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 text-center">
         Ocupação dos laboratórios
       </h2>
+
+      <!-- date-picker: -->
+      <div class="flex justify-end mb-2">
+        <label for="occupancy-date" class="mr-2 text-sm text-gray-700 dark:text-gray-300">Data:</label>
+        <input type="date" id="occupancy-date"
+          class="px-2 py-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" />
+      </div>
       <div class="overflow-auto">
         <div class="overflow-auto">
-
-          <!-- ← AQUI você adiciona o filtro de data -->
-          <div class="flex justify-end mb-2">
-            <label for="occupancy-date" class="mr-2 text-gray-700 dark:text-gray-300">Data:</label>
-            <input type="date" id="occupancy-date"
-              class="px-2 py-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
 
           <!-- tabela original -->
           <table id="occupancy-table" class="min-w-full table-auto border-collapse"></table>
@@ -799,22 +799,36 @@
     // ----------------------
     // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
     // ----------------------
-    function buildOccupancyTable() {
-      const events = CalendarModule.getEvents();
-      const now = new Date();
+    /**
+     * Reconstrói a tabela de ocupação para a data informada.
+     *
+     * @param {string} filterDate — “YYYY-MM-DD” (ex: “2025-05-28”). 
+     *                              Se for falsy, usa hoje.
+     */
+    function buildOccupancyTable(filterDate) {
+      // 1) coleta todos os eventos
+      const allEvents = CalendarModule.getEvents();
 
-      // Monta lista de salas/recurso
-      const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
+      // 2) determina a data a usar no filtro
+      const dateStr = filterDate
+        ? filterDate
+        : new Date().toISOString().slice(0, 10);  // “YYYY-MM-DD”
 
-      // Monta lista de faixas de horário
-      const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
+      // 3) filtra só os eventos cuja e.date bate com o dateStr
+      const events = allEvents.filter(e => e.date === dateStr);
+
+      // 4) lista de salas / recursos
+      const labs = [...new Set(events.map(e => e.sala || e.resource))];
+
+      // 5) lista de faixas de horário
+      const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
       timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-      // Prepara tabela
+      // 6) referência à tabela e limpa
       const table = document.getElementById('occupancy-table');
       table.innerHTML = '';
 
-      // Cabeçalho
+      // --- Monta o cabeçalho ---
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       headerRow.innerHTML = `
@@ -824,8 +838,10 @@
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-      // Corpo
+      // --- Monta o corpo ---
+      const now = new Date();
       const tbody = document.createElement('tbody');
+
       labs.forEach(lab => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
@@ -833,25 +849,24 @@
         timeRanges.forEach(range => {
           const [start, end] = range.split('-');
 
-          // Verifica se existe evento nesta sala e faixa E se agora está entre start (inclusive) e end (exclusive)
+          // verifica se existe evento exatamente nessa sala/faixa
+          // e se a hora atual está dentro do intervalo
           const ocupadoAgora = events.some(evt => {
             if ((evt.sala || evt.resource) !== lab) return false;
             if (evt.start !== start || evt.end !== end) return false;
 
-            // Data do evento
-            const [y, m, d] = evt.date.split('-').map(Number);
-            const [h1, min1] = start.split(':').map(Number);
-            const [h2, min2] = end.split(':').map(Number);
-
-            const dtStart = new Date(y, m - 1, d, h1, min1, 0, 0);
-            const dtEnd = new Date(y, m - 1, d, h2, min2, 0, 0);
+            // monta Date de início/fim
+            const [Y, M, D] = evt.date.split('-').map(Number);
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            const dtStart = new Date(Y, M - 1, D, h1, m1, 0, 0);
+            const dtEnd = new Date(Y, M - 1, D, h2, m2, 0, 0);
 
             return now >= dtStart && now < dtEnd;
           });
 
           tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'
-            }">
+        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
           ${ocupadoAgora ? 'ocupado' : 'livre'}
         </td>
       `;
@@ -859,6 +874,7 @@
 
         tbody.appendChild(tr);
       });
+
       table.appendChild(tbody);
     }
 
@@ -895,22 +911,22 @@
       console.log("Tabela de ocupação atualizada a cada 1 segundo");
     }
 
-    // ----------------------
+    /// ----------------------
     // INICIALIZAÇÃO PRINCIPAL
     // ----------------------
     onReady(async () => {
-      ThemeToggle.init()
-      FormModule.init()
-      DetailModule.init()
+      ThemeToggle.init();
+      FormModule.init();
+      DetailModule.init();
 
-      let data = []
+      let data = [];
       try {
-        data = await Api.fetchEvents()
+        data = await Api.fetchEvents();
       } catch (err) {
-        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
+        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
       }
 
-      // Inicializa o calendário com seus callbacks originais
+      // 1) Inicializa o calendário com seus callbacks originais
       CalendarModule.init(
         data,
         info => FormModule.open(null, {
@@ -929,40 +945,41 @@
         info => {
           const ev = CalendarModule
             .getEvents()
-            .find(e => e._id === info.event.id)
-          if (ev) DetailModule.open(ev)
+            .find(e => e._id === info.event.id);
+          if (ev) DetailModule.open(ev);
         }
-      )
+      );
 
-      // === Chamada para ativar atualização automática da tabela ===
-      initOccupancyUpdates()
+      // 2) Ativa atualização automática da tabela (com filtro por data)
+      initOccupancyUpdates();
 
-      // Desativa importação de fixos nesta versão:
+      // 3) Desativa importação de fixos nesta versão:
       document.getElementById('import-schedule')
         .addEventListener('click', () => {
-          alert('Importação de horários fixos desativada nesta versão.')
-        })
+          alert('Importação de horários fixos desativada nesta versão.');
+        });
 
-      // Toggle off-canvas…
-      const toggle = document.getElementById('menu-toggle')
-      const menu = document.getElementById('side-menu')
+      // 4) Toggle off-canvas…
+      const toggle = document.getElementById('menu-toggle');
+      const menu = document.getElementById('side-menu');
       toggle.addEventListener('click', () => {
-        const open = menu.classList.toggle('show')
-        document.body.classList.toggle('overflow-hidden', open)
-        const bars = toggle.querySelectorAll('span')
+        const open = menu.classList.toggle('show');
+        document.body.classList.toggle('overflow-hidden', open);
+        const bars = toggle.querySelectorAll('span');
         if (open) {
-          bars[0].classList.add('rotate-45', 'translate-y-1')
-          bars[1].classList.add('-rotate-45', '-translate-y-1')
+          bars[0].classList.add('rotate-45', 'translate-y-1');
+          bars[1].classList.add('-rotate-45', '-translate-y-1');
         } else {
-          bars[0].classList.remove('rotate-45', 'translate-y-1')
-          bars[1].classList.remove('-rotate-45', '-translate-y-1')
+          bars[0].classList.remove('rotate-45', 'translate-y-1');
+          bars[1].classList.remove('-rotate-45', '-translate-y-1');
         }
-      })
+      });
       document.getElementById('menu-close').addEventListener('click', () => {
-        menu.classList.remove('show')
-        document.body.classList.remove('overflow-hidden')
-      })
-    })
+        menu.classList.remove('show');
+        document.body.classList.remove('overflow-hidden');
+      });
+    });
+
   </script>
 </body>
 
