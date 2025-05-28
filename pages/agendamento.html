@@ -123,14 +123,8 @@
       <button id="open-form-modal"
         class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transform hover:scale-105 transition">
         Novo Agendamento
-      </button>
-      <!-- ADICIONADO: input e botão para importar planilha -->
-      <input type="file" id="schedule-file" accept=".xlsx,.xls"
-        class="border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400" />
-      <button id="import-schedule"
-        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transform hover:scale-105 transition">
-        Importar Horários
-      </button>
+    </button>
+      
     </div>
 
     <!-- Calendário Dinâmico -->
@@ -893,10 +887,10 @@
 
       // Recarrega dados do backend a cada 2 minutos e re-render
       setInterval(() => buildOccupancyTable(dateInput.value), 5 * 1000);
-setInterval(async () => {
-  await refreshEvents();
-  buildOccupancyTable(dateInput.value);
-}, 2 * 60 * 1000);
+      setInterval(async () => {
+        await refreshEvents();
+        buildOccupancyTable(dateInput.value);
+      }, 2 * 60 * 1000);
 
       console.log("Tabela de ocupação atualizada a cada 1 segundo");
     }
