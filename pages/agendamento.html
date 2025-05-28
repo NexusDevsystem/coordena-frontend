@@ -760,102 +760,101 @@
     })()
 
     // ----------------------
-// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
-// ----------------------
-function buildOccupancyTable() {
-  const events = CalendarModule.getEvents();
-  const now = new Date();
+    // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
+    // ----------------------
+    function buildOccupancyTable() {
+      const events = CalendarModule.getEvents();
+      const now = new Date();
 
-  // Monta lista de salas/recurso
-  const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
+      // Monta lista de salas/recurso
+      const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
 
-  // Monta lista de faixas de horário
-  const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
-  timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+      // Monta lista de faixas de horário
+      const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
+      timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // Prepara tabela
-  const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+      // Prepara tabela
+      const table = document.getElementById('occupancy-table');
+      table.innerHTML = '';
 
-  // Cabeçalho
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = `
+      // Cabeçalho
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
     ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
   `;
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
 
-  // Corpo
-  const tbody = document.createElement('tbody');
-  labs.forEach(lab => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+      // Corpo
+      const tbody = document.createElement('tbody');
+      labs.forEach(lab => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-    timeRanges.forEach(range => {
-      const [start, end] = range.split('-');
+        timeRanges.forEach(range => {
+          const [start, end] = range.split('-');
 
-      // Verifica se existe evento nesta sala e faixa E se agora está entre start (inclusive) e end (exclusive)
-      const ocupadoAgora = events.some(evt => {
-        if ((evt.sala || evt.resource) !== lab) return false;
-        if (evt.start !== start || evt.end !== end) return false;
+          // Verifica se existe evento nesta sala e faixa E se agora está entre start (inclusive) e end (exclusive)
+          const ocupadoAgora = events.some(evt => {
+            if ((evt.sala || evt.resource) !== lab) return false;
+            if (evt.start !== start || evt.end !== end) return false;
 
-        // Data do evento
-        const [y, m, d] = evt.date.split('-').map(Number);
-        const [h1, min1] = start.split(':').map(Number);
-        const [h2, min2] = end.split(':').map(Number);
+            // Data do evento
+            const [y, m, d] = evt.date.split('-').map(Number);
+            const [h1, min1] = start.split(':').map(Number);
+            const [h2, min2] = end.split(':').map(Number);
 
-        const dtStart = new Date(y, m - 1, d, h1, min1, 0, 0);
-        const dtEnd   = new Date(y, m - 1, d, h2, min2, 0, 0);
+            const dtStart = new Date(y, m - 1, d, h1, min1, 0, 0);
+            const dtEnd = new Date(y, m - 1, d, h2, min2, 0, 0);
 
-        return now >= dtStart && now < dtEnd;
-      });
+            return now >= dtStart && now < dtEnd;
+          });
 
-      tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${
-          ocupadoAgora ? 'bg-red-600' : 'bg-green-600'
-        }">
+          tr.innerHTML += `
+        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'
+            }">
           ${ocupadoAgora ? 'ocupado' : 'livre'}
         </td>
       `;
-    });
+        });
 
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-}
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    }
 
-// ----------------------
-// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
-// ----------------------
-async function refreshEvents() {
-  try {
-    const updated = await Api.fetchEvents();
-    // Limpa todos do CalendarModule
-    CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    // Re-adiciona
-    updated.forEach(e => CalendarModule.add(e));
-  } catch (err) {
-    console.error('Erro ao buscar eventos:', err);
-  }
-}
+    // ----------------------
+    // SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
+    // ----------------------
+    async function refreshEvents() {
+      try {
+        const updated = await Api.fetchEvents();
+        // Limpa todos do CalendarModule
+        CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+        // Re-adiciona
+        updated.forEach(e => CalendarModule.add(e));
+      } catch (err) {
+        console.error('Erro ao buscar eventos:', err);
+      }
+    }
 
-function initOccupancyUpdates() {
-  // Primeiro render
-  buildOccupancyTable();
+    function initOccupancyUpdates() {
+      // Primeiro render
+      buildOccupancyTable();
 
-  // Re-render da tabela a cada 1 minuto
-  setInterval(buildOccupancyTable, 60 * 1000);
+      // Re-render da tabela a cada 1 minuto
+      setInterval(buildOccupancyTable, 60 * 1000);
 
-  // Recarrega dados do backend a cada 2 minutos e re-render
-  setInterval(async () => {
-    await refreshEvents();
-    buildOccupancyTable();
-  }, 2 * 60 * 1000);
+      // Recarrega dados do backend a cada 2 minutos e re-render
+      setInterval(async () => {
+        await refreshEvents();
+        buildOccupancyTable();
+      }, 2 * 60 * 1000);
 
-  console.log('Ocupação: tabela a cada 1min, dados a cada 2min');
-}
+      console.log('Ocupação: tabela a cada 1min, dados a cada 2min');
+    }
 
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
@@ -872,6 +871,7 @@ function initOccupancyUpdates() {
         console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
       }
 
+      // Inicializa o calendário com seus callbacks originais
       CalendarModule.init(
         data,
         info => FormModule.open(null, {
@@ -888,12 +888,15 @@ function initOccupancyUpdates() {
           time: ''
         }),
         info => {
-          const ev = CalendarModule.getEvents().find(e => e._id === info.event.id)
+          const ev = CalendarModule
+            .getEvents()
+            .find(e => e._id === info.event.id)
           if (ev) DetailModule.open(ev)
         }
       )
 
-       initOccupancyTableUpdates();
+      // === Chamada para ativar atualização automática da tabela ===
+      initOccupancyUpdates()
 
       // Desativa importação de fixos nesta versão:
       document.getElementById('import-schedule')
@@ -901,8 +904,7 @@ function initOccupancyUpdates() {
           alert('Importação de horários fixos desativada nesta versão.')
         })
 
-
-      // Toggle off-canvas
+      // Toggle off-canvas…
       const toggle = document.getElementById('menu-toggle')
       const menu = document.getElementById('side-menu')
       toggle.addEventListener('click', () => {
