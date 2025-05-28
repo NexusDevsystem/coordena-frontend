@@ -760,34 +760,158 @@
     })()
 
     // ----------------------
-// INICIALIZAÇÃO PRINCIPAL
-// ----------------------
-onReady(async () => {
-  ThemeToggle.init()
-  FormModule.init()
-  DetailModule.init()
+    // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA - VERSÃO CORRIGIDA
+    // ----------------------
+    function buildOccupancyTable() {
+      const events = CalendarModule.getEvents(); // obtém eventos do CalendarModule
+      const now = new Date(); // Data e hora atual
 
-  let data = []
-  try {
-    data = await Api.fetchEvents()
-  } catch (err) {
-    console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
-  }
+      console.log("Atualizando tabela de ocupação em:", now.toLocaleTimeString());
 
-  CalendarModule.init(
-    data,
-    info => FormModule.open(null, { /* ... */ }),
-    info => { /* ... */ }
-  )
+      // Todas as salas/recurso
+      const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
 
-  // Monta tabela pela primeira vez
-  buildOccupancyTable()
+      // Todas as faixas de horário
+      const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
+      timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // **Dispara rebuild da tabela a cada minuto para atualizar ocupação**
-  setInterval(buildOccupancyTable, 60 * 1000)
+      const table = document.getElementById('occupancy-table');
+      table.innerHTML = '';
 
-  // Resto da inicialização...
-})
+      // Cabeçalho
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = `
+    <th class="px-2 py-1 border text-left">Sala / Horário</th>
+    ${timeRanges.map(range => `<th class="px-2 py-1 border text-center">${range}</th>`).join('')}
+  `;
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Corpo
+      const tbody = document.createElement('tbody');
+      labs.forEach(lab => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+
+        timeRanges.forEach(range => {
+          const [start, end] = range.split('-');
+
+          // Vê se há evento nesse lab/horário E se estamos no meio dele
+          const ocupadoAgora = events.some(evt => {
+            if ((evt.sala || evt.resource) !== lab) return false;
+            if (evt.start !== start || evt.end !== end) return false;
+
+            // Verifica se o evento é para hoje
+            const eventDate = new Date(evt.date);
+            const today = new Date();
+
+            // Compara apenas ano, mês e dia
+            const isToday =
+              eventDate.getFullYear() === today.getFullYear() &&
+              eventDate.getMonth() === today.getMonth() &&
+              eventDate.getDate() === today.getDate();
+
+            if (!isToday) return false;
+
+            // Monta Date para o horário de início e fim do evento HOJE
+            // Importante: Zeramos os segundos e milissegundos para evitar problemas de comparação
+            const [h1, m1] = start.split(':').map(Number);
+            const dtStart = new Date();
+            dtStart.setHours(h1, m1, 0, 0);
+
+            const [h2, m2] = end.split(':').map(Number);
+            const dtEnd = new Date();
+            dtEnd.setHours(h2, m2, 0, 0);
+
+            // Criamos uma cópia da data atual com segundos e milissegundos zerados
+            // para garantir comparação exata com o horário de início
+            const nowCompare = new Date();
+            nowCompare.setSeconds(0, 0);
+
+            // Verifica se estamos no horário de início ou entre o início e fim
+            // A comparação agora inclui o exato momento de início (>=) em vez de (>)
+            return (nowCompare >= dtStart && nowCompare < dtEnd);
+          });
+
+          tr.innerHTML += `
+        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
+          ${ocupadoAgora ? 'ocupado' : 'livre'}
+        </td>
+      `;
+        });
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      // Adiciona informação de última atualização para debug
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'text-xs text-gray-500 dark:text-gray-400 text-right mt-2';
+      infoDiv.textContent = `Última atualização: ${now.toLocaleTimeString()}`;
+
+      // Remove qualquer div de informação anterior
+      const oldInfoDiv = table.parentNode.querySelector('.text-xs.text-gray-500');
+      if (oldInfoDiv) {
+        oldInfoDiv.remove();
+      }
+
+      table.parentNode.appendChild(infoDiv);
+    }
+
+    // Função para atualizar os eventos do backend e reconstruir a tabela
+    async function refreshEventsAndTable() {
+      try {
+        // Busca eventos atualizados do backend
+        const updatedEvents = await Api.fetchEvents();
+
+        // Atualiza o CalendarModule com os novos eventos
+        // Primeiro, precisamos limpar os eventos existentes
+        const currentEvents = CalendarModule.getEvents();
+        currentEvents.forEach(event => {
+          if (event._id) {
+            CalendarModule.remove(event._id);
+          }
+        });
+
+        // Depois, adicionamos os eventos atualizados
+        updatedEvents.forEach(event => {
+          CalendarModule.add(event);
+        });
+
+        console.log("Eventos atualizados do backend:", updatedEvents.length);
+
+        // Reconstrói a tabela com os dados atualizados
+        buildOccupancyTable();
+      } catch (err) {
+        console.error("Erro ao atualizar eventos:", err);
+      }
+    }
+
+    // Função para inicializar a atualização automática da tabela
+    function initOccupancyTableUpdates() {
+      // Monta tabela dinâmica após carregar eventos
+      buildOccupancyTable();
+
+      // Atualiza tabela dinâmica a cada 5 segundos (mais frequente para testes)
+      // Em produção, pode-se ajustar para 30 segundos (30 * 1000)
+      const tableUpdateInterval = setInterval(buildOccupancyTable, 5 * 1000);
+
+      // Atualiza os eventos do backend a cada 2 minutos
+      // Isso garante que novos eventos ou alterações feitas por outros usuários sejam refletidas
+      const dataUpdateInterval = setInterval(refreshEventsAndTable, 2 * 60 * 1000);
+
+      // Adiciona log para debug
+      console.log("Sistema de atualização automática da tabela de ocupação iniciado");
+      console.log("Atualizações da tabela: a cada 5 segundos");
+      console.log("Atualizações dos dados: a cada 2 minutos");
+
+      // Retorna os intervalos para possível cancelamento futuro
+      return {
+        tableUpdateInterval,
+        dataUpdateInterval
+      };
+    }
 
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
