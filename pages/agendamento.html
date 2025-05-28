@@ -441,146 +441,111 @@
     })()
 
     // ----------------------
-    // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-    // ----------------------
-    const CalendarModule = (() => {
-      let calendar;
-      let events = [];
+// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
+// ----------------------
+const CalendarModule = (() => {
+  let calendar;
+  let events = [];
 
-      function init(rawEvents, onDateClick, onEventClick) {
-        // 1) carrega os eventos da API
-        events = rawEvents;
+  function init(rawEvents, onDateClick, onEventClick) {
+    // 1) carrega os eventos da API
+    events = rawEvents;
 
-        const el = document.getElementById('calendar');
-        if (!el) return console.error('#calendar não encontrado');
+    const el = document.getElementById('calendar');
+    if (!el) return console.error('#calendar não encontrado');
 
-        const isMobile = window.innerWidth < 640;
-        calendar = new FullCalendar.Calendar(el, {
-          locale: 'pt-br',
-          initialView: isMobile ? 'listWeek' : 'dayGridMonth',
-          headerToolbar: {
-            left: isMobile ? 'prev,next' : 'prev,next today',
-            center: 'title',
-            right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          },
+    const isMobile = window.innerWidth < 640;
+    calendar = new FullCalendar.Calendar(el, {
+      locale: 'pt-br',
+      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+      headerToolbar: {
+        left:   isMobile ? 'prev,next' : 'prev,next today',
+        center: 'title',
+        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
 
-          // todos os eventos agora via eventSources
-          eventSources: [
-            {
-              id: 'apiEvents',
-              events: () => events.map(e => ({
-                id: e._id,
-                title: `${e.title} (${e.time})`,
-                start: `${e.date}T${e.start}`,
-                end: `${e.date}T${e.end}`
-              }))
-            },
-            {
-              id: 'fixedSchedules',
-              events: () => window.fixedSchedules || [],
-              display: 'background',
-              color: '#ff9f89'
-            }
-          ],
+      // 2) fontes de evento: dinâmicos + fixos
+      eventSources: [
+        {
+          // seus eventos normais
+          events: events.map(e => ({
+            id:    e._id,
+            title: `${e.title} (${e.time})`,
+            start: `${e.date}T${e.start}`,
+            end:   `${e.date}T${e.end}`
+          }))
+        },
+        {
+          // horários fixos, renderizados como background
+          events: () => window.fixedSchedules || [],
+          color:      '#ff9f89',
+          rendering:  'background'
+        }
+      ],
 
-          dateClick,
-          eventClick,
-          height: el.clientHeight,
-          allDaySlot: false,
-          selectable: true,
+      dateClick:  onDateClick,
+      eventClick: onEventClick,
+      height:     el.clientHeight,
+      allDaySlot: false,
+      selectable: true,
 
-          selectAllow: selectInfo => {
-            // bloqueia seleção sobre blocos de fundo
-            return !calendar.getEvents().some(ev =>
-              ev.display === 'background' &&
-              ev.start < selectInfo.end &&
-              ev.end > selectInfo.start
-            );
-          }
-        });
-
-        // expõe instância p/ importação de planilha, etc.
-        window.calendar = calendar;
-
-        calendar.render();
-
-        // reconstrói tabela de ocupação a cada minuto
-        setInterval(buildOccupancyTable, 60 * 1000);
-
-        // reajusta view ao redimensionar
-        window.addEventListener('resize', () => {
-          const nowMobile = window.innerWidth < 640;
-          calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
-          calendar.setOption('headerToolbar', {
-            left: nowMobile ? 'prev,next' : 'prev,next today',
-            center: 'title',
-            right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          });
-        });
+      selectAllow: selectInfo => {
+        // impede seleção sobre um bloco de fundo
+        return !calendar.getEvents().some(ev =>
+          ev.rendering === 'background' &&
+          ev.start < selectInfo.end &&
+          ev.end > selectInfo.start
+        );
       }
-
-      function add(ev) {
-        // adiciona no source 'apiEvents'
-        events.push(ev);
-        calendar.getEventSourceById('apiEvents').refetch();
-      }
-
-      function update(id, ev) {
-        events = events.map(e => e._id === id ? ev : e);
-        calendar.getEventSourceById('apiEvents').refetch();
-      }
-
-      function remove(id) {
-        events = events.filter(e => e._id !== id);
-        calendar.getEventSourceById('apiEvents').refetch();
-      }
-
-      return { init, add, update, remove, getEvents: () => events };
-    })();
-
-    // ------------------------------------------------
-    // IMPORTAÇÃO DE HORÁRIOS FIXOS A PARTIR DE XLSX
-    // ------------------------------------------------
-    document.getElementById('import-schedule').addEventListener('click', () => {
-      const fileInput = document.getElementById('schedule-file');
-      const file = fileInput.files[0];
-      if (!file) {
-        alert('Selecione primeiro um arquivo .xlsx');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
-
-        // ajuste o nome dessas chaves conforme sua planilha
-        window.fixedSchedules = rows.map(r => ({
-          daysOfWeek: [Number(r.diaSemana)], // 0=domingo…6=sábado
-          startTime: r.início,               // ex: "08:00"
-          endTime: r.término,              // ex: "08:50"
-          display: 'background',
-          color: '#ff9f89'
-        }));
-
-        // remove o source antigo de fixos
-        const old = window.calendar.getEventSourceById('fixedSchedules');
-        if (old) old.remove();
-
-        // adiciona o novo source de fixos
-        window.calendar.addEventSource({
-          id: 'fixedSchedules',
-          events: window.fixedSchedules,
-          display: 'background',
-          color: '#ff9f89'
-        });
-
-        alert('Horários fixos importados com sucesso!');
-      };
-      reader.readAsArrayBuffer(file);
     });
+
+    // expõe a instância para uso externo (importação de planilha, etc.)
+    window.calendar = calendar;
+
+    calendar.render();
+
+    // reconstrói tabela a cada minuto
+    setInterval(buildOccupancyTable, 60 * 1000);
+
+    // ajusta view no resize
+    window.addEventListener('resize', () => {
+      const nowMobile = window.innerWidth < 640;
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
+      calendar.setOption('headerToolbar', {
+        left:   nowMobile ? 'prev,next' : 'prev,next today',
+        center: 'title',
+        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+      });
+    });
+  }
+
+  function add(ev) {
+    calendar.addEvent({
+      id:    ev._id,
+      title: `${ev.title} (${ev.time})`,
+      start: `${ev.date}T${ev.start}`,
+      end:   `${ev.date}T${ev.end}`
+    });
+    events.push(ev);
+  }
+
+  function update(id, ev) {
+    events = events.map(e => e._id === id ? ev : e);
+    const obj = calendar.getEventById(id);
+    if (obj) {
+      obj.setProp('title', `${ev.title} (${ev.time})`);
+      obj.setStart(`${ev.date}T${ev.start}`);
+      obj.setEnd(`${ev.date}T${ev.end}`);
+    }
+  }
+
+  function remove(id) {
+    events = events.filter(e => e._id !== id);
+    calendar.getEventById(id)?.remove();
+  }
+
+  return { init, add, update, remove, getEvents: () => events };
+})();
 
 
 
