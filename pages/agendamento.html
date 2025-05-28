@@ -56,52 +56,42 @@
     }
   </script>
 
-  <!-- Sidebar off-canvas -->
-  <div id="side-menu" class="fixed inset-y-0 left-0 w-64 bg-blue-800 text-white transform -translate-x-full
-            transition-transform duration-300 z-50 overflow-auto">
-    <div class="p-4">
-      <!-- Nome e e-mail do usuário -->
-      <div id="menu-user-name" class="font-semibold text-lg">—</div>
-      <div id="menu-user-email" class="text-sm mb-4">—</div>
-      <hr class="border-gray-600 mb-4">
+  <!-- Botão do menu (agora com seu ícone sem fundo) -->
+  <div class="menu-button" onclick="toggleMenu()">
+    <img src="../assets/img/menu.png" alt="Menu" />
+  </div>
 
-      <nav class="space-y-2">
-        <a href="../index.html" class="block px-3 py-2 rounded hover:bg-blue-700">Perfil</a>
-        <a href="agendamento.html" class="block px-3 py-2 rounded hover:bg-blue-700">Seus Agendamentos</a>
-        <!-- exemplos extras -->
-        <a href="#" class="block px-3 py-2 rounded hover:bg-blue-700">teste</a>
-        <!-- … -->
-      </nav>
-
-      <div class="mt-6 border-t border-gray-600 pt-4">
-        <button id="menu-theme-btn" class="w-full mb-2 px-3 py-2 bg-gray-200 text-gray-800 rounded">Tema</button>
-        <button id="menu-logout-btn"
-          class="w-full px-3 py-2 bg-red-600 rounded flex items-center justify-center space-x-2">
-          <img src="assets/img/logout.png" alt="Sair" class="h-4" />
-          <span>Sair</span>
-        </button>
+  <!-- Off-canvas Menu GTA VI -->
+  <nav class="menu">
+    <div class="container">
+      <div class="left">
+        <!-- Nome e email -->
+        <div class="user-name" id="menu-user-name">—</div>
+        <div class="user-email" id="menu-user-email">—</div>
+      </div>
+      <div class="right">
+        <h2>Menu</h2>
+        <div class="overflow-y-auto">
+          <div class="person">PERFIL</div>
+          <div class="person">SEUS AGENDAMENTOS</div>
+          <div class="person">TESTE</div>
+          <div class="person">TESTE</div>
+          <div class="person">TESTE</div>
+          <div class="person">TESTE</div>
+          <div class="person">TESTE</div>
+          <div class="person">TESTE</div>
+        </div>
+        <div class="footer">Português do Brasil</div>
+        <div class="menu-actions">
+          <button id="menu-theme-btn">Tema</button>
+          <button id="menu-logout-btn">
+            <img src="../assets/img/logout.png" alt="Sair" /> Sair
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <!-- Botão de abrir/fechar -->
-  <button id="menu-toggle" class="fixed top-4 left-4 z-50 w-12 h-12 border-2 border-gray-200 dark:border-gray-700
-               rounded-full bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center space-y-1
-               focus:outline-none transition duration-200">
-    <span class="block w-6 h-0.5 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
-    <span class="block w-6 h-0.5 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
-  </button>
-
-
-  <!-- Menu Toggle Rockstar Style (esquerda) -->
-  <div class="fixed top-4 left-4 z-50">
-    <button id="menu-toggle" class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-full
-                   bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center space-y-1
-                   focus:outline-none transition duration-200">
-      <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
-      <span class="block w-6 h-1 bg-gray-800 dark:bg-gray-200 transition-transform duration-300"></span>
-    </button>
-  </div>
 
   <!-- Quick Access -->
   <div
