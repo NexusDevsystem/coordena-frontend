@@ -803,127 +803,127 @@
     })()
 
     // ----------------------
-    // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA (COM FILTRO POR DATA)
-    // ----------------------
-    function buildOccupancyTable(filterDate) {
-      const events = CalendarModule.getEvents();
-      const now = new Date();
+// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA (COM FILTRO POR DATA)
+// ----------------------
+function buildOccupancyTable(filterDate) {
+  const events = CalendarModule.getEvents();
+  const now    = new Date();
 
-      // converte o filtro para year, month, day
-      const fd = new Date(filterDate);
-      const filterY = fd.getFullYear();
-      const filterM = fd.getMonth();
-      const filterD = fd.getDate();
+  // converte o filtro para year, month, day
+  const fd       = new Date(filterDate);
+  const filterY  = fd.getFullYear();
+  const filterM  = fd.getMonth();
+  const filterD  = fd.getDate();
 
-      // filtra só os eventos da data escolhida
-      const todaysEvents = events.filter(evt => {
-        const [y, m, d] = evt.date.split('-').map(Number);
-        return y === filterY && (m - 1) === filterM && d === filterD;
-      });
+  // filtra só os eventos da data escolhida
+  const todaysEvents = events.filter(evt => {
+    const [y, m, d] = evt.date.split('-').map(Number);
+    return y === filterY && (m - 1) === filterM && d === filterD;
+  });
 
-      // todas as salas/recurso naquele dia
-      const labs = [...new Set(
-        todaysEvents.map(evt => evt.sala || evt.resource)
-      )];
+  // todas as salas/recurso naquele dia
+  const labs = [...new Set(
+    todaysEvents.map(evt => evt.sala || evt.resource)
+  )];
 
-      // todas as faixas de horário naquele dia
-      const timeRanges = [...new Set(
-        todaysEvents.map(evt => `${evt.start}-${evt.end}`)
-      )].sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+  // todas as faixas de horário naquele dia
+  const timeRanges = [...new Set(
+    todaysEvents.map(evt => `${evt.start}-${evt.end}`)
+  )].sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-      // prepara tabela
-      const table = document.getElementById('occupancy-table');
-      table.innerHTML = '';
+  // prepara tabela
+  const table = document.getElementById('occupancy-table');
+  table.innerHTML = '';
 
-      // cabeçalho
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
-      headerRow.innerHTML = `
+  // cabeçalho
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
     ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
+      `<th class="px-2 py-1 border text-center">${r}</th>`
+    ).join('')}
   `;
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
 
-      // corpo
-      const tbody = document.createElement('tbody');
-      labs.forEach(lab => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+  // corpo
+  const tbody = document.createElement('tbody');
+  labs.forEach(lab => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-        timeRanges.forEach(range => {
-          const [start, end] = range.split('-');
+    timeRanges.forEach(range => {
+      const [start, end] = range.split('-');
 
-          // determina se está ocupado AGORA
-          const ocupadoAgora = todaysEvents.some(evt => {
-            if ((evt.sala || evt.resource) !== lab) return false;
-            if (evt.start !== start || evt.end !== end) return false;
+      // determina se está ocupado AGORA
+      const ocupadoAgora = todaysEvents.some(evt => {
+        if ((evt.sala || evt.resource) !== lab) return false;
+        if (evt.start !== start || evt.end !== end) return false;
 
-            // transforma start/end em Date naquela mesma data
-            const [h1, m1] = start.split(':').map(Number);
-            const [h2, m2] = end.split(':').map(Number);
-            const dtStart = new Date(filterY, filterM, filterD, h1, m1);
-            const dtEnd = new Date(filterY, filterM, filterD, h2, m2);
+        // transforma start/end em Date naquela mesma data
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        const dtStart = new Date(filterY, filterM, filterD, h1, m1);
+        const dtEnd   = new Date(filterY, filterM, filterD, h2, m2);
 
-            return now >= dtStart && now < dtEnd;
-          });
+        return now >= dtStart && now < dtEnd;
+      });
 
-          tr.innerHTML += `
+      tr.innerHTML += `
         <td class="px-2 py-1 border text-white text-center 
                    ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
           ${ocupadoAgora ? 'ocupado' : 'livre'}
         </td>
       `;
-        });
+    });
 
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-    }
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
 
 
-    // ----------------------
-    // SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA (COM FILTRO POR DATA)
-    // ----------------------
-    async function refreshEvents() {
-      try {
-        const updated = await Api.fetchEvents();
-        // limpa e re-adiciona
-        CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-        updated.forEach(e => CalendarModule.add(e));
-      } catch (err) {
-        console.error('Erro ao buscar eventos:', err);
-      }
-    }
+// ----------------------
+// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA (COM FILTRO POR DATA)
+// ----------------------
+async function refreshEvents() {
+  try {
+    const updated = await Api.fetchEvents();
+    // limpa e re-adiciona
+    CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+    updated.forEach(e => CalendarModule.add(e));
+  } catch (err) {
+    console.error('Erro ao buscar eventos:', err);
+  }
+}
 
-    function initOccupancyUpdates(dateInput) {
-      // preenche valor inicial (hoje)
-      dateInput.valueAsDate = new Date();
+function initOccupancyUpdates(dateInput) {
+  // preenche valor inicial (hoje)
+  dateInput.valueAsDate = new Date();
 
-      // monta pela primeira vez
-      buildOccupancyTable(dateInput.value);
+  // monta pela primeira vez
+  buildOccupancyTable(dateInput.value);
 
-      // quando usuário alterar a data, reconstrói
-      dateInput.addEventListener('change', () => {
-        buildOccupancyTable(dateInput.value);
-      });
+  // quando usuário alterar a data, reconstrói
+  dateInput.addEventListener('change', () => {
+    buildOccupancyTable(dateInput.value);
+  });
 
-      // apenas rebuild da tabela a cada 5s
-      const tableInterval = setInterval(() => {
-        buildOccupancyTable(dateInput.value);
-      }, 5 * 1000);
+  // apenas rebuild da tabela a cada 5s
+  const tableInterval = setInterval(() => {
+    buildOccupancyTable(dateInput.value);
+  }, 5 * 1000);
 
-      // fetch+rebuild a cada 2min
-      const dataInterval = setInterval(async () => {
-        await refreshEvents();
-        buildOccupancyTable(dateInput.value);
-      }, 2 * 60 * 1000);
+  // fetch+rebuild a cada 2min
+  const dataInterval = setInterval(async () => {
+    await refreshEvents();
+    buildOccupancyTable(dateInput.value);
+  }, 2 * 60 * 1000);
 
-      console.log('Tabela: rebuild 5s; dados: refresh 2min');
-      return { tableInterval, dataInterval };
-    }
+  console.log('Tabela: rebuild 5s; dados: refresh 2min');
+  return { tableInterval, dataInterval };
+}
 
 
     // ----------------------
@@ -974,19 +974,19 @@
       // valor padrão = hoje
       dateInput.valueAsDate = new Date()
 
-      // injeta o datepicker logo abaixo do título da seção
+      // injeta o datepicker no cabeçalho da seção
       const header = document.querySelector('#occupancy-section h2')
       header.insertAdjacentElement('afterend', dateInput)
 
-      // 4) reconstruction imediata ao mudar a data
+      // 4) Toda vez que mudar a data, refaz a tabela filtrada
       dateInput.addEventListener('change', () => {
         buildOccupancyTable(dateInput.value)
       })
 
-      // 5) Ativa atualização automática da tabela (filtrando pela data do dateInput)
+      // 5) Ativa atualização automática da tabela (já filtrando pela data atual)
       initOccupancyUpdates(dateInput)
 
-      // 6) Importação de horários desativada
+      // 6) Importação de horárarios desativada
       document.getElementById('import-schedule')
         .addEventListener('click', () => {
           alert('Importação de horários fixos desativada nesta versão.')
@@ -1013,7 +1013,6 @@
           document.body.classList.remove('overflow-hidden')
         })
     })
-
   </script>
 </body>
 
