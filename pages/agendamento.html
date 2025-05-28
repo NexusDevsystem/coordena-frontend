@@ -478,8 +478,8 @@ const CalendarModule = (() => {
         {
           // horários fixos, renderizados como background
           events: () => window.fixedSchedules || [],
-          color:      '#ff9f89',
-          rendering:  'background'
+          rendering: 'background',
+          color: '#ff9f89'
         }
       ],
 
@@ -499,7 +499,7 @@ const CalendarModule = (() => {
       }
     });
 
-    // expõe a instância para uso externo (importação de planilha, etc.)
+    // facilita acesso externo para re-adicionar horários fixos
     window.calendar = calendar;
 
     calendar.render();
@@ -546,7 +546,6 @@ const CalendarModule = (() => {
 
   return { init, add, update, remove, getEvents: () => events };
 })();
-
 
 
     // ----------------------
