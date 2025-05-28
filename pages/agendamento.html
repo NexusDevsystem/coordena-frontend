@@ -889,22 +889,28 @@
       }
 
       function initOccupancyUpdates() {
-        // atualiza só a tabela (sem re-buscar do backend) a cada 1s
-        const tableUpdateInterval = setInterval(buildOccupancyTable, 1 * 1000);
+        const dateInput = document.getElementById('occupancy-date');
 
-        // re-busca a cada 30 segundos
-        const dataUpdateInterval = setInterval(refreshEventsAndTable, 10 * 1000);
-
-
-        // Recarrega dados do backend a cada 2 minutos e re-render
-        setInterval(() => buildOccupancyTable(dateInput.value), 5 * 1000);
-        setInterval(async () => {
-          await refreshEvents();
+        // Função que reconstrói a tabela filtrando pela data selecionada
+        function refreshTable() {
           buildOccupancyTable(dateInput.value);
+        }
+
+        // Monta a tabela imediatamente, com o valor atual do datepicker
+        refreshTable();
+
+        // Atualiza só a tabela (com filtro) a cada 5 segundos
+        const tableInterval = setInterval(refreshTable, 5 * 1000);
+
+        // Re-busca do backend a cada 2 minutos, e depois reconstrói a tabela filtrada
+        const dataInterval = setInterval(async () => {
+          await refreshEvents();
+          refreshTable();
         }, 2 * 60 * 1000);
 
-        console.log("Tabela de ocupação atualizada a cada 1 segundo");
+        console.log('Tabela de ocupação filtrada por data e atualizada a cada 5s (dados a cada 2min).');
       }
+
 
       // ----------------------
       // INICIALIZAÇÃO PRINCIPAL
