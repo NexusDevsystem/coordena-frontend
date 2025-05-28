@@ -1,4 +1,12 @@
 // assets/js/main.js
+// ======================================
+// CORES PARA TURNOS FIXOS DE AULA
+// ======================================
+const turnoColors = {
+  "Manhã": "rgba(59, 130, 246, 0.2)",   // azul claro
+  "Tarde": "rgba(234, 88, 12, 0.2)",    // laranja claro
+  "Noite": "rgba(75, 85, 99, 0.2)"      // cinza claro
+};
 
 // ----------------------
 // UTILIDADES
@@ -16,7 +24,7 @@ function onReady(fn) {
 // ----------------------
 const ThemeToggle = (() => {
   const themeKey = 'theme';
-  const root     = document.documentElement;
+  const root = document.documentElement;
 
   function applyTheme(mode) {
     root.classList.toggle('dark', mode === 'dark');
@@ -85,8 +93,24 @@ const Api = (() => {
     if (!res.ok) throw new Error('Falha ao excluir reserva');
   }
 
-  return { fetchEvents, createEvent, updateEvent, deleteEvent };
+  // ======================================
+  // BUSCA HORÁRIOS FIXOS DE AULA
+  // ======================================
+  async function fetchFixedSchedules() {
+    const res = await fetch('/api/fixedSchedules', { headers: authHeaders(false) });
+    if (!res.ok) throw new Error('Falha ao buscar horários fixos');
+    return res.json();
+  }
+
+  return {
+    fetchEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    fetchFixedSchedules
+  };
 })();
+
 
 // ----------------------
 // MÓDULO CALENDÁRIO (SUPORTE MOBILE)
@@ -95,57 +119,91 @@ const CalendarModule = (() => {
   let calendar;
   let events = [];
 
-  function init(rawEvents, onDateClick, onEventClick) {
+  async function init(rawEvents, onDateClick, onEventClick) {
+    // 1) carrega reservas do backend
     events = rawEvents;
+
+    // 2) obtém container
     const el = document.getElementById('calendar');
     if (!el) return console.error('#calendar não encontrado');
 
+    // 3) configura view inicial
     const isMobile = window.innerWidth < 640;
+
+    // 4) prepara seus eventos (front-end)
+    const userEvents = events.map(e => ({
+      id: e._id,
+      title: `${e.title} (${e.time})`,
+      start: `${e.date}T${e.start}`,
+      end: `${e.date}T${e.end}`
+    }));
+
+    // 5) busca horários fixos de aula e transforma em background events
+    let fixed = [];
+    try {
+      fixed = await Api.fetchFixedSchedules();
+    } catch (err) {
+      console.warn('Não foi possível carregar horários fixos', err);
+    }
+    const fixedEvents = fixed.map(h => ({
+      id: `fixed-${h.lab}-${h.dayOfWeek}-${h.startTime}`,
+      rendering: 'background',
+      daysOfWeek: [h.dayOfWeek],
+      startTime: h.startTime,
+      endTime: h.endTime,
+      backgroundColor: turnoColors[h.turno] || 'rgba(0,0,0,0.1)',
+      extendedProps: { lab: h.lab, turno: h.turno }
+    }));
+
+    // 6) instancia FullCalendar com ambos os conjuntos
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
-      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+      initialView: isMobile ? 'listWeek' : 'dayGridWeek',
       headerToolbar: {
-        left:   isMobile ? 'prev,next' : 'prev,next today',
+        left: isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      events: events.map(e => ({
-        id:    e._id,
-        title: `${e.title} (${e.time})`,
-        start: `${e.date}T${e.start}`,
-        end:   `${e.date}T${e.end}`
-      })),
-      dateClick:  onDateClick,
+      events: [...fixedEvents, ...userEvents],
+      dateClick: onDateClick,
       eventClick: onEventClick,
-      height:     el.clientHeight,
-      allDaySlot: false
+      selectable: true,
+      allDaySlot: false,
+      selectAllow: selectInfo => {
+        // bloqueia seleção sobre aula fixa
+        return !calendar.getEvents().some(ev =>
+          ev.rendering === 'background' &&
+          ev.start < selectInfo.end && ev.end > selectInfo.start
+        );
+      }
     });
 
     calendar.render();
+
+    // atualiza a view no resize
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
-      const newView   = nowMobile ? 'listWeek' : 'dayGridMonth';
-      calendar.changeView(newView);
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridWeek');
       calendar.setOption('headerToolbar', {
-        left:   nowMobile ? 'prev,next' : 'prev,next today',
+        left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       });
     });
   }
 
   function add(ev) {
     calendar.addEvent({
-      id:    ev._id,
+      id: ev._id,
       title: `${ev.title} (${ev.time})`,
       start: `${ev.date}T${ev.start}`,
-      end:   `${ev.date}T${ev.end}`
+      end: `${ev.date}T${ev.end}`
     });
     events.push(ev);
   }
 
   function update(id, ev) {
-    events = events.map(e => (e._id === id ? ev : e));
+    events = events.map(e => e._id === id ? ev : e);
     const obj = calendar.getEventById(id);
     if (obj) {
       obj.setProp('title', `${ev.title} (${ev.time})`);
@@ -159,8 +217,15 @@ const CalendarModule = (() => {
     calendar.getEventById(id)?.remove();
   }
 
-  return { init, add, update, remove, getEvents: () => events };
+  return {
+    init,
+    add,
+    update,
+    remove,
+    getEvents: () => events
+  };
 })();
+
 
 // ----------------------
 // MÓDULO FORMULÁRIO
@@ -170,23 +235,23 @@ const FormModule = (() => {
   const selectors = {};
 
   function cacheSelectors() {
-    selectors.modal    = document.getElementById('form-modal');
-    selectors.form     = document.getElementById('agendamento-form');
-    selectors.btnOpen  = document.getElementById('open-form-modal');
+    selectors.modal = document.getElementById('form-modal');
+    selectors.form = document.getElementById('agendamento-form');
+    selectors.btnOpen = document.getElementById('open-form-modal');
     selectors.btnClose = document.getElementById('form-close');
-    selectors.fields   = {
-      data:          document.getElementById('data'),
-      start:         document.getElementById('start'),
-      end:           document.getElementById('end'),
-      recurso:       document.getElementById('recurso'),
+    selectors.fields = {
+      data: document.getElementById('data'),
+      start: document.getElementById('start'),
+      end: document.getElementById('end'),
+      recurso: document.getElementById('recurso'),
       salaContainer: document.getElementById('sala-container'),
-      sala:          document.getElementById('sala'),
-      type:          document.getElementById('tipo-evento'),
-      resp:          document.getElementById('responsavel'),
-      dept:          document.getElementById('departamento'),
-      materia:       document.getElementById('curso'),
-      status:        document.getElementById('status'),
-      desc:          document.getElementById('descricao')
+      sala: document.getElementById('sala'),
+      type: document.getElementById('tipo-evento'),
+      resp: document.getElementById('responsavel'),
+      dept: document.getElementById('departamento'),
+      materia: document.getElementById('curso'),
+      status: document.getElementById('status'),
+      desc: document.getElementById('descricao')
     };
   }
 
@@ -203,17 +268,17 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
 
     if (evData) {
-      selectors.fields.data.value    = evData.date;
-      selectors.fields.start.value   = evData.start;
-      selectors.fields.end.value     = evData.end;
+      selectors.fields.data.value = evData.date;
+      selectors.fields.start.value = evData.start;
+      selectors.fields.end.value = evData.end;
       selectors.fields.recurso.value = evData.resource;
       selectors.fields.recurso.dispatchEvent(new Event('change'));
-      selectors.fields.sala.value    = evData.sala || '';
-      selectors.fields.type.value    = evData.type;
-      selectors.fields.resp.value    = evData.responsible;
-      selectors.fields.dept.value    = evData.department;
-      selectors.fields.status.value  = evData.status;
-      selectors.fields.desc.value    = evData.description;
+      selectors.fields.sala.value = evData.sala || '';
+      selectors.fields.type.value = evData.type;
+      selectors.fields.resp.value = evData.responsible;
+      selectors.fields.dept.value = evData.department;
+      selectors.fields.status.value = evData.status;
+      selectors.fields.desc.value = evData.description;
 
       // se vier materia, preencher
       if (evData.materia) {
@@ -241,21 +306,21 @@ const FormModule = (() => {
     e.preventDefault();
     const f = selectors.fields;
     const payload = {
-      date:        f.data.value,
-      start:       f.start.value,
-      end:         f.end.value,
-      resource:    f.recurso.value,
-      sala:        f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
-      type:        f.type.value,
+      date: f.data.value,
+      start: f.start.value,
+      end: f.end.value,
+      resource: f.recurso.value,
+      sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
+      type: f.type.value,
       responsible: f.resp.value,
-      department:  f.dept.value,
-      materia:     f.materia.value,
-      status:      f.status.value,
+      department: f.dept.value,
+      materia: f.materia.value,
+      status: f.status.value,
       description: f.desc.value,
-      time:        `${f.start.value}-${f.end.value}`,
-      title:       f.salaContainer.classList.contains('hidden')
-                    ? f.type.value
-                    : `${f.type.value} - ${f.sala.value}`
+      time: `${f.start.value}-${f.end.value}`,
+      title: f.salaContainer.classList.contains('hidden')
+        ? f.type.value
+        : `${f.type.value} - ${f.sala.value}`
     };
 
     (async () => {
@@ -286,9 +351,9 @@ const FormModule = (() => {
     selectors.form?.addEventListener('submit', handleSubmit);
 
     const salaOpts = {
-      'Laboratório': ['Lab401','Lab402','Lab403'],
-      'Sala de Aula': ['Sala101','Sala102','Sala103'],
-      'Auditório': ['Auditório A','Auditório B']
+      'Laboratório': ['Lab401', 'Lab402', 'Lab403'],
+      'Sala de Aula': ['Sala101', 'Sala102', 'Sala103'],
+      'Auditório': ['Auditório A', 'Auditório B']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -310,7 +375,7 @@ const FormModule = (() => {
     selectors.fields.dept?.addEventListener('change', () => {
       const curso = selectors.fields.dept.value;
       const lista = courseMap[curso] || [];
-      const sel   = selectors.fields.materia;
+      const sel = selectors.fields.materia;
       if (lista.length) {
         sel.innerHTML =
           '<option value="">Selecione a matéria...</option>' +
@@ -334,33 +399,33 @@ const DetailModule = (() => {
   const selectors = {};
 
   function cacheSelectors() {
-    selectors.modal     = document.getElementById('event-modal');
-    selectors.btnClose  = document.getElementById('modal-close');
-    selectors.btnEdit   = document.getElementById('modal-edit');
+    selectors.modal = document.getElementById('event-modal');
+    selectors.btnClose = document.getElementById('modal-close');
+    selectors.btnEdit = document.getElementById('modal-edit');
     selectors.btnDelete = document.getElementById('modal-cancel');
-    selectors.fields    = {
-      date:     document.getElementById('modal-date'),
+    selectors.fields = {
+      date: document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
-      type:     document.getElementById('modal-type'),
-      resp:     document.getElementById('modal-resp'),
-      dept:     document.getElementById('modal-dept'),
-      materia:  document.getElementById('modal-materia'),
-      status:   document.getElementById('modal-status'),
-      desc:     document.getElementById('modal-desc')
+      type: document.getElementById('modal-type'),
+      resp: document.getElementById('modal-resp'),
+      dept: document.getElementById('modal-dept'),
+      materia: document.getElementById('modal-materia'),
+      status: document.getElementById('modal-status'),
+      desc: document.getElementById('modal-desc')
     };
   }
 
   function open(ev) {
     currentId = ev._id;
     const f = selectors.fields;
-    f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
+    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
     f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent     = `Evento: ${ev.type}`;
-    f.resp.textContent     = `Responsável: ${ev.responsible}`;
-    f.dept.textContent     = `Curso: ${ev.department}`;
-    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent   = `Status: ${ev.status}`;
-    f.desc.textContent     = ev.description || 'Sem descrição';
+    f.type.textContent = `Evento: ${ev.type}`;
+    f.resp.textContent = `Responsável: ${ev.responsible}`;
+    f.dept.textContent = `Curso: ${ev.department}`;
+    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
+    f.status.textContent = `Status: ${ev.status}`;
+    f.desc.textContent = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
   }
 
@@ -379,7 +444,8 @@ const DetailModule = (() => {
     });
     selectors.btnDelete?.addEventListener('click', async () => {
       if (!currentId) return;
-      try { await Api.deleteEvent(currentId);
+      try {
+        await Api.deleteEvent(currentId);
         CalendarModule.remove(currentId);
         close();
       } catch (err) { alert(err.message); }
@@ -397,7 +463,6 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
-  const currentUser = Auth.getCurrentUser();
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -405,52 +470,65 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
+  // 1) Inicializa o calendário com seus callbacks originais
   CalendarModule.init(
     data,
     info => FormModule.open(null, {
-      date:        info.dateStr,
-      start:       '00:00',
-      end:         '00:00',
-      resource:    '',
-      sala:        '',
-      type:        '',
+      date: info.dateStr,
+      start: '00:00',
+      end: '00:00',
+      resource: '',
+      sala: '',
+      type: '',
       responsible: '',
-      department:  '',
-      materia:     '',
-      status:      '',
+      department: '',
+      status: '',
       description: '',
-      time:        ''
+      time: ''
     }),
     info => {
-      const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
+      const ev = CalendarModule
+        .getEvents()
+        .find(e => e._id === info.event.id);
       if (ev) DetailModule.open(ev);
     }
   );
 
-  // controle UI por papel
-  if (currentUser?.role === 'student') {
-    document.getElementById('open-form-modal')?.style.display = 'none';
-    document.getElementById('modal-edit')?.style.display       = 'none';
-    document.getElementById('modal-cancel')?.style.display     = 'none';
-  }
+  // 2) Configura o date-picker da tabela de ocupação
+  const dateInput = document.getElementById('occupancy-date');
+  // Preenche com a data de hoje (YYYY-MM-DD)
+  dateInput.value = new Date().toISOString().slice(0, 10);
+  // Reconstrói a tabela quando a data mudar
+  dateInput.addEventListener('change', () => {
+    buildOccupancyTable(dateInput.value);
+  });
 
-  // ----------------------
-  // MENU OFF-CANVAS / TOGGLE (estilo Rockstar)
-  // ----------------------
-  const menuToggle = document.getElementById('menu-toggle');
-  const sideMenu   = document.getElementById('side-menu');
-  const bars       = menuToggle.querySelectorAll('span');
+  // 3) Ativa atualização automática da tabela (com filtro por data)
+  initOccupancyUpdates();
 
-  menuToggle.addEventListener('click', () => {
-    const opened = sideMenu.classList.toggle('show');
-    document.body.classList.toggle('menu-open', opened);
+  // 4) Desativa importação de fixos nesta versão:
+  document.getElementById('import-schedule')
+    .addEventListener('click', () => {
+      alert('Importação de horários fixos desativada nesta versão.');
+    });
 
-    if (opened) {
-      bars[0].classList.add('rotate-45', 'translate-y-1.5');
-      bars[1].classList.add('-rotate-45', '-translate-y-1.5');
+  // 5) Toggle off-canvas...
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('side-menu');
+  toggle.addEventListener('click', () => {
+    const open = menu.classList.toggle('show');
+    document.body.classList.toggle('overflow-hidden', open);
+    const bars = toggle.querySelectorAll('span');
+    if (open) {
+      bars[0].classList.add('rotate-45', 'translate-y-1');
+      bars[1].classList.add('-rotate-45', '-translate-y-1');
     } else {
-      bars[0].classList.remove('rotate-45', 'translate-y-1.5');
-      bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
+      bars[0].classList.remove('rotate-45', 'translate-y-1');
+      bars[1].classList.remove('-rotate-45', '-translate-y-1');
     }
+  });
+  document.getElementById('menu-close').addEventListener('click', () => {
+    menu.classList.remove('show');
+    document.body.classList.remove('overflow-hidden');
   });
 });
