@@ -912,73 +912,92 @@
     }
 
     // ----------------------
-    // INICIALIZAÇÃO PRINCIPAL
-    // ----------------------
-    onReady(async () => {
-      ThemeToggle.init()
-      FormModule.init()
-      DetailModule.init()
+// INICIALIZAÇÃO PRINCIPAL
+// ----------------------
+onReady(async () => {
+  ThemeToggle.init()
+  FormModule.init()
+  DetailModule.init()
 
-      let data = []
-      try {
-        data = await Api.fetchEvents()
-      } catch (err) {
-        console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
-      }
+  // 1) Busca inicial dos dados
+  let data = []
+  try {
+    data = await Api.fetchEvents()
+  } catch (err) {
+    console.warn('Falha ao buscar reservas, iniciando calendário vazio', err)
+  }
 
-      // Inicializa o calendário com seus callbacks originais
-      CalendarModule.init(
-        data,
-        info => FormModule.open(null, {
-          date: info.dateStr,
-          start: '00:00',
-          end: '00:00',
-          resource: '',
-          sala: '',
-          type: '',
-          responsible: '',
-          department: '',
-          status: '',
-          description: '',
-          time: ''
-        }),
-        info => {
-          const ev = CalendarModule
-            .getEvents()
-            .find(e => e._id === info.event.id)
-          if (ev) DetailModule.open(ev)
-        }
-      )
+  // 2) Inicializa o calendário com seus callbacks originais
+  CalendarModule.init(
+    data,
+    info => FormModule.open(null, {
+      date: info.dateStr,
+      start: '00:00',
+      end:   '00:00',
+      resource: '',
+      sala:     '',
+      type:     '',
+      responsible: '',
+      department:  '',
+      status:      '',
+      description: '',
+      time:        ''
+    }),
+    info => {
+      const ev = CalendarModule
+        .getEvents()
+        .find(e => e._id === info.event.id)
+      if (ev) DetailModule.open(ev)
+    }
+  )
 
-      // === Chamada para ativar atualização automática da tabela ===
-      initOccupancyUpdates()
+  // 3) Configura o filtro de data para a tabela de ocupação
+  const dateInput = document.createElement('input')
+  dateInput.type       = 'date'
+  dateInput.id         = 'occupancy-date'
+  dateInput.className  = 'ml-auto mb-4 p-1 border rounded'
+  // valor padrão = hoje
+  dateInput.valueAsDate = new Date()
 
-      // Desativa importação de fixos nesta versão:
-      document.getElementById('import-schedule')
-        .addEventListener('click', () => {
-          alert('Importação de horários fixos desativada nesta versão.')
-        })
+  // injeta o datepicker no cabeçalho da seção
+  const header = document.querySelector('#occupancy-section h2')
+  header.insertAdjacentElement('afterend', dateInput)
 
-      // Toggle off-canvas…
-      const toggle = document.getElementById('menu-toggle')
-      const menu = document.getElementById('side-menu')
-      toggle.addEventListener('click', () => {
-        const open = menu.classList.toggle('show')
-        document.body.classList.toggle('overflow-hidden', open)
-        const bars = toggle.querySelectorAll('span')
-        if (open) {
-          bars[0].classList.add('rotate-45', 'translate-y-1')
-          bars[1].classList.add('-rotate-45', '-translate-y-1')
-        } else {
-          bars[0].classList.remove('rotate-45', 'translate-y-1')
-          bars[1].classList.remove('-rotate-45', '-translate-y-1')
-        }
-      })
-      document.getElementById('menu-close').addEventListener('click', () => {
-        menu.classList.remove('show')
-        document.body.classList.remove('overflow-hidden')
-      })
+  // 4) Toda vez que mudar a data, refaz a tabela filtrada
+  dateInput.addEventListener('change', () => {
+    buildOccupancyTable(dateInput.value)
+  })
+
+  // 5) Ativa atualização automática da tabela (já filtrando pela data atual)
+  initOccupancyUpdates(dateInput)
+
+  // 6) Importação de horárarios desativada
+  document.getElementById('import-schedule')
+    .addEventListener('click', () => {
+      alert('Importação de horários fixos desativada nesta versão.')
     })
+
+  // 7) Toggle do menu off-canvas
+  const toggle = document.getElementById('menu-toggle')
+  const menu   = document.getElementById('side-menu')
+  toggle.addEventListener('click', () => {
+    const open = menu.classList.toggle('show')
+    document.body.classList.toggle('overflow-hidden', open)
+    const bars = toggle.querySelectorAll('span')
+    if (open) {
+      bars[0].classList.add('rotate-45','translate-y-1')
+      bars[1].classList.add('-rotate-45','-translate-y-1')
+    } else {
+      bars[0].classList.remove('rotate-45','translate-y-1')
+      bars[1].classList.remove('-rotate-45','-translate-y-1')
+    }
+  })
+  document.getElementById('menu-close')
+    .addEventListener('click', () => {
+      menu.classList.remove('show')
+      document.body.classList.remove('overflow-hidden')
+    })
+})
   </script>
 </body>
 
