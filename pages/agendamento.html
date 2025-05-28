@@ -844,8 +844,9 @@
       // Primeiro render
       buildOccupancyTable();
 
-      // Re-render da tabela a cada 1 minuto
-      setInterval(buildOccupancyTable, 60 * 1000);
+      // re-busca a cada 30 segundos
+      const dataUpdateInterval = setInterval(refreshEventsAndTable, 30 * 1000);
+
 
       // Recarrega dados do backend a cada 2 minutos e re-render
       setInterval(async () => {
