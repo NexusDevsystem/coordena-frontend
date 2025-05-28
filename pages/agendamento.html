@@ -440,113 +440,205 @@
       return { fetchEvents, createEvent, updateEvent, deleteEvent }
     })()
 
-    // ----------------------
+  // ----------------------
 // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
 // ----------------------
 const CalendarModule = (() => {
-  let calendar;
-  let events = [];
+  let calendar = null; // Initialize as null to clearly indicate it's not yet created
+  let events = [];     // Stores the internal list of events
 
+  /**
+   * Initializes the FullCalendar instance.
+   * @param {Array<Object>} rawEvents - An array of event objects from your backend/data source.
+   * Each object should have: _id, title, date (YYYY-MM-DD),
+   * start (HH:MM or HH:MM:SS), end (HH:MM or HH:MM:SS),
+   * and optionally 'time' for display.
+   * @param {function} onDateClick - Callback function for when a date slot is clicked.
+   * @param {function} onEventClick - Callback function for when an event is clicked.
+   */
   function init(rawEvents, onDateClick, onEventClick) {
-    // 1) carrega os eventos da API
-    events = rawEvents;
-
     const el = document.getElementById('calendar');
-    if (!el) return console.error('#calendar não encontrado');
+    if (!el) {
+      console.error('#calendar element not found. Calendar cannot be initialized.');
+      return;
+    }
+
+    // 1) Validate and load events
+    if (!Array.isArray(rawEvents)) {
+      console.error('rawEvents must be an array. Received:', rawEvents);
+      events = []; // Ensure events is an array even if rawEvents is invalid
+    } else {
+      events = rawEvents; // Load initial events
+      console.log('CalendarModule: Initializing with rawEvents:', events); // Good for debugging!
+    }
 
     const isMobile = window.innerWidth < 640;
+
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
       initialView: isMobile ? 'listWeek' : 'dayGridMonth',
       headerToolbar: {
-        left:   isMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        left:    isMobile ? 'prev,next' : 'prev,next today',
+        center:  'title',
+        right:   isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
 
-      // 2) fontes de evento: dinâmicos + fixos
+      // 2) Event sources: dynamic (your normal events) + fixed (background)
       eventSources: [
         {
-          // seus eventos normais
-          events: events.map(e => ({
-            id:    e._id,
-            title: `${e.title} (${e.time})`,
-            start: `${e.date}T${e.start}`,
-            end:   `${e.date}T${e.end}`
-          }))
+          // Your normal events, mapped to FullCalendar's required format
+          events: events.map(e => {
+            if (!e._id || !e.title || !e.date || !e.start || !e.end) {
+              console.warn('CalendarModule: Missing required event property for event:', e);
+              return null; // Skip invalid events
+            }
+            return {
+              id:    e._id,
+              title: `${e.title} (${e.time || (e.start + '-' + e.end)})`, // Fallback for time
+              start: `${e.date}T${e.start}`,
+              end:   `${e.date}T${e.end}`
+            };
+          }).filter(Boolean) // Remove any nulls from invalid events
         },
         {
-          // horários fixos, renderizados como background
-          events: () => window.fixedSchedules || [],
+          // Fixed schedules, rendered as background events
+          events: () => window.fixedSchedules || [], // Assumes window.fixedSchedules is an array of FullCalendar event objects
           rendering: 'background',
-          color: '#ff9f89'
+          color: '#ff9f89' // A distinct color for background blocks
         }
       ],
 
-      dateClick:  onDateClick,
-      eventClick: onEventClick,
-      height:     el.clientHeight,
-      allDaySlot: false,
-      selectable: true,
+      dateClick:    onDateClick,
+      eventClick:   onEventClick,
+      height:       el.clientHeight, // Adjust height to the container
+      allDaySlot:   false,           // Typically false for appointment calendars
+      selectable:   true,            // Allows selecting date/time ranges
 
       selectAllow: selectInfo => {
-        // impede seleção sobre um bloco de fundo
+        // Prevent selection over a background block (fixed schedule)
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
           ev.end > selectInfo.start
         );
-      }
+      },
+      // Optional: Add event content customization if needed
+      // eventContent: function(arg) {
+      //   return { html: `<b>${arg.timeText}</b> <i>${arg.event.title}</i>` };
+      // }
     });
 
-    // facilita acesso externo para re-adicionar horários fixos
+    // Make the calendar instance accessible globally if needed, e.g., for debugging or other modules
     window.calendar = calendar;
 
-    calendar.render();
+    calendar.render(); // Render the calendar for the first time
 
-    // reconstrói tabela a cada minuto
-    setInterval(buildOccupancyTable, 60 * 1000);
+    // Rebuild occupancy table (assuming this function exists elsewhere)
+    // Removed setInterval for buildOccupancyTable from here as it might be handled externally
+    // and if it's meant to show *current* occupancy, it should react to calendar changes, not just time.
+    // If you want it to run periodically for real-time updates, keep it, but ensure it's efficient.
+    // setInterval(buildOccupancyTable, 60 * 1000);
 
-    // ajusta view no resize
+    // Adjust view on window resize
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
-      calendar.setOption('headerToolbar', {
-        left:   nowMobile ? 'prev,next' : 'prev,next today',
-        center: 'title',
-        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      });
+      // Only change view if it's different to avoid unnecessary re-renders
+      if ((isMobile && !nowMobile) || (!isMobile && nowMobile)) {
+        calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
+        calendar.setOption('headerToolbar', {
+          left:    nowMobile ? 'prev,next' : 'prev,next today',
+          center:  'title',
+          right:   nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        });
+      }
+      // Re-render to adjust height
+      calendar.updateSize();
     });
   }
 
+  /**
+   * Adds a new event to the calendar and internal events array.
+   * @param {Object} ev - The event object to add, must have _id, title, date, start, end.
+   */
   function add(ev) {
-    calendar.addEvent({
+    if (!calendar) {
+      console.error('Calendar not initialized. Cannot add event.');
+      return;
+    }
+    if (!ev._id || !ev.title || !ev.date || !ev.start || !ev.end) {
+      console.error('Invalid event object for add:', ev);
+      return;
+    }
+
+    const fullCalendarEvent = {
       id:    ev._id,
-      title: `${ev.title} (${ev.time})`,
+      title: `${ev.title} (${ev.time || (ev.start + '-' + ev.end)})`,
       start: `${ev.date}T${ev.start}`,
       end:   `${ev.date}T${ev.end}`
-    });
-    events.push(ev);
+    };
+
+    calendar.addEvent(fullCalendarEvent);
+    events.push(ev); // Keep internal array in sync
+    console.log('CalendarModule: Event added:', ev);
   }
 
+  /**
+   * Updates an existing event in the calendar and internal events array.
+   * @param {string} id - The _id of the event to update.
+   * @param {Object} ev - The new event object with updated properties.
+   */
   function update(id, ev) {
-    events = events.map(e => e._id === id ? ev : e);
+    if (!calendar) {
+      console.error('Calendar not initialized. Cannot update event.');
+      return;
+    }
+    if (!id || !ev || !ev._id || !ev.title || !ev.date || !ev.start || !ev.end) {
+      console.error('Invalid parameters for update:', id, ev);
+      return;
+    }
+
+    events = events.map(e => e._id === id ? ev : e); // Update internal array
     const obj = calendar.getEventById(id);
+
     if (obj) {
-      obj.setProp('title', `${ev.title} (${ev.time})`);
+      obj.setProp('title', `${ev.title} (${ev.time || (ev.start + '-' + ev.end)})`);
       obj.setStart(`${ev.date}T${ev.start}`);
       obj.setEnd(`${ev.date}T${ev.end}`);
+      console.log('CalendarModule: Event updated:', ev);
+    } else {
+      console.warn(`CalendarModule: Event with ID ${id} not found in calendar to update.`);
+      // Optionally, if not found, you might want to add it as a new event
+      // add(ev);
     }
   }
 
+  /**
+   * Removes an event from the calendar and internal events array.
+   * @param {string} id - The _id of the event to remove.
+   */
   function remove(id) {
-    events = events.filter(e => e._id !== id);
-    calendar.getEventById(id)?.remove();
+    if (!calendar) {
+      console.error('Calendar not initialized. Cannot remove event.');
+      return;
+    }
+    if (!id) {
+      console.error('Invalid ID for remove:', id);
+      return;
+    }
+
+    events = events.filter(e => e._id !== id); // Update internal array
+    const eventToRemove = calendar.getEventById(id);
+
+    if (eventToRemove) {
+      eventToRemove.remove();
+      console.log('CalendarModule: Event removed:', id);
+    } else {
+      console.warn(`CalendarModule: Event with ID ${id} not found in calendar to remove.`);
+    }
   }
 
   return { init, add, update, remove, getEvents: () => events };
 })();
-
 
     // ----------------------
     // MÓDULO FORMULÁRIO
