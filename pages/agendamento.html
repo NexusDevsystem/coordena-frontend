@@ -760,103 +760,113 @@
     })()
 
     // ----------------------
-// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA - VERSÃO CORRIGIDA
-// ----------------------
-function buildOccupancyTable() {
-  const events = CalendarModule.getEvents(); // mantém todos os eventos
-  const now = new Date(); // Data e hora atual
-  
-  console.log("Atualizando tabela de ocupação em:", now.toLocaleTimeString());
+    // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA - VERSÃO CORRIGIDA
+    // ----------------------
+    function buildOccupancyTable() {
+      const events = CalendarModule.getEvents(); // mantém todos os eventos
+      const now = new Date(); // Data e hora atual
 
-  // Todas as salas/recurso
-  const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
+      console.log("Atualizando tabela de ocupação em:", now.toLocaleTimeString());
 
-  // Todas as faixas de horário
-  const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
-  timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+      // Todas as salas/recurso
+      const labs = [...new Set(events.map(evt => evt.sala || evt.resource))];
 
-  const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+      // Todas as faixas de horário
+      const timeRanges = [...new Set(events.map(evt => `${evt.start}-${evt.end}`))];
+      timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // Cabeçalho
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = `
+      const table = document.getElementById('occupancy-table');
+      table.innerHTML = '';
+
+      // Cabeçalho
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = `
     <th class="px-2 py-1 border text-left">Sala / Horário</th>
     ${timeRanges.map(range => `<th class="px-2 py-1 border text-center">${range}</th>`).join('')}
   `;
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
 
-  // Corpo
-  const tbody = document.createElement('tbody');
-  labs.forEach(lab => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+      // Corpo
+      const tbody = document.createElement('tbody');
+      labs.forEach(lab => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-    timeRanges.forEach(range => {
-      const [start, end] = range.split('-');
+        timeRanges.forEach(range => {
+          const [start, end] = range.split('-');
 
-      // Vê se há evento nesse lab/horário E se estamos no meio dele
-      const ocupadoAgora = events.some(evt => {
-        if ((evt.sala || evt.resource) !== lab) return false;
-        if (evt.start !== start || evt.end !== end) return false;
+          // Vê se há evento nesse lab/horário E se estamos no meio dele
+          const ocupadoAgora = events.some(evt => {
+            if ((evt.sala || evt.resource) !== lab) return false;
+            if (evt.start !== start || evt.end !== end) return false;
 
-        // Verifica se o evento é para hoje
-        const eventDate = new Date(evt.date);
-        const today = new Date();
-        
-        // Compara apenas ano, mês e dia
-        const isToday = 
-          eventDate.getFullYear() === today.getFullYear() &&
-          eventDate.getMonth() === today.getMonth() &&
-          eventDate.getDate() === today.getDate();
-        
-        if (!isToday) return false;
+            // Verifica se o evento é para hoje
+            const eventDate = new Date(evt.date);
+            const today = new Date();
 
-        // Monta Date para o horário de início e fim do evento HOJE
-        const [h1, m1] = start.split(':').map(Number);
-        const dtStart = new Date();
-        dtStart.setHours(h1, m1, 0, 0);
+            // Compara apenas ano, mês e dia
+            const isToday =
+              eventDate.getFullYear() === today.getFullYear() &&
+              eventDate.getMonth() === today.getMonth() &&
+              eventDate.getDate() === today.getDate();
 
-        const [h2, m2] = end.split(':').map(Number);
-        const dtEnd = new Date();
-        dtEnd.setHours(h2, m2, 0, 0);
+            if (!isToday) return false;
 
-        // Verifica se estamos entre o horário de início e fim
-        return dtStart <= now && now < dtEnd;
-      });
+            // Monta Date para o horário de início e fim do evento HOJE
+            // Importante: Zeramos os segundos e milissegundos para evitar problemas de comparação
+            const [h1, m1] = start.split(':').map(Number);
+            const dtStart = new Date();
+            dtStart.setHours(h1, m1, 0, 0);
 
-      tr.innerHTML += `
+            const [h2, m2] = end.split(':').map(Number);
+            const dtEnd = new Date();
+            dtEnd.setHours(h2, m2, 0, 0);
+
+            // Criamos uma cópia da data atual com segundos e milissegundos zerados
+            // para garantir comparação exata com o horário de início
+            const nowCompare = new Date();
+            nowCompare.setSeconds(0, 0);
+
+            // Verifica se estamos no horário de início ou entre o início e fim
+            // A comparação agora inclui o exato momento de início (>=) em vez de (>)
+            return (nowCompare >= dtStart && nowCompare < dtEnd);
+          });
+
+          tr.innerHTML += `
         <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
           ${ocupadoAgora ? 'ocupado' : 'livre'}
         </td>
       `;
-    });
+        });
 
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-}
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
 
-// Função para inicializar a atualização automática da tabela
-function initOccupancyTableUpdates() {
-  // Monta tabela dinâmica após carregar eventos
-  buildOccupancyTable();
+      // Adiciona informação de última atualização para debug
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'text-xs text-gray-500 dark:text-gray-400 text-right mt-2';
+      infoDiv.textContent = `Última atualização: ${now.toLocaleTimeString()}`;
+      table.parentNode.appendChild(infoDiv);
+    }
 
-  // Atualiza tabela dinâmica a cada 10 segundos (mais frequente para testes)
-  // Em produção, pode-se ajustar para 60 segundos (60 * 1000)
-  const updateInterval = setInterval(buildOccupancyTable, 10 * 1000);
-  
-  // Adiciona log para debug
-  console.log("Sistema de atualização automática da tabela de ocupação iniciado");
-  
-  // Retorna o intervalo para possível cancelamento futuro
-  return updateInterval;
-}
+    // Função para inicializar a atualização automática da tabela
+    function initOccupancyTableUpdates() {
+      // Monta tabela dinâmica após carregar eventos
+      buildOccupancyTable();
 
+      // Atualiza tabela dinâmica a cada 5 segundos (mais frequente para testes)
+      // Em produção, pode-se ajustar para 30 segundos (30 * 1000)
+      const updateInterval = setInterval(buildOccupancyTable, 5 * 1000);
 
+      // Adiciona log para debug
+      console.log("Sistema de atualização automática da tabela de ocupação iniciado");
 
+      // Retorna o intervalo para possível cancelamento futuro
+      return updateInterval;
+    }
     // ----------------------
     // INICIALIZAÇÃO PRINCIPAL
     // ----------------------
