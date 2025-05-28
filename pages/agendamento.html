@@ -478,8 +478,8 @@
             {
               // horários fixos, renderizados como background
               events: () => window.fixedSchedules || [],
-              rendering: 'background',
-              color: '#ff9f89'
+              color: '#ff9f89',
+              rendering: 'background'
             }
           ],
 
@@ -499,7 +499,7 @@
           }
         });
 
-        // facilita acesso externo para re-adicionar horários fixos
+        // expõe a instância para uso externo (importação de planilha, etc.)
         window.calendar = calendar;
 
         calendar.render();
@@ -546,6 +546,7 @@
 
       return { init, add, update, remove, getEvents: () => events };
     })();
+
 
 
     // ----------------------
