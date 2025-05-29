@@ -571,45 +571,31 @@ let fixedSlots = [];  // vai receber o array de horários fixos
  * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
  */
 async function buildOccupancyTable(filterDate) {
-  // 1) coleta reservas do usuário
+  // 1) reservas do usuário
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const dayEvents = allEvents.filter(e => e.date === dateStr);
 
-  // 2) coleta slots fixos daquele dia
+  // 2) slots fixos completos do dia
   const [Y, M, D] = dateStr.split('-').map(Number);
   const weekday = new Date(Y, M - 1, D).getDay();
-  const fixedToday = fixedSlots
-    .filter(s => s.dayOfWeek === weekday)
-    // mapeia direto start/end para usar como colunas
-    .map(s => ({ start: s.startTime, end: s.endTime, lab: s.lab }))
-    // remove duplicatas em caso de múltiplos labs terem mesmo horário
-    .reduce((acc, cur) => {
-      const key = `${cur.start}-${cur.end}`;
-      if (!acc.map.has(key)) {
-        acc.map.set(key, true);
-        acc.list.push({ start: cur.start, end: cur.end });
-      }
-      return acc;
-    }, { map: new Map(), list: [] })
-    .list
-    // ordena cronologicamente
-    .sort((a, b) => a.start.localeCompare(b.start));
+  const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 3) define colunas de horário a partir de fixedToday
-  const timeRanges = fixedToday.map(s => `${s.start}-${s.end}`);
+  // 3) colunas de horário (únicas) vindas só de fixedTodaySlots
+  const timeRanges = Array.from(
+    new Set(fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`))
+  )
+    .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 4) define salas a partir de fixedToday + reservas
+  // 4) lista de salas: de reservas + de slots fixos
   const labs = Array.from(new Set([
     ...dayEvents.map(e => e.sala || e.resource),
-    ...fixedToday.map(s => s.lab)
+    ...fixedTodaySlots.map(s => s.lab)
   ]));
 
-  // 5) monta tabela
+  // 5) monta o cabeçalho
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
-
-  // cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -620,7 +606,7 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
-  // corpo
+  // 6) monta o corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -628,13 +614,12 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-      // converte a célula em intervalo
       const [csH, csM] = start.split(':').map(Number);
       const [ceH, ceM] = end.split(':').map(Number);
       const cellStart = new Date(Y, M - 1, D, csH, csM);
       const cellEnd = new Date(Y, M - 1, D, ceH, ceM);
 
-      // reserva do usuário que cruza esse intervalo?
+      // reserva que INTERSECTA o intervalo?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const [esH, esM] = ev.start.split(':').map(Number);
@@ -644,13 +629,17 @@ async function buildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // slot fixo (aula) que cruza esse intervalo?
-      const isFixed = fixedSlots.some(fs =>
-        fs.lab === lab &&
-        fs.dayOfWeek === weekday &&
-        fs.startTime < end && fs.endTime > start
-      );
+      // slot fixo que INTERSECTA?
+      const isFixed = fixedTodaySlots.some(fs => {
+        if (fs.lab !== lab) return false;
+        const [fsH, fsM] = fs.startTime.split(':').map(Number);
+        const [feH, feM] = fs.endTime.split(':').map(Number);
+        const fsStart = new Date(Y, M - 1, D, fsH, fsM);
+        const fsEnd = new Date(Y, M - 1, D, feH, feM);
+        return fsStart < cellEnd && fsEnd > cellStart;
+      });
 
+      // escolhe estilo
       let cssClass, label;
       if (hasReservation) {
         cssClass = 'bg-red-600'; label = 'ocupado';
@@ -672,6 +661,7 @@ async function buildOccupancyTable(filterDate) {
 
   table.appendChild(tbody);
 }
+
 
 
 
