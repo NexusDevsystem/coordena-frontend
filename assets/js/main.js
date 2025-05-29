@@ -49,11 +49,12 @@ const ThemeToggle = (() => {
 // MÓDULO DE API
 // ----------------------
 const Api = (() => {
+  // rota base de reservas
   const BASE = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/reservas'
     : 'https://coordena-backend.onrender.com/api/reservas';
 
-  // Nova constante para a rota de horários fixos
+  // rota derivada para horários fixos
   const FIXED = BASE.replace('/reservas', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
@@ -62,19 +63,21 @@ const Api = (() => {
     return headers;
   }
 
+  // busca reservas dinâmicas
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
 
-  // Função nova para buscar os horários fixos
+  // busca horários fixos
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
+  // cria reserva
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -85,6 +88,7 @@ const Api = (() => {
     return res.json();
   }
 
+  // atualiza reserva
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -95,6 +99,7 @@ const Api = (() => {
     return res.json();
   }
 
+  // deleta reserva
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -105,12 +110,13 @@ const Api = (() => {
 
   return {
     fetchEvents,
-    fetchFixedSchedules,  // ← exporta aqui
+    fetchFixedSchedules,  // ← exporta função de fixedSchedules
     createEvent,
     updateEvent,
     deleteEvent
   };
 })();
+
 
 // ----------------------
 // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
@@ -125,18 +131,16 @@ const CalendarModule = (() => {
       const fixed = await Api.fetchFixedSchedules();
       // fixed = [{ lab, dayOfWeek, startTime, endTime, turno }, ...]
 
-      // Converte para o formato de eventos recorrentes do FullCalendar
       const fixedEvents = fixed.map(slot => ({
-        // para não conflitar com IDs de reservas, não passamos id
         title: `${slot.lab} (${slot.turno})`,
         daysOfWeek: [slot.dayOfWeek],    // 0=Dom,1=Seg…
-        startTime: slot.startTime,         // “08:20”
-        endTime: slot.endTime,           // “09:10”
-        display: 'background',           // ou 'block' se quiser visível
-        color: '#66666680'             // cinza semitransparente
+        startTime: slot.startTime,     // “08:20”
+        endTime: slot.endTime,       // “09:10”
+        display: 'background',        // fundo cinza
+        color: '#66666680'         // cinza semitransp.
       }));
 
-      // Adiciona como uma fonte separada, assim ele repete em todos os meses
+      // adiciona como fonte separada (repetição mensal automática)
       calendar.addEventSource(fixedEvents);
     } catch (err) {
       console.error('Falha ao carregar horários fixos:', err);
@@ -159,7 +163,7 @@ const CalendarModule = (() => {
         right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
 
-      // 2) Fonte principal: reservas vindas do back
+      // 2) fonte principal: reservas do back
       events: events.map(e => ({
         id: e._id,
         title: `${e.title} (${e.time})`,
@@ -173,6 +177,7 @@ const CalendarModule = (() => {
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
+        // não permitir seleção sobre fundos (horários fixos)
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -183,13 +188,13 @@ const CalendarModule = (() => {
 
     calendar.render();
 
-    // 3) Depois de renderizar, puxa e injeta os horários fixos
+    // 3) depois de renderizar, carrega e injeta os horários fixos
     loadFixedSchedules();
 
-    // Reconstrói a tabela de ocupação a cada minuto
-    setInterval(buildOccupancyTable, 60 * 1000);
+    // reconstrói tabela de ocupação a cada minuto
+    setInterval(() => buildOccupancyTable(), 60 * 1000);
 
-    // Adapta view ao redimensionar
+    // adapta view no resize
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -213,6 +218,7 @@ const CalendarModule = (() => {
     getEvents: () => events
   };
 })();
+
 
 // ----------------------
 // MÓDULO FORMULÁRIO
@@ -527,36 +533,53 @@ const DetailModule = (() => {
 // ----------------------
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ----------------------
+
+let fixedSlots = [];  // 1) vai receber o array de horários fixos
+
 /**
  * Reconstrói a tabela de ocupação para a data informada.
  *
- * @param {string} filterDate — “YYYY-MM-DD” (ex: “2025-05-28”). 
- *                              Se for falsy, usa hoje.
+ * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
  */
-function buildOccupancyTable(filterDate) {
-  // 1) coleta todos os eventos
+async function buildOccupancyTable(filterDate) {
+  // 1) coleta reservas
   const allEvents = CalendarModule.getEvents();
 
-  // 2) determina a data a usar no filtro
+  // 2) data a usar
   const dateStr = filterDate
     ? filterDate
-    : new Date().toISOString().slice(0, 10);  // “YYYY-MM-DD”
+    : new Date().toISOString().slice(0, 10);
 
-  // 3) filtra só os eventos cuja e.date bate com o dateStr
-  const events = allEvents.filter(e => e.date === dateStr);
+  // 3) filtra só reservas desse dia
+  const dayEvents = allEvents.filter(e => e.date === dateStr);
 
-  // 4) lista de salas / recursos
+  // 4) adiciona também os slots fixos que caem nesse dia
+  const [Y, M, D] = dateStr.split('-').map(Number);
+  const weekday = new Date(Y, M - 1, D).getDay(); // 0=dom,1=seg…
+  const fixedToday = fixedSlots
+    .filter(s => s.dayOfWeek === weekday)
+    .map(s => ({
+      date: dateStr,
+      start: s.startTime,
+      end: s.endTime,
+      sala: s.lab,
+      // marcar de forma distinta, mas para tabela basta ocupar
+      __fixed: true
+    }));
+
+  // 5) unifica
+  const events = [...dayEvents, ...fixedToday];
+
+  // 6) salas e horários
   const labs = [...new Set(events.map(e => e.sala || e.resource))];
-
-  // 5) lista de faixas de horário
   const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
   timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 6) referência à tabela e limpa
+  // 7) monta tabela
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
 
-  // --- Monta o cabeçalho ---
+  // cabeçalho
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
   headerRow.innerHTML = `
@@ -566,7 +589,7 @@ function buildOccupancyTable(filterDate) {
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // --- Monta o corpo ---
+  // corpo
   const now = new Date();
   const tbody = document.createElement('tbody');
 
@@ -576,25 +599,22 @@ function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-
-      // verifica se existe evento exatamente nessa sala/faixa
-      // e se a hora atual está dentro do intervalo
       const ocupadoAgora = events.some(evt => {
         if ((evt.sala || evt.resource) !== lab) return false;
         if (evt.start !== start || evt.end !== end) return false;
-
-        // monta Date de início/fim
-        const [Y, M, D] = evt.date.split('-').map(Number);
+        // se for fixed ou reserva, consideramos "ocupado"
+        if (evt.__fixed) return true;
+        // reserva real: marca só se for o momento atual
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
-        const dtStart = new Date(Y, M - 1, D, h1, m1, 0, 0);
-        const dtEnd = new Date(Y, M - 1, D, h2, m2, 0, 0);
-
+        const dtStart = new Date(Y, M - 1, D, h1, m1);
+        const dtEnd = new Date(Y, M - 1, D, h2, m2);
         return now >= dtStart && now < dtEnd;
       });
 
       tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
+        <td class="px-2 py-1 border text-white text-center
+                   ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
           ${ocupadoAgora ? 'ocupado' : 'livre'}
         </td>
       `;
@@ -612,37 +632,43 @@ function buildOccupancyTable(filterDate) {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
-    // Limpa todos do CalendarModule
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    // Re-adiciona
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
     console.error('Erro ao buscar eventos:', err);
   }
 }
 
-function initOccupancyUpdates() {
+async function initOccupancyUpdates() {
   const dateInput = document.getElementById('occupancy-date');
 
-  // Função que reconstrói a tabela filtrando pela data selecionada
+  // 1) carrega slots fixos uma única vez
+  try {
+    fixedSlots = await Api.fetchFixedSchedules();
+  } catch (err) {
+    console.error('Falha ao buscar fixedSchedules:', err);
+  }
+
+  // 2) função que reconstrói a tabela para a data selecionada
   function refreshTable() {
     buildOccupancyTable(dateInput.value);
   }
 
-  // Monta a tabela imediatamente, com o valor atual do datepicker
+  // 3) valor inicial e listener
+  dateInput.value = new Date().toISOString().slice(0, 10);
+  dateInput.addEventListener('change', refreshTable);
   refreshTable();
 
-  // Atualiza só a tabela (com filtro) a cada 5 segundos
-  const tableInterval = setInterval(refreshTable, 5 * 1000);
+  // 4) atualiza só a tabela a cada 5s
+  setInterval(refreshTable, 5 * 1000);
 
-  // Re-busca do backend a cada 2 minutos, e depois reconstrói a tabela filtrada
-  const dataInterval = setInterval(async () => {
+  // 5) re-busca reservas a cada 2min e reconstrói
+  setInterval(async () => {
     await refreshEvents();
     refreshTable();
   }, 2 * 60 * 1000);
-
-  console.log('Tabela de ocupação filtrada por data e atualizada a cada 5s (dados a cada 2min).');
 }
+
 
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
