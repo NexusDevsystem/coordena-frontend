@@ -571,31 +571,31 @@ let fixedSlots = [];  // vai receber o array de horários fixos
  * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
  */
 async function buildOccupancyTable(filterDate) {
-  // 1) reservas do usuário
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const dayEvents = allEvents.filter(e => e.date === dateStr);
 
-  // 2) slots fixos completos do dia
   const [Y, M, D] = dateStr.split('-').map(Number);
   const weekday = new Date(Y, M - 1, D).getDay();
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 3) colunas de horário (únicas) vindas só de fixedTodaySlots
-  const timeRanges = Array.from(
-    new Set(fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`))
-  )
-    .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+  // ===== ajuste aqui =====
+  const timeRanges = Array.from(new Set([
+    ...fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`),
+    ...dayEvents.map(e => `${e.start}-${e.end}`)
+  ])).sort((a, b) =>
+    a.split('-')[0].localeCompare(b.split('-')[0])
+  );
+  // =======================
 
-  // 4) lista de salas: de reservas + de slots fixos
   const labs = Array.from(new Set([
     ...dayEvents.map(e => e.sala || e.resource),
     ...fixedTodaySlots.map(s => s.lab)
   ]));
 
-  // 5) monta o cabeçalho
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
+  // cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -606,7 +606,7 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
-  // 6) monta o corpo
+  // corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -619,7 +619,6 @@ async function buildOccupancyTable(filterDate) {
       const cellStart = new Date(Y, M - 1, D, csH, csM);
       const cellEnd = new Date(Y, M - 1, D, ceH, ceM);
 
-      // reserva que INTERSECTA o intervalo?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const [esH, esM] = ev.start.split(':').map(Number);
@@ -629,7 +628,6 @@ async function buildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // slot fixo que INTERSECTA?
       const isFixed = fixedTodaySlots.some(fs => {
         if (fs.lab !== lab) return false;
         const [fsH, fsM] = fs.startTime.split(':').map(Number);
@@ -639,7 +637,6 @@ async function buildOccupancyTable(filterDate) {
         return fsStart < cellEnd && fsEnd > cellStart;
       });
 
-      // escolhe estilo
       let cssClass, label;
       if (hasReservation) {
         cssClass = 'bg-red-600'; label = 'ocupado';
@@ -662,51 +659,6 @@ async function buildOccupancyTable(filterDate) {
   table.appendChild(tbody);
 }
 
-
-
-
-// ----------------------
-// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
-// ----------------------
-async function refreshEvents() {
-  try {
-    const updated = await Api.fetchEvents();
-    CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    updated.forEach(e => CalendarModule.add(e));
-  } catch (err) {
-    console.error('Erro ao buscar eventos:', err);
-  }
-}
-
-async function initOccupancyUpdates() {
-  const dateInput = document.getElementById('occupancy-date');
-
-  // 1) carrega slots fixos uma única vez
-  try {
-    fixedSlots = await Api.fetchFixedSchedules();
-  } catch (err) {
-    console.error('Falha ao buscar fixedSchedules:', err);
-  }
-
-  // 2) função que reconstrói a tabela para a data selecionada
-  function refreshTable() {
-    buildOccupancyTable(dateInput.value);
-  }
-
-  // 3) valor inicial e listener
-  dateInput.value = new Date().toISOString().slice(0, 10);
-  dateInput.addEventListener('change', refreshTable);
-  refreshTable();
-
-  // 4) atualiza só a tabela a cada 5s
-  setInterval(refreshTable, 5 * 1000);
-
-  // 5) re-busca reservas a cada 2min e reconstrói
-  setInterval(async () => {
-    await refreshEvents();
-    refreshTable();
-  }, 2 * 60 * 1000);
-}
 
 
 // ----------------------
