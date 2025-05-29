@@ -276,6 +276,13 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
+    // pré-preenche sempre com o usuário logado
+    const user = Auth.getCurrentUser();
+    if (user?.name) {
+      selectors.fields.resp.value = user.name;
+      selectors.fields.resp.setAttribute('readonly', 'readonly');
+    }
+    
     if (evData) {
       // pré-preencher para edição
       selectors.fields.data.value = evData.date;
