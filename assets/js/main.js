@@ -595,7 +595,7 @@ async function buildOccupancyTable(filterDate) {
     ])
   ].sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 4) começa a montar a tabela
+  // 4) monta a tabela
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
 
@@ -620,22 +620,33 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
+      // parse cell interval
+      const [csH, csM] = start.split(':').map(Number);
+      const [ceH, ceM] = end.split(':').map(Number);
+      const cellStart = new Date(Y, M - 1, D, csH, csM);
+      const cellEnd = new Date(Y, M - 1, D, ceH, ceM);
 
-      // checa se existe reserva do usuário para esse slot
-      const hasReservation = dayEvents.some(ev =>
-        (ev.sala || ev.resource) === lab &&
-        ev.start === start &&
-        ev.end === end
-      );
+      // 5) checa se existe reserva de usuário que intersecta este intervalo
+      const hasReservation = dayEvents.some(ev => {
+        if ((ev.sala || ev.resource) !== lab) return false;
+        const [esH, esM] = ev.start.split(':').map(Number);
+        const [eeH, eeM] = ev.end.split(':').map(Number);
+        const evStart = new Date(Y, M - 1, D, esH, esM);
+        const evEnd = new Date(Y, M - 1, D, eeH, eeM);
+        return evStart < cellEnd && evEnd > cellStart;
+      });
 
-      // checa se é um slot fixo (aula)
-      const isFixed = fixedToday.some(fs =>
-        fs.lab === lab &&
-        fs.startTime === start &&
-        fs.endTime === end
-      );
+      // 6) checa se é um slot fixo (aula) que intersecta este intervalo
+      const isFixed = fixedToday.some(fs => {
+        if (fs.lab !== lab) return false;
+        const [fsH, fsM] = fs.startTime.split(':').map(Number);
+        const [feH, feM] = fs.endTime.split(':').map(Number);
+        const fsStart = new Date(Y, M - 1, D, fsH, fsM);
+        const fsEnd = new Date(Y, M - 1, D, feH, feM);
+        return fsStart < cellEnd && fsEnd > cellStart;
+      });
 
-      // escolhe cor e label
+      // 7) escolhe cor e label
       let cssClass, label;
       if (hasReservation) {
         cssClass = 'bg-red-600';
