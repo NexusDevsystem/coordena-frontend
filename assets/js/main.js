@@ -346,12 +346,16 @@ const FormModule = (() => {
           saved = await Api.createEvent(payload);
           CalendarModule.add(saved);
         }
-        buildOccupancyTable();
+
+        // **ATUALIZAÇÃO IMEDIATA**
+        buildOccupancyTable(selectors.fields.data.value);
+
         close();
       } catch (err) {
         alert(err.message);
       }
     })();
+
   }
 
   function init() {
@@ -519,7 +523,8 @@ const DetailModule = (() => {
       try {
         await Api.deleteEvent(currentId)
         CalendarModule.remove(currentId)
-        buildOccupancyTable()
+        const dateValue = document.getElementById('occupancy-date').value
+        buildOccupancyTable(dateValue)
         close()
       } catch (err) {
         alert(err.message)
