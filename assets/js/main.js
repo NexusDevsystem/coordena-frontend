@@ -129,18 +129,14 @@ const CalendarModule = (() => {
   async function loadFixedSchedules() {
     try {
       const fixed = await Api.fetchFixedSchedules();
-      // fixed = [{ lab, dayOfWeek, startTime, endTime, turno }, ...]
-
       const fixedEvents = fixed.map(slot => ({
         title: `${slot.lab} (${slot.turno})`,
-        daysOfWeek: [slot.dayOfWeek],    // 0=Dom,1=Seg…
-        startTime: slot.startTime,     // “08:20”
-        endTime: slot.endTime,       // “09:10”
-        display: 'background',        // fundo cinza
-        color: '#66666680'         // cinza semitransp.
+        daysOfWeek: [slot.dayOfWeek],
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        display: 'background',
+        color: '#66666680'
       }));
-
-      // adiciona como fonte separada (repetição mensal automática)
       calendar.addEventSource(fixedEvents);
     } catch (err) {
       console.error('Falha ao carregar horários fixos:', err);
@@ -162,22 +158,18 @@ const CalendarModule = (() => {
         center: 'title',
         right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-
-      // 2) fonte principal: reservas do back
       events: events.map(e => ({
         id: e._id,
         title: `${e.title} (${e.time})`,
         start: `${e.date}T${e.start}`,
         end: `${e.date}T${e.end}`
       })),
-
       dateClick: onDateClick,
       eventClick: onEventClick,
       height: el.clientHeight,
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
-        // não permitir seleção sobre fundos (horários fixos)
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -187,14 +179,8 @@ const CalendarModule = (() => {
     });
 
     calendar.render();
-
-    // 3) depois de renderizar, carrega e injeta os horários fixos
     loadFixedSchedules();
-
-    // reconstrói tabela de ocupação a cada minuto
     setInterval(() => buildOccupancyTable(), 60 * 1000);
-
-    // adapta view no resize
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -206,9 +192,43 @@ const CalendarModule = (() => {
     });
   }
 
-  function add(ev) { /* … */ }
-  function update(id, ev) { /* … */ }
-  function remove(id) { /* … */ }
+  // adiciona um evento recém-criado
+  function add(ev) {
+    // 1) atualiza array interno
+    events.push(ev);
+    // 2) injeta no FullCalendar
+    calendar.addEvent({
+      id: ev._id,
+      title: `${ev.title} (${ev.time})`,
+      start: `${ev.date}T${ev.start}`,
+      end: `${ev.date}T${ev.end}`
+    });
+  }
+
+  // atualiza um evento existente
+  function update(id, ev) {
+    // 1) atualiza array interno
+    const idx = events.findIndex(x => x._id === id);
+    if (idx !== -1) events[idx] = ev;
+
+    // 2) localiza e atualiza no FullCalendar
+    const fcEvent = calendar.getEventById(id);
+    if (fcEvent) {
+      fcEvent.setProp('title', `${ev.title} (${ev.time})`);
+      fcEvent.setStart(`${ev.date}T${ev.start}`);
+      fcEvent.setEnd(`${ev.date}T${ev.end}`);
+    }
+  }
+
+  // remove um evento
+  function remove(id) {
+    // 1) remove do array interno
+    events = events.filter(x => x._id !== id);
+
+    // 2) remove do FullCalendar
+    const fcEvent = calendar.getEventById(id);
+    if (fcEvent) fcEvent.remove();
+  }
 
   return {
     init,
@@ -218,7 +238,6 @@ const CalendarModule = (() => {
     getEvents: () => events
   };
 })();
-
 
 // ----------------------
 // MÓDULO FORMULÁRIO
@@ -252,13 +271,13 @@ const FormModule = (() => {
     currentId = id;
     selectors.form.reset();
     selectors.fields.salaContainer.classList.add('hidden');
-
-    // reset curso/matéria
     selectors.fields.dept.value = '';
     selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
     selectors.fields.materia.disabled = true;
+    selectors.fields.resp.removeAttribute('readonly');
 
     if (evData) {
+      // pré-preencher para edição
       selectors.fields.data.value = evData.date;
       selectors.fields.start.value = evData.start;
       selectors.fields.end.value = evData.end;
@@ -271,12 +290,11 @@ const FormModule = (() => {
       selectors.fields.status.value = evData.status;
       selectors.fields.desc.value = evData.description;
       if (evData.materia) {
-        selectors.fields.materia.innerHTML = `<option>${evData.materia}</option>`;
+        selectors.fields.materia.innerHTML = `<option value="${evData.materia}">${evData.materia}</option>`;
         selectors.fields.materia.disabled = false;
       }
-    }
-
-    if (!currentId) {
+    } else {
+      // novo; pré-preenche responsável
       const user = Auth.getCurrentUser();
       if (user?.name) {
         selectors.fields.resp.value = user.name;
@@ -289,9 +307,11 @@ const FormModule = (() => {
 
   function close() {
     selectors.modal.classList.add('hidden');
+    currentId = null;
+    selectors.form.reset();
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const f = selectors.fields;
     const payload = {
@@ -313,69 +333,66 @@ const FormModule = (() => {
     };
 
     // ————————————————————————————————
-    // Validação de conflito de horários
+    // valida conflito (dinâmico + fixos)
     // ————————————————————————————————
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
     const dtEnd = new Date(`${payload.date}T${payload.end}`);
-    const conflict = allEvents.some(ev => {
+    // checa eventos do backend
+    let conflict = allEvents.some(ev => {
       if (ev.date !== payload.date) return false;
       if ((ev.sala || ev.resource) !== (payload.sala || payload.resource)) return false;
       const evStart = new Date(`${ev.date}T${ev.start}`);
       const evEnd = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
+    // checa conflitos contra slots fixos (se quiser)
+    if (!conflict && typeof fixedSlots !== 'undefined') {
+      const weekday = new Date(payload.date).getDay();
+      conflict = fixedSlots.some(fs => {
+        if (fs.lab !== payload.sala) return false;
+        if (fs.dayOfWeek !== weekday) return false;
+        const fsStart = new Date(`${payload.date}T${fs.startTime}`);
+        const fsEnd = new Date(`${payload.date}T${fs.endTime}`);
+        return dtStart < fsEnd && dtEnd > fsStart;
+      });
+    }
     if (conflict) {
-      alert('Conflito: já existe um agendamento para esta sala e horário.');
-      return;
+      return alert('Conflito: já existe agendamento ou horário fixo nesse período.');
     }
 
     // ————————————————————————————————
-    // Envia para o backend
+    // cria/atualiza no backend e no calendário
     // ————————————————————————————————
-    ; (async () => {
-      try {
-        let saved;
-        if (currentId) {
-          saved = await Api.updateEvent(currentId, payload);
-          CalendarModule.update(currentId, saved);
-        } else {
-          saved = await Api.createEvent(payload);
-          CalendarModule.add(saved);
-        }
-
-        // **ATUALIZAÇÃO IMEDIATA**
-        buildOccupancyTable(selectors.fields.data.value);
-
-        close();
-      } catch (err) {
-        alert(err.message);
+    try {
+      let saved;
+      if (currentId) {
+        saved = await Api.updateEvent(currentId, payload);
+        CalendarModule.update(currentId, saved);
+      } else {
+        saved = await Api.createEvent(payload);
+        CalendarModule.add(saved);
       }
-    })();
-
+      // atualiza tabela
+      buildOccupancyTable(f.data.value);
+      close();
+    } catch (err) {
+      alert('Erro: ' + err.message);
+    }
   }
 
   function init() {
     cacheSelectors();
 
-    // ————————————————————————————————
-    // Cálculo automático de +50 minutos no “Término”
-    // ————————————————————————————————
-    function addMinutes(timeString, minsToAdd) {
-      const [hh, mm] = timeString.split(':').map(Number);
-      const d = new Date();
-      d.setHours(hh, mm + minsToAdd);
-      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    }
+    // pré-calcula término +50min
     selectors.fields.start.addEventListener('change', () => {
-      const start = selectors.fields.start.value;
-      if (start) selectors.fields.end.value = addMinutes(start, 50);
+      const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
+      const d = new Date(); d.setHours(hh, mm + 50);
+      selectors.fields.end.value =
+        `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
 
-    // inicializa matéria
-    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-    selectors.fields.materia.disabled = true;
-
+    // botões
     selectors.btnOpen?.addEventListener('click', () => open());
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
@@ -464,6 +481,7 @@ const FormModule = (() => {
 
   return { init, open };
 })();
+
 // ----------------------
 // MÓDULO MODAL DETALHES
 // ----------------------
