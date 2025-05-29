@@ -563,7 +563,7 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ----------------------
 
-let fixedSlots = [];  // 1) vai receber o array de horários fixos
+let fixedSlots = [];  // vai receber o array de horários fixos
 
 /**
  * Reconstrói a tabela de ocupação para a data informada.
@@ -571,56 +571,48 @@ let fixedSlots = [];  // 1) vai receber o array de horários fixos
  * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
  */
 async function buildOccupancyTable(filterDate) {
-  // 1) coleta reservas
+  // 1) coleta reservas do usuário
   const allEvents = CalendarModule.getEvents();
-
-  // 2) data a usar
-  const dateStr = filterDate
-    ? filterDate
-    : new Date().toISOString().slice(0, 10);
-
-  // 3) filtra só reservas desse dia
+  const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const dayEvents = allEvents.filter(e => e.date === dateStr);
 
-  // 4) adiciona também os slots fixos que caem nesse dia
+  // 2) coleta slots fixos daquele dia da semana
   const [Y, M, D] = dateStr.split('-').map(Number);
-  const weekday = new Date(Y, M - 1, D).getDay(); // 0=dom,1=seg…
-  const fixedToday = fixedSlots
-    .filter(s => s.dayOfWeek === weekday)
-    .map(s => ({
-      date: dateStr,
-      start: s.startTime,
-      end: s.endTime,
-      sala: s.lab,
-      // marcar de forma distinta, mas para tabela basta ocupar
-      __fixed: true
-    }));
+  const weekday = new Date(Y, M - 1, D).getDay(); // 0=Dom…6=Sáb
+  const fixedToday = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 5) unifica
-  const events = [...dayEvents, ...fixedToday];
+  // 3) determina todas as salas e faixas de horário envolvendo reservas e slots fixos
+  const labs = [
+    ...new Set([
+      ...dayEvents.map(e => e.sala || e.resource),
+      ...fixedToday.map(s => s.lab)
+    ])
+  ];
+  const timeRanges = [
+    ...new Set([
+      ...dayEvents.map(e => `${e.start}-${e.end}`),
+      ...fixedToday.map(s => `${s.startTime}-${s.endTime}`)
+    ])
+  ].sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 6) salas e horários
-  const labs = [...new Set(events.map(e => e.sala || e.resource))];
-  const timeRanges = [...new Set(events.map(e => `${e.start}-${e.end}`))];
-  timeRanges.sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
-
-  // 7) monta tabela
+  // 4) começa a montar a tabela
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
 
   // cabeçalho
   const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = `
-    <th class="px-2 py-1 border text-left">Sala / Horário</th>
-    ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
-  `;
-  thead.appendChild(headerRow);
+  thead.innerHTML = `
+    <tr>
+      <th class="px-2 py-1 border text-left">Sala / Horário</th>
+      ${timeRanges.map(r =>
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
+    </tr>`;
   table.appendChild(thead);
 
   // corpo
-  const now = new Date();
   const tbody = document.createElement('tbody');
+  const now = new Date();
 
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -628,23 +620,37 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-      const ocupadoAgora = events.some(evt => {
-        if ((evt.sala || evt.resource) !== lab) return false;
-        if (evt.start !== start || evt.end !== end) return false;
-        // se for fixed ou reserva, consideramos "ocupado"
-        if (evt.__fixed) return true;
-        // reserva real: marca só se for o momento atual
-        const [h1, m1] = start.split(':').map(Number);
-        const [h2, m2] = end.split(':').map(Number);
-        const dtStart = new Date(Y, M - 1, D, h1, m1);
-        const dtEnd = new Date(Y, M - 1, D, h2, m2);
-        return now >= dtStart && now < dtEnd;
-      });
+
+      // checa se existe reserva do usuário para esse slot
+      const hasReservation = dayEvents.some(ev =>
+        (ev.sala || ev.resource) === lab &&
+        ev.start === start &&
+        ev.end === end
+      );
+
+      // checa se é um slot fixo (aula)
+      const isFixed = fixedToday.some(fs =>
+        fs.lab === lab &&
+        fs.startTime === start &&
+        fs.endTime === end
+      );
+
+      // escolhe cor e label
+      let cssClass, label;
+      if (hasReservation) {
+        cssClass = 'bg-red-600';
+        label = 'ocupado';
+      } else if (isFixed) {
+        cssClass = 'bg-gray-600';
+        label = 'aula';
+      } else {
+        cssClass = 'bg-green-600';
+        label = 'livre';
+      }
 
       tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center
-                   ${ocupadoAgora ? 'bg-red-600' : 'bg-green-600'}">
-          ${ocupadoAgora ? 'ocupado' : 'livre'}
+        <td class="px-2 py-1 border text-white text-center ${cssClass}">
+          ${label}
         </td>
       `;
     });
@@ -654,6 +660,7 @@ async function buildOccupancyTable(filterDate) {
 
   table.appendChild(tbody);
 }
+
 
 // ----------------------
 // SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
