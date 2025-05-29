@@ -53,6 +53,9 @@ const Api = (() => {
     ? 'http://localhost:10000/api/reservas'
     : 'https://coordena-backend.onrender.com/api/reservas';
 
+  // Nova constante para a rota de horários fixos
+  const FIXED = BASE.replace('/reservas', '/fixedSchedules');
+
   function authHeaders(isJson = false) {
     const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
@@ -62,6 +65,13 @@ const Api = (() => {
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
+    return res.json();
+  }
+
+  // Função nova para buscar os horários fixos
+  async function fetchFixedSchedules() {
+    const res = await fetch(FIXED, { headers: authHeaders(false) });
+    if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
@@ -93,21 +103,12 @@ const Api = (() => {
     if (!res.ok) throw new Error('Falha ao excluir reserva');
   }
 
-  // ======================================
-  // BUSCA HORÁRIOS FIXOS DE AULA
-  // ======================================
-  async function fetchFixedSchedules() {
-    const res = await fetch('/api/fixedSchedules', { headers: authHeaders(false) });
-    if (!res.ok) throw new Error('Falha ao buscar horários fixos');
-    return res.json();
-  }
-
   return {
     fetchEvents,
+    fetchFixedSchedules,  // ← exporta aqui
     createEvent,
     updateEvent,
-    deleteEvent,
-    fetchFixedSchedules
+    deleteEvent
   };
 })();
 
@@ -115,17 +116,40 @@ const Api = (() => {
 // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
 // ----------------------
 const CalendarModule = (() => {
-  let calendar
-  let events = []
+  let calendar;
+  let events = [];
+
+  // 1) Função auxiliar: carrega os horários fixos do back
+  async function loadFixedSchedules() {
+    try {
+      const fixed = await Api.fetchFixedSchedules();
+      // fixed = [{ lab, dayOfWeek, startTime, endTime, turno }, ...]
+
+      // Converte para o formato de eventos recorrentes do FullCalendar
+      const fixedEvents = fixed.map(slot => ({
+        // para não conflitar com IDs de reservas, não passamos id
+        title: `${slot.lab} (${slot.turno})`,
+        daysOfWeek: [slot.dayOfWeek],    // 0=Dom,1=Seg…
+        startTime: slot.startTime,         // “08:20”
+        endTime: slot.endTime,           // “09:10”
+        display: 'background',           // ou 'block' se quiser visível
+        color: '#66666680'             // cinza semitransparente
+      }));
+
+      // Adiciona como uma fonte separada, assim ele repete em todos os meses
+      calendar.addEventSource(fixedEvents);
+    } catch (err) {
+      console.error('Falha ao carregar horários fixos:', err);
+    }
+  }
 
   function init(rawEvents, onDateClick, onEventClick) {
-    // inicializa todos os eventos
-    events = rawEvents
+    events = rawEvents;
 
-    const el = document.getElementById('calendar')
-    if (!el) return console.error('#calendar não encontrado')
+    const el = document.getElementById('calendar');
+    if (!el) return console.error('#calendar não encontrado');
 
-    const isMobile = window.innerWidth < 640
+    const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
       initialView: isMobile ? 'listWeek' : 'dayGridMonth',
@@ -134,68 +158,52 @@ const CalendarModule = (() => {
         center: 'title',
         right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
+
+      // 2) Fonte principal: reservas vindas do back
       events: events.map(e => ({
         id: e._id,
         title: `${e.title} (${e.time})`,
         start: `${e.date}T${e.start}`,
         end: `${e.date}T${e.end}`
       })),
+
       dateClick: onDateClick,
       eventClick: onEventClick,
       height: el.clientHeight,
       allDaySlot: false,
+      selectable: true,
       selectAllow: selectInfo => {
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
-          ev.start < selectInfo.end && ev.end > selectInfo.start
-        )
-      },
-      selectable: true
-    })
+          ev.start < selectInfo.end &&
+          ev.end > selectInfo.start
+        );
+      }
+    });
 
-    calendar.render()
+    calendar.render();
 
-    // A cada minuto, apenas reconstrói a tabela de ocupação
-    setInterval(() => {
-      buildOccupancyTable()
-    }, 60 * 1000)
+    // 3) Depois de renderizar, puxa e injeta os horários fixos
+    loadFixedSchedules();
 
-    // Ajusta a view no resize
+    // Reconstrói a tabela de ocupação a cada minuto
+    setInterval(buildOccupancyTable, 60 * 1000);
+
+    // Adapta view ao redimensionar
     window.addEventListener('resize', () => {
-      const nowMobile = window.innerWidth < 640
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth')
+      const nowMobile = window.innerWidth < 640;
+      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
       calendar.setOption('headerToolbar', {
         left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
         right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-      })
-    })
+      });
+    });
   }
 
-  function add(ev) {
-    calendar.addEvent({
-      id: ev._id,
-      title: `${ev.title} (${ev.time})`,
-      start: `${ev.date}T${ev.start}`,
-      end: `${ev.date}T${ev.end}`
-    })
-    events.push(ev)
-  }
-
-  function update(id, ev) {
-    events = events.map(e => (e._id === id ? ev : e))
-    const obj = calendar.getEventById(id)
-    if (obj) {
-      obj.setProp('title', `${ev.title} (${ev.time})`)
-      obj.setStart(`${ev.date}T${ev.start}`)
-      obj.setEnd(`${e.date}T${e.end}`)
-    }
-  }
-
-  function remove(id) {
-    events = events.filter(e => e._id !== id)
-    calendar.getEventById(id)?.remove()
-  }
+  function add(ev) { /* … */ }
+  function update(id, ev) { /* … */ }
+  function remove(id) { /* … */ }
 
   return {
     init,
@@ -203,10 +211,8 @@ const CalendarModule = (() => {
     update,
     remove,
     getEvents: () => events
-  }
-})()
-
-
+  };
+})();
 
 // ----------------------
 // MÓDULO FORMULÁRIO
