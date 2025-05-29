@@ -565,11 +565,6 @@ const DetailModule = (() => {
 
 let fixedSlots = [];  // vai receber o array de horários fixos
 
-/**
- * Reconstrói a tabela de ocupação para a data informada.
- *
- * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
- */
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';  // limpa antes de tudo
@@ -584,9 +579,31 @@ async function buildOccupancyTable(filterDate) {
   const weekday = new Date(Y, M - 1, D).getDay();
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 3) monta lista de faixas (ranges) unindo fixos + reservas
-  const fixedRanges = fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`);
+  // 3) monta lista de faixas (ranges):
+  //    - primeiro, quebra cada slot fixo em blocos de 50 min
+  //    - depois adiciona as faixas das reservas atípicas
+  const fixedRanges = [];
+  fixedTodaySlots.forEach(fs => {
+    const [sh, sm] = fs.startTime.split(':').map(Number);
+    const [eh, em] = fs.endTime.split(':').map(Number);
+    let cur = new Date(Y, M - 1, D, sh, sm);
+    const endF = new Date(Y, M - 1, D, eh, em);
+
+    while (cur < endF) {
+      const nxt = new Date(cur);
+      nxt.setMinutes(cur.getMinutes() + 50);
+      const final = nxt > endF ? endF : nxt;
+
+      const startStr = `${String(cur.getHours()).padStart(2, '0')}:${String(cur.getMinutes()).padStart(2, '0')}`;
+      const endStr = `${String(final.getHours()).padStart(2, '0')}:${String(final.getMinutes()).padStart(2, '0')}`;
+      fixedRanges.push(`${startStr}-${endStr}`);
+
+      cur = final;
+    }
+  });
+
   const userRanges = dayEvents.map(e => `${e.start}-${e.end}`);
+
   const timeRanges = Array.from(new Set([...fixedRanges, ...userRanges]))
     .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
@@ -645,7 +662,6 @@ async function buildOccupancyTable(filterDate) {
         return fsStart < cellEnd && fsEnd > cellStart;
       });
 
-      // escolhe cor e texto
       let cssClass, label;
       if (hasReservation) {
         cssClass = 'bg-red-600'; label = 'ocupado';
@@ -666,6 +682,7 @@ async function buildOccupancyTable(filterDate) {
   });
   table.appendChild(tbody);
 }
+
 
 
 
