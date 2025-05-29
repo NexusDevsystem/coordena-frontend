@@ -717,30 +717,29 @@ async function refreshEvents() {
   }
 }
 
-async function initOccupancyUpdates() {
-  const dateInput = document.getElementById('occupancy-date');
-
-  // 1) carrega slots fixos uma única vez
+async function initOccupancyUpdates({ getDate, getTurno }) {
+  // carrega fixedSlots uma única vez
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
     console.error('Falha ao buscar fixedSchedules:', err);
   }
 
-  // 2) função que reconstrói a tabela para a data selecionada
   function refreshTable() {
-    buildOccupancyTable(dateInput.value);
+    buildOccupancyTable(getDate(), getTurno());
   }
 
-  // 3) valor inicial e listener
-  dateInput.value = new Date().toISOString().slice(0, 10);
+  // listener de data
+  const dateInput = document.getElementById('occupancy-date');
   dateInput.addEventListener('change', refreshTable);
+
+  // tabela inicial
   refreshTable();
 
-  // 4) atualiza só a tabela a cada 5s
+  // atualiza só a tabela a cada 5s
   setInterval(refreshTable, 5 * 1000);
 
-  // 5) re-busca reservas a cada 2min e reconstrói
+  // re-busca reservas a cada 2min e reconstrói tabela com o mesmo filtro
   setInterval(async () => {
     await refreshEvents();
     refreshTable();
