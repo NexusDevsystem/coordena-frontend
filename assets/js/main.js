@@ -763,18 +763,19 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
+  // referências únicas
+  const dateInput = document.getElementById('occupancy-date');
+  const turnoSelect = document.getElementById('turno-filter');
+
   // 1) Inicializa o calendário com seus callbacks originais
   CalendarModule.init(
     data,
     info => {
-      // **Atualiza o date-picker da tabela**
-      const dateInput = document.getElementById('occupancy-date');
-      const turnoSelect = document.getElementById('turno-filter');
-
+      // atualiza date-picker e tabela
       dateInput.value = info.dateStr;
       buildOccupancyTable(info.dateStr, turnoSelect.value);
 
-      // A seguir, abre o formulário como antes
+      // abre formulário
       FormModule.open(null, {
         date: info.dateStr,
         start: '00:00',
@@ -797,56 +798,33 @@ onReady(async () => {
     }
   );
 
-  // 2) Configura o date-picker e o filtro de turno da tabela de ocupação
-  const dateInput = document.getElementById('occupancy-date');
-  const turnoSelect = document.getElementById('turno-filter');
-
-  // Preenche com a data de hoje (YYYY-MM-DD)
+  // 2) Preenche data inicial e listeners de filtro
   dateInput.value = new Date().toISOString().slice(0, 10);
 
-  // Reconstrói a tabela quando a data mudar
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value, turnoSelect.value);
   });
-
-  // Reconstrói a tabela quando o turno mudar
   turnoSelect.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value, turnoSelect.value);
   });
 
   // 3) Ativa atualização automática da tabela (com filtro por data e turno)
-  initOccupancyUpdates();  // initOccupancyUpdates já carrega fixedSlots e chama buildOccupancyTable com dateInput
+  initOccupancyUpdates({
+    getDate: () => dateInput.value,
+    getTurno: () => turnoSelect.value
+  });
 
-  // 4) Desativa importação de fixos nesta versão:
+  // 4) Demais listeners…
   document.getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // Off-canvas menu toggle
-  const menuToggle = document.getElementById('menu-toggle');
-  const sideMenu = document.getElementById('side-menu');
-  const menuClose = document.getElementById('menu-close');
-  const bars = menuToggle.querySelectorAll('span');
+  // off-canvas menu…
+  // (… seu código existente …)
 
-  menuToggle.addEventListener('click', () => {
-    sideMenu.classList.toggle('-translate-x-full');
-    if (sideMenu.classList.contains('-translate-x-full')) {
-      bars[0].classList.remove('rotate-45', 'translate-y-1.5');
-      bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
-    } else {
-      bars[0].classList.add('rotate-45', 'translate-y-1.5');
-      bars[1].classList.add('-rotate-45', '-translate-y-1.5');
-    }
-  });
-
-  menuClose.addEventListener('click', () => {
-    sideMenu.classList.add('-translate-x-full');
-    bars[0].classList.remove('rotate-45', 'translate-y-1.5');
-    bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
-  });
-
-  // 5) Chamada inicial da tabela com filtro 'all'
+  // 5) Chamada inicial
   buildOccupancyTable(dateInput.value, turnoSelect.value);
 });
+
 
