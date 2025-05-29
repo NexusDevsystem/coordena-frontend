@@ -749,19 +749,27 @@ onReady(async () => {
   // 1) Inicializa o calendário com seus callbacks originais
   CalendarModule.init(
     data,
-    info => FormModule.open(null, {
-      date: info.dateStr,
-      start: '00:00',
-      end: '00:00',
-      resource: '',
-      sala: '',
-      type: '',
-      responsible: '',
-      department: '',
-      status: '',
-      description: '',
-      time: ''
-    }),
+    info => {
+      // **Atualiza o date-picker da tabela**
+      const dateInput = document.getElementById('occupancy-date');
+      dateInput.value = info.dateStr;
+      buildOccupancyTable(info.dateStr);
+
+      // A seguir, abre o formulário como antes
+      FormModule.open(null, {
+        date: info.dateStr,
+        start: '00:00',
+        end: '00:00',
+        resource: '',
+        sala: '',
+        type: '',
+        responsible: '',
+        department: '',
+        status: '',
+        description: '',
+        time: ''
+      });
+    },
     info => {
       const ev = CalendarModule
         .getEvents()
