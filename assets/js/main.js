@@ -318,16 +318,13 @@ const FormModule = (() => {
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
     const dtEnd = new Date(`${payload.date}T${payload.end}`);
-
     const conflict = allEvents.some(ev => {
-      const sameDate = ev.date === payload.date;
-      const sameRoom = (ev.sala || ev.resource) === (payload.sala || payload.resource);
-      if (!sameDate || !sameRoom) return false;
+      if (ev.date !== payload.date) return false;
+      if ((ev.sala || ev.resource) !== (payload.sala || payload.resource)) return false;
       const evStart = new Date(`${ev.date}T${ev.start}`);
       const evEnd = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
-
     if (conflict) {
       alert('Conflito: já existe um agendamento para esta sala e horário.');
       return;
