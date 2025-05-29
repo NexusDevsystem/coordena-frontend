@@ -384,6 +384,12 @@ const FormModule = (() => {
   function init() {
     cacheSelectors();
 
+    const user = Auth.getCurrentUser();
+    if (user?.name) {
+      selectors.fields.resp.value = user.name;
+      selectors.fields.resp.setAttribute('readonly', 'readonly');
+    }
+
     // pré-calcula término +50min
     selectors.fields.start.addEventListener('change', () => {
       const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
