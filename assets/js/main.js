@@ -565,7 +565,13 @@ const DetailModule = (() => {
 
 let fixedSlots = [];  // vai receber o array de horários fixos
 
-async function buildOccupancyTable(filterDate) {
+/**
+ * Reconstrói a tabela de ocupação para a data e turno informados.
+ *
+ * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
+ * @param {string} turnoFilter — 'all' | 'manha' | 'tarde' | 'noite'
+ */
+async function buildOccupancyTable(filterDate, turnoFilter = 'all') {
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';  // limpa antes de tudo
 
@@ -579,46 +585,57 @@ async function buildOccupancyTable(filterDate) {
   const weekday = new Date(Y, M - 1, D).getDay();
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 3) monta lista de faixas (ranges):
+  // 3) define janelas de cada turno
+  const turnoRanges = {
+    manha: { start: '06:00', end: '12:00' },
+    tarde: { start: '12:00', end: '18:00' },
+    noite: { start: '18:00', end: '23:59' }
+  };
+  function inTurno(start, end, t) {
+    if (t === 'all') return true;
+    const { start: ts, end: te } = turnoRanges[t];
+    return end > ts && start < te;
+  }
+
+  // 4) filtra reservas e slots fixos pelo turno
+  const eventsFiltered = dayEvents.filter(ev => inTurno(ev.start, ev.end, turnoFilter));
+  const fixedFiltered = fixedTodaySlots.filter(fs => inTurno(fs.startTime, fs.endTime, turnoFilter));
+
+  // 5) monta lista de faixas (ranges):
   //    - primeiro, quebra cada slot fixo em blocos de 50 min
   //    - depois adiciona as faixas das reservas atípicas
   const fixedRanges = [];
-  fixedTodaySlots.forEach(fs => {
+  fixedFiltered.forEach(fs => {
     const [sh, sm] = fs.startTime.split(':').map(Number);
     const [eh, em] = fs.endTime.split(':').map(Number);
     let cur = new Date(Y, M - 1, D, sh, sm);
     const endF = new Date(Y, M - 1, D, eh, em);
-
     while (cur < endF) {
       const nxt = new Date(cur);
       nxt.setMinutes(cur.getMinutes() + 50);
       const final = nxt > endF ? endF : nxt;
-
       const startStr = `${String(cur.getHours()).padStart(2, '0')}:${String(cur.getMinutes()).padStart(2, '0')}`;
       const endStr = `${String(final.getHours()).padStart(2, '0')}:${String(final.getMinutes()).padStart(2, '0')}`;
       fixedRanges.push(`${startStr}-${endStr}`);
-
       cur = final;
     }
   });
-
-  const userRanges = dayEvents.map(e => `${e.start}-${e.end}`);
-
+  const userRanges = eventsFiltered.map(e => `${e.start}-${e.end}`);
   const timeRanges = Array.from(new Set([...fixedRanges, ...userRanges]))
     .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 4) lista de laboratórios (salas) unindo fixos + reservas
-  const fixedLabs = fixedTodaySlots.map(s => s.lab);
-  const eventLabs = dayEvents.map(e => e.sala || e.resource);
+  // 6) lista de laboratórios (salas) unindo fixos + reservas
+  const fixedLabs = fixedFiltered.map(s => s.lab);
+  const eventLabs = eventsFiltered.map(e => e.sala || e.resource);
   const labs = Array.from(new Set([...fixedLabs, ...eventLabs]));
 
-  // 5) se não houver dados, sai
+  // 7) se não houver dados, sai
   if (!timeRanges.length || !labs.length) {
     table.innerHTML = '<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>';
     return;
   }
 
-  // 6) cabeçalho
+  // 8) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -629,7 +646,7 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
-  // 7) corpo
+  // 9) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -643,7 +660,7 @@ async function buildOccupancyTable(filterDate) {
       const cellEnd = new Date(Y, M - 1, D, ceH, ceM);
 
       // reserva do usuário que cruza este intervalo?
-      const hasReservation = dayEvents.some(ev => {
+      const hasReservation = eventsFiltered.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const [esH, esM] = ev.start.split(':').map(Number);
         const [eeH, eeM] = ev.end.split(':').map(Number);
@@ -653,7 +670,7 @@ async function buildOccupancyTable(filterDate) {
       });
 
       // slot fixo (aula) que cruza este intervalo?
-      const isFixed = fixedTodaySlots.some(fs => {
+      const isFixed = fixedFiltered.some(fs => {
         if (fs.lab !== lab) return false;
         const [fsH, fsM] = fs.startTime.split(':').map(Number);
         const [feH, feM] = fs.endTime.split(':').map(Number);
@@ -752,8 +769,10 @@ onReady(async () => {
     info => {
       // **Atualiza o date-picker da tabela**
       const dateInput = document.getElementById('occupancy-date');
+      const turnoSelect = document.getElementById('turno-filter');
+
       dateInput.value = info.dateStr;
-      buildOccupancyTable(info.dateStr);
+      buildOccupancyTable(info.dateStr, turnoSelect.value);
 
       // A seguir, abre o formulário como antes
       FormModule.open(null, {
@@ -778,17 +797,25 @@ onReady(async () => {
     }
   );
 
-  // 2) Configura o date-picker da tabela de ocupação
+  // 2) Configura o date-picker e o filtro de turno da tabela de ocupação
   const dateInput = document.getElementById('occupancy-date');
+  const turnoSelect = document.getElementById('turno-filter');
+
   // Preenche com a data de hoje (YYYY-MM-DD)
   dateInput.value = new Date().toISOString().slice(0, 10);
+
   // Reconstrói a tabela quando a data mudar
   dateInput.addEventListener('change', () => {
-    buildOccupancyTable(dateInput.value);
+    buildOccupancyTable(dateInput.value, turnoSelect.value);
   });
 
-  // 3) Ativa atualização automática da tabela (com filtro por data)
-  initOccupancyUpdates();
+  // Reconstrói a tabela quando o turno mudar
+  turnoSelect.addEventListener('change', () => {
+    buildOccupancyTable(dateInput.value, turnoSelect.value);
+  });
+
+  // 3) Ativa atualização automática da tabela (com filtro por data e turno)
+  initOccupancyUpdates();  // initOccupancyUpdates já carrega fixedSlots e chama buildOccupancyTable com dateInput
 
   // 4) Desativa importação de fixos nesta versão:
   document.getElementById('import-schedule')
@@ -819,4 +846,7 @@ onReady(async () => {
     bars[1].classList.remove('-rotate-45', '-translate-y-1.5');
   });
 
+  // 5) Chamada inicial da tabela com filtro 'all'
+  buildOccupancyTable(dateInput.value, turnoSelect.value);
 });
+
