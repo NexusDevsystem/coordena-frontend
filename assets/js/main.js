@@ -572,118 +572,102 @@ let fixedSlots = [];  // vai receber o array de horários fixos
  */
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+  table.innerHTML = '';  // limpa antes de tudo
 
-  // 1) carrega reservas e slots fixos do dia
+  // 1) reservas do usuário
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const dayEvents = allEvents.filter(e => e.date === dateStr);
 
-  const [Y, M, D] = dateStr.split('-').map(n => +n);
-  const wd = new Date(Y, M - 1, D).getDay();
-  const fixedToday = fixedSlots.filter(s => s.dayOfWeek === wd);
+  // 2) slots fixos completos do dia
+  const [Y, M, D] = dateStr.split('-').map(Number);
+  const weekday = new Date(Y, M - 1, D).getDay();
+  const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) descobre o menor horário de início e o maior de término
-  const times = [
-    ...fixedToday.map(s => s.startTime),
-    ...fixedToday.map(s => s.endTime),
-    ...dayEvents.map(e => e.start),
-    ...dayEvents.map(e => e.end)
-  ].map(t => {
-    const [h, m] = t.split(':').map(n => +n);
-    const d = new Date(Y, M - 1, D, h, m);
-    return d.getHours() * 60 + d.getMinutes();
-  });
-  const minMins = Math.min(...times);
-  const maxMins = Math.max(...times);
+  // 3) monta lista de ranges (faixas) unindo fixos + reservas
+  const fixedRanges = fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`);
+  const userRanges = dayEvents.map(e => `${e.start}-${e.end}`);
+  const timeRanges = Array.from(new Set([...fixedRanges, ...userRanges]))
+    .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 3) gera a grade de colunas a cada 30 minutos
-  const timeRanges = [];
-  for (let t = minMins; t < maxMins; t += 30) {
-    const h1 = Math.floor(t / 60), m1 = t % 60;
-    const h2 = Math.floor((t + 30) / 60), m2 = (t + 30) % 60;
-    const start = `${String(h1).padStart(2, '0')}:${String(m1).padStart(2, '0')}`;
-    const end = `${String(h2).padStart(2, '0')}:${String(m2).padStart(2, '0')}`;
-    timeRanges.push(`${start}-${end}`);
+  // 4) monta lista de labs (salas) unindo fixos + reservas
+  const fixedLabs = fixedTodaySlots.map(s => s.lab);
+  const eventLabs = dayEvents.map(e => e.sala || e.resource);
+  const labs = Array.from(new Set([...fixedLabs, ...eventLabs]));
+
+  // 5) se não houver nem colunas nem salas, mostra mensagem e sai
+  if (!timeRanges.length || !labs.length) {
+    table.innerHTML = '<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>';
+    return;
   }
 
-  // 4) lista de laboratórios
-  const labs = Array.from(new Set([
-    ...fixedToday.map(s => s.lab),
-    ...dayEvents.map(e => e.sala || e.resource)
-  ]));
-
-  // 5) cabeçalho
+  // 6) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
-      <th class="px-2 py-1 border">Sala / Horário</th>
-      ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+      <th class="px-2 py-1 border text-left">Sala / Horário</th>
+      ${timeRanges.map(r =>
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
-  // 6) corpo com colspan para reservas longas
+  // 7) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-    let idx = 0;
-    while (idx < timeRanges.length) {
-      const [st, en] = timeRanges[idx].split('-');
-      const [h1, m1] = st.split(':').map(n => +n);
-      const [h2, m2] = en.split(':').map(n => +n);
-      const cellStart = new Date(Y, M - 1, D, h1, m1);
-      const cellEnd = new Date(Y, M - 1, D, h2, m2);
+    timeRanges.forEach(range => {
+      const [start, end] = range.split('-');
+      const [csH, csM] = start.split(':').map(Number);
+      const [ceH, ceM] = end.split(':').map(Number);
+      const cellStart = new Date(Y, M - 1, D, csH, csM);
+      const cellEnd = new Date(Y, M - 1, D, ceH, ceM);
 
-      // encontra se existe reserva cobrindo essa célula
-      const res = dayEvents.find(ev => {
-        if ((ev.sala || ev.resource) !== lab) return false;
-        const [esH, esM] = ev.start.split(':').map(n => +n);
-        const [eeH, eeM] = ev.end.split(':').map(n => +n);
-        const evS = new Date(Y, M - 1, D, esH, esM);
-        const evE = new Date(Y, M - 1, D, eeH, eeM);
-        return evS < cellEnd && evE > cellStart;
+      // reserva que cruza este intervalo?
+      const hasReservation = dayEvents.some(ev => {
+        const labMatch = (ev.sala || ev.resource) === lab;
+        if (!labMatch) return false;
+        const [esH, esM] = ev.start.split(':').map(Number);
+        const [eeH, eeM] = ev.end.split(':').map(Number);
+        const evStart = new Date(Y, M - 1, D, esH, esM);
+        const evEnd = new Date(Y, M - 1, D, eeH, eeM);
+        return evStart < cellEnd && evEnd > cellStart;
       });
 
-      if (res) {
-        // quantas colunas consecutivas esse res ocupa?
-        let span = 0;
-        for (let j = idx; j < timeRanges.length; j++) {
-          const [s2, e2] = timeRanges[j].split('-');
-          const [h3, m3] = s2.split(':').map(n => +n);
-          const [h4, m4] = e2.split(':').map(n => +n);
-          const cS = new Date(Y, M - 1, D, h3, m3);
-          const cE = new Date(Y, M - 1, D, h4, m4);
-          const [rsH, rsM] = res.start.split(':').map(n => +n);
-          const [reH, reM] = res.end.split(':').map(n => +n);
-          const rS = new Date(Y, M - 1, D, rsH, rsM);
-          const rE = new Date(Y, M - 1, D, reH, reM);
-          if (rS < cE && rE > cS) span++;
-          else break;
-        }
-        tr.innerHTML += `<td colspan="${span}" class="px-2 py-1 border bg-red-600 text-white text-center">ocupado</td>`;
-        idx += span;
-        continue;
-      }
-
-      // se não for reserva, checa se é slot fixo (aula)
-      const isFixed = fixedToday.some(fs => {
+      // slot fixo que cruza este intervalo?
+      const isFixed = fixedTodaySlots.some(fs => {
         if (fs.lab !== lab) return false;
-        return fs.startTime === st && fs.endTime === en;
+        const [fsH, fsM] = fs.startTime.split(':').map(Number);
+        const [feH, feM] = fs.endTime.split(':').map(Number);
+        const fsStart = new Date(Y, M - 1, D, fsH, fsM);
+        const fsEnd = new Date(Y, M - 1, D, feH, feM);
+        return fsStart < cellEnd && fsEnd > cellStart;
       });
-      if (isFixed) {
-        tr.innerHTML += `<td class="px-2 py-1 border bg-gray-600 text-white text-center">aula</td>`;
+
+      // define cor/label
+      let cssClass, label;
+      if (hasReservation) {
+        cssClass = 'bg-red-600'; label = 'ocupado';
+      } else if (isFixed) {
+        cssClass = 'bg-gray-600'; label = 'aula';
       } else {
-        tr.innerHTML += `<td class="px-2 py-1 border bg-green-600 text-white text-center">livre</td>`;
+        cssClass = 'bg-green-600'; label = 'livre';
       }
-      idx++;
-    }
+
+      tr.innerHTML += `
+        <td class="px-2 py-1 border text-white text-center ${cssClass}">
+          ${label}
+        </td>
+      `;
+    });
 
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
 }
+
 
 
 // ----------------------
