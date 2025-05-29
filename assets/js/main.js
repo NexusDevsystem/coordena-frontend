@@ -282,9 +282,9 @@ const FormModule = (() => {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
     }
-    
+
     if (evData) {
-      // pré-preencher para edição
+      // pré-preencher para edição (somente sobrescreve resp se evData.responsible existir)
       selectors.fields.data.value = evData.date;
       selectors.fields.start.value = evData.start;
       selectors.fields.end.value = evData.end;
@@ -292,20 +292,16 @@ const FormModule = (() => {
       selectors.fields.recurso.dispatchEvent(new Event('change'));
       selectors.fields.sala.value = evData.sala || '';
       selectors.fields.type.value = evData.type;
-      selectors.fields.resp.value = evData.responsible;
+      if (evData.responsible) {
+        selectors.fields.resp.value = evData.responsible;
+        selectors.fields.resp.setAttribute('readonly', 'readonly');
+      }
       selectors.fields.dept.value = evData.department;
       selectors.fields.status.value = evData.status;
       selectors.fields.desc.value = evData.description;
       if (evData.materia) {
         selectors.fields.materia.innerHTML = `<option value="${evData.materia}">${evData.materia}</option>`;
         selectors.fields.materia.disabled = false;
-      }
-    } else {
-      // novo; pré-preenche responsável
-      const user = Auth.getCurrentUser();
-      if (user?.name) {
-        selectors.fields.resp.value = user.name;
-        selectors.fields.resp.setAttribute('readonly', 'readonly');
       }
     }
 
