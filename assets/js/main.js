@@ -727,6 +727,20 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
+  // Sincroniza o ícone do botão de tema no menu
+  const menuThemeBtn = document.getElementById('menu-theme-btn');
+  if (menuThemeBtn) {
+    // Estado inicial (exibe lua se estiver em dark)
+    if (document.documentElement.classList.contains('dark')) {
+      menuThemeBtn.classList.add('dark');
+    }
+    // Ao clicar, ThemeToggle já alterna o tema no <html>,
+    // aqui mantemos o .dark no botão pra trocar o ícone
+    menuThemeBtn.addEventListener('click', () => {
+      menuThemeBtn.classList.toggle('dark');
+    });
+  }
+
   // 1) busca reservas iniciais para o FullCalendar
   let data = [];
   try {
@@ -783,7 +797,8 @@ onReady(async () => {
   initOccupancyUpdates();
 
   // 6) listener extra (importação desativada)
-  document.getElementById('import-schedule')
+  document
+    .getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
@@ -791,6 +806,7 @@ onReady(async () => {
   // 7) chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
+
 
 
 

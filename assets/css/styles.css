@@ -245,7 +245,8 @@ body {
 .offcanvas-menu .menu-user-info {
   text-align: center;
   color: #cbd5e1;
-  margin: 3rem 0 1.5rem; /* 3rem de espaço acima, 1.5rem abaixo */
+  margin: 3rem 0 1.5rem;
+  /* 3rem de espaço acima, 1.5rem abaixo */
 }
 
 .offcanvas-menu .menu-user-info #menu-user-name {
@@ -344,27 +345,53 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Botão Tema: sol e lua em amarelo/dourado */
-#menu-theme-btn {
-  color: #facc15;
-  /* amarelo açafrão */
-}
-
-/* Esconde ícone inverso */
-#menu-theme-btn:not(.dark) .fa-moon,
+/* botão tema: exibe só o ícone correspondente */
+#menu-theme-btn .fa-moon,
 #menu-theme-btn.dark .fa-sun {
   display: none;
 }
 
-/* Botão logout em tom suave de vermelho */
+#menu-theme-btn:not(.dark) .fa-moon,
+#menu-theme-btn.dark .fa-sun {
+  display: inline-block;
+}
+
+/* espaçamento dos ícones */
+.footer-btn i {
+  font-size: 1.4rem;
+}
+
+/* mantém o estilo de botões repaginados */
+.offcanvas-menu .footer-btn {
+  width: 3.2rem;
+  height: 3.2rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.offcanvas-menu .footer-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* logout mantém o tom vermelho */
 .offcanvas-menu .footer-btn.logout {
   background: rgba(220, 38, 38, 0.9);
-  color: #fff;
 }
 
 .offcanvas-menu .footer-btn.logout:hover {
   background: rgba(239, 68, 68, 1);
 }
+
 
 
 /* abrir/fechar menu */

@@ -19,6 +19,10 @@
     }
   </script>
 
+  <!-- dentro de <head> -->
+  <script src="https://kit.fontawesome.com/SEU_KIT.js" crossorigin="anonymous"></script>
+
+
   <!-- Favicon -->
   <link rel="icon" href="assets/img/logo.png" type="image/png" />
 
@@ -41,44 +45,44 @@
 
   <!-- Off-Canvas Menu (ExPoNjm) -->
   <header class="offcanvas-menu">
-  <input type="checkbox" id="toggle-menu" />
+    <input type="checkbox" id="toggle-menu" />
 
-  <!-- ícone hamburguer / X -->
-  <label for="toggle-menu" class="toggle-open"><span></span></label>
+    <!-- ícone hamburguer / X -->
+    <label for="toggle-menu" class="toggle-open"><span></span></label>
 
-  <nav>
-    <!-- Usuário logado -->
-  <div class="menu-user-info">
-    <div id="menu-user-name">Seu Nome</div>
-    <div id="menu-user-email">seu.email@exemplo.com</div>
-  </div>
-    <div class="brand">
-      <a href="#">
-      </a>
-      <label for="toggle-menu" class="toggle-close"><span></span></label>
-    </div>
+    <nav>
+      <!-- Usuário logado -->
+      <div class="menu-user-info">
+        <div id="menu-user-name">Seu Nome</div>
+        <div id="menu-user-email">seu.email@exemplo.com</div>
+      </div>
+      <div class="brand">
+        <a href="#">
+        </a>
+        <label for="toggle-menu" class="toggle-close"><span></span></label>
+      </div>
 
-    <ul class="menu-list">
-  <li><a href="#home">Teste</a></li>
-  <li><a href="#user">Teste</a></li>
-  <li><a href="#contact">Teste</a></li>
-  <li><a href="#map">Teste</a></li>
-  <li><a href="#settings">Teste</a></li>
-  <li><a href="#search">Teste</a></li>
-</ul>
+      <ul class="menu-list">
+        <li><a href="#home">Teste</a></li>
+        <li><a href="#user">Teste</a></li>
+        <li><a href="#contact">Teste</a></li>
+        <li><a href="#map">Teste</a></li>
+        <li><a href="#settings">Teste</a></li>
+        <li><a href="#search">Teste</a></li>
+      </ul>
 
 
-    <!-- ações fixas -->
-    <div class="menu-footer-btns">
-  <button id="menu-theme-btn" class="footer-btn rounded-btn">
-    <i class="fa fa-sun"></i>
-  </button>
-  <button id="menu-logout-btn" class="footer-btn rounded-btn logout">
-    <i class="fa fa-sign-out-alt"></i>
-  </button>
-</div>
-  </nav>
-</header>
+      <div class="menu-footer-btns">
+        <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
+          <i class="fas fa-sun"></i>
+          <i class="fas fa-moon"></i>
+        </button>
+        <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </nav>
+  </header>
 
   <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
