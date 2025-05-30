@@ -575,6 +575,10 @@ function toDate(Y, M, D, hm) {
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
+  if (!table) {
+    console.error('❌ #occupancy-table não encontrado no DOM');
+    return;
+  }
   table.innerHTML = '';  // limpa antes de tudo
 
   // 1) dados de reservas e slots fixos do dia
@@ -680,9 +684,7 @@ async function buildOccupancyTable(filterDate) {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
-    // limpa o calendário interno
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    // re‐adiciona tudo
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
     console.error('Erro ao buscar eventos:', err);
@@ -698,6 +700,10 @@ async function initOccupancyUpdates() {
   }
 
   const dateInput = document.getElementById('occupancy-date');
+  if (!dateInput) {
+    console.error('❌ #occupancy-date não encontrado no DOM');
+    return;
+  }
 
   // função única de refresh da tabela
   function refreshTable() {
@@ -720,6 +726,7 @@ async function initOccupancyUpdates() {
     refreshTable();
   }, 2 * 60 * 1000);
 }
+
 
 
 
