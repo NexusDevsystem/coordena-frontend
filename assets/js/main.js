@@ -594,9 +594,7 @@ async function buildOccupancyTable(filterDate) {
   while (cursor < slotEnd) {
     const next = new Date(cursor);
     next.setMinutes(cursor.getMinutes() + 50);
-    timeRanges.push(
-      `${padHM(cursor)}-${padHM(next)}`
-    );
+    timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
     cursor = next;
   }
 
@@ -655,15 +653,11 @@ async function buildOccupancyTable(filterDate) {
         style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        // se o agora for antes do fim da aula, mostra turno; se não, mostra livre
-        if (now < toDate(Y, M, D, fixed.endTime)) {
-          style = `background-color: ${turnoColors[fixed.turno]};`;
-          label = fixed.turno;
-        } else {
-          style = 'background-color: rgba(16,185,129,0.8);'; // verde
-          label = 'livre';
-        }
+        // aula fixa: cor do turno, sempre visível
+        style = `background-color: ${turnoColors[fixed.turno]};`;
+        label = fixed.turno;
       } else {
+        // livre nos demais casos
         style = 'background-color: rgba(16,185,129,0.8);'; // verde
         label = 'livre';
       }
