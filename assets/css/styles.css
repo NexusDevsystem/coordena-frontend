@@ -166,57 +166,53 @@ body {
   display: none;
 }
 
-/* botões de abrir/fechar: apenas 2 linhas que viram X */
-.offcanvas-menu label span {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 0.25rem;
-  background: #5c7cfa;
-  border-radius: 2px;
-  transition: background 0.3s, transform 0.3s;
+/* botões de abrir/fechar (2 linhas que viram X) */
+.offcanvas-menu label {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  transition: 0.3s ease;
 }
 
-/* primeira linha acima */
-.offcanvas-menu label span::before {
-  content: "";
-  position: absolute;
-  top: -0.6rem;
-  left: 0;
-  width: 100%;
-  height: 0.25rem;
-  background: #5c7cfa;
-  border-radius: 2px;
-  transition: top 0.3s, transform 0.3s;
-}
-
-/* segunda linha abaixo */
+/* Duas linhas */
+.offcanvas-menu label span,
+.offcanvas-menu label span::before
 .offcanvas-menu label span::after {
   content: "";
   position: absolute;
-  top: 0.6rem;
-  left: 0;
   width: 100%;
   height: 0.25rem;
   background: #5c7cfa;
-  border-radius: 2px;
+  /* Azul Coordena+ */
   transition: top 0.3s, transform 0.3s;
 }
 
-/* estado aberto: faz X */
-.offcanvas-menu input[type="checkbox"]:checked ~ label span {
-  background: transparent;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ label span::before {
-  top: 0;
-  transform: rotate(45deg);
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ label span::after {
-  top: 0;
-  transform: rotate(-45deg);
+/* Linha de cima */
+.offcanvas-menu label span::before {
+  top: 40%;
 }
 
+/* Linha de baixo */
+.offcanvas-menu label span {
+  top: 60%;
+}
+
+/* Estado aberto: sobrepõe e gira em X */
+.offcanvas-menu input[type="checkbox"]:checked~label span {
+  top: 50%;
+  transform: rotate(45deg);
+}
+
+.offcanvas-menu input[type="checkbox"]:checked~label span::before {
+  top: 50%;
+  transform: rotate(-45deg);
+}
 
 /* Garante que não exista mais uma terceira barra */
 .offcanvas-menu label span::after {
