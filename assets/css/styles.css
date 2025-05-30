@@ -273,38 +273,58 @@ body {
   content: " 0" counter(nav-link);
 }
 
-/* ações fixas (Tema / Sair) */
+/* —— Botões “Tema / Sair” repaginados —— */
 .offcanvas-menu .menu-footer-btns {
   margin-top: auto;
   display: flex;
   justify-content: center;
   gap: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: 2rem;
 }
+
 .offcanvas-menu .footer-btn {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.2rem;
+  height: 3.2rem;
   border: none;
-  border-radius: 50%;
-  background: #1e293b;
-  color: #e2e8f0;
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
+
+/* Hover e clique */
 .offcanvas-menu .footer-btn:hover {
-  background: #5c7cfa;
-  transform: scale(1.05);
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
+
+/* Botão Tema: sol e lua em amarelo/dourado */
+#menu-theme-btn {
+  color: #facc15; /* amarelo açafrão */
+}
+
+/* Esconde ícone inverso */
+#menu-theme-btn:not(.dark) .fa-moon,
+#menu-theme-btn.dark    .fa-sun {
+  display: none;
+}
+
+/* Botão logout em tom suave de vermelho */
 .offcanvas-menu .footer-btn.logout {
-  background: #dc2626;
+  background: rgba(220,38,38,0.9);
+  color: #fff;
 }
 .offcanvas-menu .footer-btn.logout:hover {
-  background: #ef4444;
+  background: rgba(239,68,68,1);
 }
+
 
 /* abrir/fechar menu */
 .offcanvas-menu input[type="checkbox"]:checked ~ nav {
