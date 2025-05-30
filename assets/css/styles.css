@@ -383,13 +383,19 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* logout mantém o tom vermelho */
+/* logout mantém o tom vermelho e exibe ícone local */
 .offcanvas-menu .footer-btn.logout {
-  background: rgba(220, 38, 38, 0.9);
+  background-color: rgba(220, 38, 38, 0.9);
+  background-image: url("assets/img/icons/logout.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1.6rem 1.6rem;
+  padding: 0;              /* Ajusta o tamanho apenas ao ícone */
 }
 
+/* hover com tom mais vivo */
 .offcanvas-menu .footer-btn.logout:hover {
-  background: rgba(239, 68, 68, 1);
+  background-color: rgba(239, 68, 68, 1);
 }
 
 
