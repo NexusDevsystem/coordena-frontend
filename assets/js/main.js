@@ -714,8 +714,6 @@ async function initOccupancyUpdates() {
   }, 2 * 60 * 1000);
 }
 
-
-
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
 // ----------------------
