@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Coordena+</title>
 
   <!-- Tailwind + Dark Mode -->
@@ -45,188 +46,257 @@
       font-family: Arial, sans-serif;
       overflow-x: hidden;
     }
+
     .dark body {
       background-image: url("assets/img/backgrounddark.png");
     }
+
     @media (max-width: 768px) {
-      html, body { height: 100vh; overflow: hidden; }
-    }
-    @media (min-width: 769px) {
-      body { overflow-y: auto; }
+
+      html,
+      body {
+        height: 100vh;
+        overflow: hidden;
+      }
     }
 
- /* ================================================
+    @media (min-width: 769px) {
+      body {
+        overflow-y: auto;
+      }
+    }
+
+    /* ================================================
    Off-canvas Menu GTA VI Style (half-screen)
    ================================================ */
-.menu-button {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 70;
-  cursor: pointer;
-  width: 2.5rem; height: 2.5rem;
-  display: flex; align-items: center; justify-content: center;
-}
-.menu-button img { width: 2rem; height: 2rem; }
+    .menu-button {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 70;
+      cursor: pointer;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* Container principal do menu */
-nav.menu {
-  position: fixed; top: 0;
-  right: -50vw;   /* esconde metade da largura */
-  width: 50vw;    /* abre até o centro */
-  height: 100vh;
-  background: #111; color: #fff;
-  transition: right 0.3s ease;
-  overflow: hidden; z-index: 65;
-}
-nav.menu.open { right: 0; }
+    .menu-button img {
+      width: 2rem;
+      height: 2rem;
+    }
 
-/* Flex interno */
-nav.menu .container { display: flex; height: 100%; }
+    /* Container principal do menu */
+    nav.menu {
+      position: fixed;
+      top: 0;
+      right: -50vw;
+      /* esconde metade da largura */
+      width: 50vw;
+      /* abre até o centro */
+      height: 100vh;
+      background: #111;
+      color: #fff;
+      transition: right 0.3s ease;
+      overflow: hidden;
+      z-index: 65;
+    }
 
-/* LADO ESQUERDO */
-nav.menu .left {
-  flex: 1;
-  background: linear-gradient(to bottom, #2f395e, #116897);
-  display: flex; flex-direction: column; align-items: center;
-  padding: 2rem 1rem;
-}
-nav.menu .left .user-avatar {
-  width: 4rem; height: 4rem; margin-bottom: 1rem;
-}
-nav.menu .left .user-avatar img {
-  width: 100%; height: 100%;
-  border-radius: 9999px; object-fit: cover;
-  border: 2px solid #fff;
-}
-nav.menu .left .user-name {
-  font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem;
-}
-nav.menu .left .user-email {
-  font-size: 0.875rem; opacity: 0.8;
-}
+    nav.menu.open {
+      right: 0;
+    }
 
-/* LADO DIREITO */
-nav.menu .right {
-  flex: 1; background-color: #1e1e2f;
-  display: flex; flex-direction: column; padding: 1.5rem;
-}
+    /* Flex interno */
+    nav.menu .container {
+      display: flex;
+      height: 100%;
+    }
 
-/* Ações rápidas no topo */
-nav.menu .right .menu-actions {
-  display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
-}
-nav.menu .right .action-btn {
-  flex: 1;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0.6rem 1rem;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 0.5rem;
-  color: #fff; font-size: 0.9rem; font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-}
-nav.menu .right .action-btn:hover {
-  background: rgba(255,255,255,0.2);
-  transform: translateY(-2px);
-}
-nav.menu .right .logout-btn {
-  background: rgba(220,38,38,0.8);
-}
-nav.menu .right .logout-btn:hover {
-  background: rgba(220,38,38,1);
-}
+    /* LADO ESQUERDO */
+    nav.menu .left {
+      flex: 1;
+      background: linear-gradient(to bottom, #2f395e, #116897);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
 
-/* Título */
-nav.menu .right .menu-title {
-  font-size: 1.5rem; color: #fff;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 0.5rem;
-}
+    nav.menu .left .user-avatar {
+      width: 4rem;
+      height: 4rem;
+      margin-bottom: 1rem;
+    }
 
-/* Lista de navegação */
-nav.menu .right .nav-list {
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex; flex-direction: column; gap: 0.75rem;
-  margin-bottom: 1rem; padding-right: 0.5rem;
-}
-nav.menu .right .nav-item {
-  display: flex; align-items: center;
-  padding: 0.5rem 0.75rem;
-  color: #e5e7eb; text-decoration: none;
-  border-radius: 0.375rem;
-  transition: background 0.2s, color 0.2s;
-}
-nav.menu .right .nav-item:hover {
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-}
+    nav.menu .left .user-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px;
+      object-fit: cover;
+      border: 2px solid #fff;
+    }
 
-/* Rodapé */
-nav.menu .right .footer {
-  margin-top: auto;
-  text-align: center; font-size: 0.85rem; color: #aaa;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 0.75rem;
-}
+    nav.menu .left .user-name {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
 
+    nav.menu .left .user-email {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
 
+    /* LADO DIREITO */
+    nav.menu .right {
+      flex: 1;
+      background-color: #1e1e2f;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+    }
 
+    /* Ações rápidas no topo */
+    nav.menu .right .menu-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    nav.menu .right .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 0.5rem;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    nav.menu .right .action-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    nav.menu .right .logout-btn {
+      background: rgba(220, 38, 38, 0.8);
+    }
+
+    nav.menu .right .logout-btn:hover {
+      background: rgba(220, 38, 38, 1);
+    }
+
+    /* Título */
+    nav.menu .right .menu-title {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 0.5rem;
+    }
+
+    /* Lista de navegação */
+    nav.menu .right .nav-list {
+      flex-grow: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    nav.menu .right .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      color: #e5e7eb;
+      text-decoration: none;
+      border-radius: 0.375rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    nav.menu .right .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    /* Rodapé */
+    nav.menu .right .footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #aaa;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 0.75rem;
+    }
   </style>
 </head>
+
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <!-- Botão do menu -->
-<div class="menu-button" onclick="toggleMenu()">
-  <img src="assets/img/menu.png" alt="Menu" />
-</div>
-
-<!-- Off-canvas Menu GTA VI -->
-<nav class="menu">
-  <div class="container">
-    <!-- ESQUERDA: avatar / info do usuário -->
-    <div class="left">
-      <div class="user-avatar">
-        <img src="assets/img/avatar-placeholder.png" alt="Avatar" />
-      </div>
-      <div class="user-name" id="menu-user-name">—</div>
-      <div class="user-email" id="menu-user-email">—</div>
-    </div>
-
-    <!-- DIREITA: ações, navegação e rodapé -->
-    <div class="right">
-      <!-- Ações rápidas -->
-      <div class="menu-actions">
-        <button id="menu-theme-btn" class="action-btn">
-          Tema
-        </button>
-        <button id="menu-logout-btn" class="action-btn logout-btn">
-          Sair
-        </button>
-      </div>
-
-      <!-- Título -->
-      <h2 class="menu-title">Menu</h2>
-
-      <!-- Lista de links / seções -->
-      <div class="nav-list">
-        <a href="#" class="nav-item">PERFIL</a>
-        <a href="#" class="nav-item">SEUS AGENDAMENTOS</a>
-        <a href="#" class="nav-item">Configurações</a>
-        <a href="#" class="nav-item">Ajuda</a>
-        <!-- adicione quantos itens precisar -->
-      </div>
-
-      <!-- Rodapé -->
-      <div class="footer">
-        <div class="locale">Português do Brasil</div>
-      </div>
-    </div>
+  <div class="menu-button" onclick="toggleMenu()">
+    <img src="assets/img/menu.png" alt="Menu" />
   </div>
-</nav>
+
+  <!-- Off-canvas Menu Modernizado -->
+  <nav id="side-menu" class="">
+    <!-- Cabeçalho com ações -->
+    <div class="menu-header">
+      <div class="user-block">
+        <img src="assets/img/avatar-placeholder.png" alt="Avatar" class="user-avatar" />
+        <div class="user-info">
+          <div id="menu-user-name">Sergio Andrade</div>
+          <div id="menu-user-email">202302450921@professor.estacio.br</div>
+        </div>
+      </div>
+      <button id="menu-close-btn" aria-label="Fechar menu">
+        <svg width="24" height="24" stroke="#fff" stroke-width="2" fill="none">
+          <line x1="5" y1="5" x2="19" y2="19" />
+          <line x1="19" y1="5" x2="5" y2="19" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Ações Tema/Logout -->
+    <div class="menu-actions-top">
+      <button id="menu-theme-btn" class="action-btn">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 3a9 9 0 0 0 0 18 9 9 0 0 1 0-18z" />
+        </svg>
+        Tema
+      </button>
+      <button id="menu-logout-btn" class="action-btn logout-btn">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 17l5-5-5-5M21 12H9" />
+          <path d="M13 5v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2" />
+        </svg>
+        Sair
+      </button>
+    </div>
+
+    <!-- Itens de navegação -->
+    <ul class="nav-list">
+      <li><a href="#" class="nav-item active">Perfil</a></li>
+      <li><a href="#" class="nav-item">Seus Agendamentos</a></li>
+      <li><a href="#" class="nav-item">Configurações</a></li>
+      <li><a href="#" class="nav-item">Ajuda</a></li>
+    </ul>
+
+    <!-- Rodapé -->
+    <div class="menu-footer">
+      <small>Português do Brasil</small>
+    </div>
+  </nav>
+
 
 
 
@@ -236,14 +306,12 @@ nav.menu .right .footer {
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
       <!-- Agendamento -->
       <a href="pages/agendamento.html"
-         class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
+        class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center">
         <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7V3M16 7V3M3 11h18
-                     M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3M16 7V3M3 11h18
+                     M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
@@ -252,11 +320,9 @@ nav.menu .right .footer {
       <!-- Placeholders -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-gray-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
@@ -264,11 +330,9 @@ nav.menu .right .footer {
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
         <div class="mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               class="h-12 w-12 text-gray-400 mx-auto"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
           </svg>
         </div>
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
@@ -290,7 +354,7 @@ nav.menu .right .footer {
     // Exibe nome e email no menu
     document.addEventListener('DOMContentLoaded', () => {
       if (window.user) {
-        document.getElementById('menu-user-name').textContent  = window.user.name;
+        document.getElementById('menu-user-name').textContent = window.user.name;
         document.getElementById('menu-user-email').textContent = window.user.email;
       }
     });
@@ -308,4 +372,5 @@ nav.menu .right .footer {
     });
   </script>
 </body>
+
 </html>
