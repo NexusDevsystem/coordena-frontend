@@ -577,30 +577,38 @@ async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
 
-  // 1) dados básicos
+  // 1) reserva + slots fixos do dia
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const [Y, M, D] = dateStr.split('-').map(Number);
   const weekday = new Date(Y, M - 1, D).getDay();
   const now = new Date();
-
   const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) colunas fixas do dia, na ordem (baseadas em slots)
-  const timeRanges = Array.from(
-    new Set(fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`))
-  ).sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+  // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
+  const slotStart = toDate(Y, M, D, '08:00');
+  const slotEnd = toDate(Y, M, D, '22:00');
+  const timeRanges = [];
+  let cursor = new Date(slotStart);
+  while (cursor < slotEnd) {
+    const next = new Date(cursor);
+    next.setMinutes(cursor.getMinutes() + 50);
+    timeRanges.push(
+      `${padHM(cursor)}-${padHM(next)}`
+    );
+    cursor = next;
+  }
 
-  // 3) lista de laboratórios (todos que aparecem em fixos ou reservas)
+  // 3) lista de salas
   const labs = Array.from(new Set([
     ...fixedTodaySlots.map(s => s.lab),
     ...dayEvents.map(e => e.sala || e.resource)
   ]));
 
-  // se não há nada, exibe mensagem
+  // se não há nada
   if (!timeRanges.length || !labs.length) {
-    table.innerHTML = '<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>';
+    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
     return;
   }
 
@@ -608,7 +616,7 @@ async function buildOccupancyTable(filterDate) {
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
-      <th class="px-2 py-1 border text-left">Sala / Horário</th>
+      <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
     `<th class="px-2 py-1 border text-center">${r}</th>`
   ).join('')}
@@ -626,7 +634,7 @@ async function buildOccupancyTable(filterDate) {
       const cellStart = toDate(Y, M, D, start);
       const cellEnd = toDate(Y, M, D, end);
 
-      // reserva que cruza este intervalo?
+      // reserva?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
@@ -634,37 +642,35 @@ async function buildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // slot fixo que cruza este intervalo?
+      // slot fixo (aula)?
       const fixed = fixedTodaySlots.find(fs =>
         fs.lab === lab &&
-        fs.startTime === start &&
-        fs.endTime === end
+        toDate(Y, M, D, fs.startTime) < cellEnd &&
+        toDate(Y, M, D, fs.endTime) > cellStart
       );
 
-      // escolhe cor e label
       let style = '', label = '';
       if (hasReservation) {
-        style = 'background-color: rgba(220,38,38,0.8);';  // vermelho
+        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        // se a hora atual ainda não ultrapassou o fim do slot, "aula", senão "livre"
+        // antes de terminar, cor do turno, depois livre
         if (now < toDate(Y, M, D, fixed.endTime)) {
           style = `background-color: ${turnoColors[fixed.turno]};`;
           label = fixed.turno;
         } else {
-          style = 'background-color: rgba(16,185,129,0.8);'; // verde
+          style = 'background-color: rgba(16,185,129,0.8);';
           label = 'livre';
         }
       } else {
-        style = 'background-color: rgba(16,185,129,0.8);';   // verde
+        style = 'background-color: rgba(16,185,129,0.8);';
         label = 'livre';
       }
 
       tr.innerHTML += `
-        <td
-          class="px-2 py-1 border text-white text-center"
-          style="${style}"
-        >${label}</td>`;
+        <td class="px-2 py-1 border text-white text-center" style="${style}">
+          ${label}
+        </td>`;
     });
 
     tbody.appendChild(tr);
@@ -672,6 +678,14 @@ async function buildOccupancyTable(filterDate) {
   table.appendChild(tbody);
 }
 
+// Helpers:
+function padHM(date) {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+function toDate(Y, M, D, hm) {
+  const [h, m] = hm.split(':').map(Number);
+  return new Date(Y, M - 1, D, h, m);
+}
 
 
 // ────────────────────────────────────
