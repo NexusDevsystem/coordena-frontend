@@ -216,14 +216,33 @@ body.menu-open::before {
    FullCalendar – Estilo “Cartões Avançado”
    ──────────────────────────────────────────────────────────────────── */
 
-/* 1) Remove bordas do grid e adiciona gap entre células */
-.fc .fc-scrollgrid {
-  border: none;
+/* Remover todas as linhas de grade internas do mês */
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid > div > div,
+.fc .fc-daygrid-day-frame,
+.fc .fc-col-header,
+.fc .fc-col-header-cell,
+.fc .fc-col-header-cell-cushion {
+  border: none !important;
+  box-shadow: none !important;
 }
+
+/* Garante que não haja bordas horizontais ou verticais */
+.fc .fc-scrollgrid > div > div > div {
+  border: none !important;
+}
+
+/* Se ainda restar algum traço, força remoção da linha entre células */
+.fc .fc-scrollgrid .fc-scrollgrid-section > div {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Ajuste opcional: reforça o gap entre os cartões */
 .fc .fc-scrollgrid > div > div {
-  gap: 0.75rem;    /* mais espaço */
-  border: none;
+  gap: 0.75rem;
 }
+
 
 /* 2) Cada dia vira um cartão */
 .fc .fc-daygrid-day-frame {
