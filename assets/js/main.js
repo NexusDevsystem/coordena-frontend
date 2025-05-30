@@ -727,6 +727,7 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
+  // 1) busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -734,19 +735,21 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // referências únicas
+  // 2) referência única ao date-picker
   const dateInput = document.getElementById('occupancy-date');
-  const turnoSelect = document.getElementById('turno-filter');
+  if (!dateInput) {
+    console.error('Elemento #occupancy-date não encontrado!');
+    return;
+  }
 
-  // 1) Inicializa o calendário com seus callbacks originais
+  // 3) inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
-      // atualiza date-picker e tabela
+      // quando clica numa data do calendário
       dateInput.value = info.dateStr;
-      safeBuildOccupancyTable(info.dateStr, turnoSelect.value);
+      buildOccupancyTable(info.dateStr);
 
-      // abre formulário
       FormModule.open(null, {
         date: info.dateStr,
         start: '00:00',
@@ -762,6 +765,7 @@ onReady(async () => {
       });
     },
     info => {
+      // quando clica num evento do calendário
       const ev = CalendarModule
         .getEvents()
         .find(e => e._id === info.event.id);
@@ -769,33 +773,24 @@ onReady(async () => {
     }
   );
 
-  // 2) Preenche data inicial e listeners de filtro
+  // 4) configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
-
   dateInput.addEventListener('change', () => {
-    safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
-  });
-  turnoSelect.addEventListener('change', () => {
-    safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
+    buildOccupancyTable(dateInput.value);
   });
 
-  // 3) Ativa atualização automática da tabela (com filtro por data e turno)
-  initOccupancyUpdates({
-    getDate: () => dateInput.value,
-    getTurno: () => turnoSelect.value
-  });
+  // 5) inicia auto-refresh da tabela
+  initOccupancyUpdates();
 
-  // 4) Demais listeners…
+  // 6) listener extra (importação desativada)
   document.getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // off-canvas menu…
-  // (… seu código existente …)
-
-  // 5) Chamada inicial
-  safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
+  // 7) chamada inicial para popular a tabela
+  buildOccupancyTable(dateInput.value);
 });
+
 
 
