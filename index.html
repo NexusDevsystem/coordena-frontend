@@ -41,34 +41,37 @@
 
   <!-- Off-Canvas Menu (ExPoNjm) -->
   <header class="offcanvas-menu">
-    <input type="checkbox" id="toggle-menu" />
+  <input type="checkbox" id="toggle-menu" />
 
-    <!-- botão de abrir -->
-    <label for="toggle-menu" class="toggle-open">
-      <span></span>
-    </label>
+  <!-- ícone hamburguer / X -->
+  <label for="toggle-menu" class="toggle-open"><span></span></label>
 
-    <nav>
-      <div class="brand">
-        <a href="#">
-          <i class="fab fa-css3-alt"></i>
-          Coordena+
-        </a>
-        <!-- botão de fechar -->
-        <label for="toggle-menu" class="toggle-close">
-          <span></span>
-        </label>
-      </div>
-      <ul class="menu-list">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#user">Usuário</a></li>
-        <li><a href="#contact">Contato</a></li>
-        <li><a href="#map">Mapa</a></li>
-        <li><a href="#settings">Config.</a></li>
-        <li><a href="#search">Buscar</a></li>
-      </ul>
-    </nav>
-  </header>
+  <nav>
+    <div class="brand">
+      <a href="#">
+        <!-- use sua logo ou ícone -->
+        <img src="assets/img/logo-coordenaplus.png" alt="Coordena+" class="brand-logo" />
+        Coordena+
+      </a>
+      <label for="toggle-menu" class="toggle-close"><span></span></label>
+    </div>
+
+    <ul class="menu-list">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#user">Usuário</a></li>
+      <li><a href="#contact">Contato</a></li>
+      <li><a href="#map">Mapa</a></li>
+      <li><a href="#settings">Configurações</a></li>
+      <li><a href="#search">Buscar</a></li>
+    </ul>
+
+    <!-- ações fixas -->
+    <div class="menu-footer-btns">
+      <button id="menu-theme-btn" class="footer-btn">Tema</button>
+      <button id="menu-logout-btn" class="footer-btn logout">Sair</button>
+    </div>
+  </nav>
+</header>
 
   <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
