@@ -186,7 +186,7 @@ body {
   position: absolute;
   height: 0.25rem;
   width: 100%;
-  background: #5c7cfa;            /* Azul Coordena+ */
+  background: #5c7cfa; /* Azul Coordena+ */
   transition: background 0.3s, transform 0.3s;
 }
 .offcanvas-menu label span::before {
@@ -196,17 +196,18 @@ body {
   transform: translateY(0.75rem);
 }
 
-/* nav fora da tela */
+/* nav off-canvas */
 .offcanvas-menu nav {
   position: fixed;
   top: 0;
   left: -22rem;
   width: 22rem;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: 2.5rem 2rem;
-  background: #0f172a;             /* Azul escuro / quase preto */
-  color: #cbd5e1;                  /* cinza claro */
-  overflow: hidden;
+  background: #0f172a; /* Azul escuro */
+  color: #cbd5e1;      /* cinza claro */
   transition: left 0.3s ease;
 }
 
@@ -214,7 +215,7 @@ body {
 .offcanvas-menu .menu-user-info {
   text-align: center;
   color: #cbd5e1;
-  margin-bottom: 2rem;            /* espaço abaixo do user info */
+  margin-bottom: 1.5rem;
 }
 .offcanvas-menu .menu-user-info #menu-user-name {
   font-size: 1.8rem;
@@ -230,14 +231,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;          /* espaço abaixo da marca */
+  margin-bottom: 1.5rem;
 }
 .offcanvas-menu .brand a {
   display: flex;
   align-items: center;
   gap: .5rem;
   font-size: 2.4rem;
-  color: #5c7cfa;                  /* Azul Coordena+ */
+  color: #5c7cfa; /* Azul Coordena+ */
 }
 .offcanvas-menu .brand .brand-logo {
   width: 2.5rem;
@@ -246,7 +247,9 @@ body {
 
 /* lista de links */
 .offcanvas-menu .menu-list {
-  margin-top: 3rem;               /* empurra as opções mais pra baixo */
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 2rem;
   list-style: none;
   counter-reset: nav-link;
 }
@@ -260,11 +263,11 @@ body {
 .offcanvas-menu .menu-list li a {
   font-size: 2rem;
   line-height: 1.5;
-  color: #cbd5e1;                  /* cinza claro */
+  color: #cbd5e1;
   text-decoration: none;
 }
 .offcanvas-menu .menu-list li a:hover {
-  color: #5c7cfa;                  /* azul no hover */
+  color: #5c7cfa;
 }
 .offcanvas-menu .menu-list li a::after {
   content: " 0" counter(nav-link);
@@ -272,21 +275,18 @@ body {
 
 /* ações fixas (Tema / Sair) */
 .offcanvas-menu .menu-footer-btns {
-  position: absolute;
-  bottom: 1rem;                   /* mais para baixo */
-  left: 0;
-  width: 100%;
+  margin-top: auto;
   display: flex;
   justify-content: center;
   gap: 1.5rem;
-  padding: 0 2rem;
+  padding-bottom: 1.5rem;
 }
 .offcanvas-menu .footer-btn {
   width: 3.5rem;
   height: 3.5rem;
   border: none;
   border-radius: 50%;
-  background: #1e293b;            /* cinza escuro */
+  background: #1e293b;
   color: #e2e8f0;
   display: flex;
   align-items: center;
@@ -296,26 +296,24 @@ body {
   transition: background 0.2s, transform 0.1s;
 }
 .offcanvas-menu .footer-btn:hover {
-  background: #5c7cfa;            /* azul Coordena+ */
+  background: #5c7cfa;
   transform: scale(1.05);
 }
 .offcanvas-menu .footer-btn.logout {
-  background: #dc2626;            /* vermelho */
+  background: #dc2626;
 }
 .offcanvas-menu .footer-btn.logout:hover {
   background: #ef4444;
 }
 
-/* abrir menu */
+/* abrir/fechar menu */
 .offcanvas-menu input[type="checkbox"]:checked ~ nav {
   left: 0;
 }
-/* esconder botão abrir */
 .offcanvas-menu input[type="checkbox"]:checked ~ label.toggle-open {
   opacity: 0;
   pointer-events: none;
 }
-/* transforma o span em X */
 .offcanvas-menu input[type="checkbox"]:checked ~ nav .toggle-close span {
   background: transparent;
 }
@@ -326,35 +324,21 @@ body {
   transform: rotate(45deg);
 }
 
-/* animação dos itens */
+/* animação itens */
 .offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li {
   transform: translateX(0);
   opacity: 1;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(1) {
-  transition-delay: 0.1s;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(2) {
-  transition-delay: 0.2s;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(3) {
-  transition-delay: 0.3s;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(4) {
-  transition-delay: 0.4s;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(5) {
-  transition-delay: 0.5s;
-}
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(6) {
-  transition-delay: 0.6s;
-}
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(1) { transition-delay: 0.1s; }
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(2) { transition-delay: 0.2s; }
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(3) { transition-delay: 0.3s; }
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(4) { transition-delay: 0.4s; }
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(5) { transition-delay: 0.5s; }
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(6) { transition-delay: 0.6s; }
 
-/* hover */
+/* hover link */
 @keyframes hover {
-  50% {
-    transform: translateX(1rem);
-  }
+  50% { transform: translateX(1rem); }
 }
 .offcanvas-menu .menu-list li:hover {
   animation: hover 0.5s;
