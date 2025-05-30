@@ -377,7 +377,7 @@ const FormModule = (() => {
         CalendarModule.add(saved);
       }
       // atualiza tabela
-      buildOccupancyTable(f.data.value);
+      safeBuildOccupancyTable(f.data.value);
       close();
     } catch (err) {
       alert('Erro: ' + err.message);
@@ -548,7 +548,7 @@ const DetailModule = (() => {
         await Api.deleteEvent(currentId)
         CalendarModule.remove(currentId)
         const dateValue = document.getElementById('occupancy-date').value
-        buildOccupancyTable(dateValue)
+        safeBuildOccupancyTable(dateValue)
         close()
       } catch (err) {
         alert(err.message)
@@ -573,7 +573,7 @@ function toDate(Y, M, D, hm) {
   return new Date(Y, M - 1, D, h, m);
 }
 
-async function buildOccupancyTable(filterDate) {
+async function safeBuildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
   if (!table) {
     console.error('❌ #occupancy-table não encontrado no DOM');
@@ -707,7 +707,7 @@ async function initOccupancyUpdates() {
 
   // função única de refresh da tabela
   function refreshTable() {
-    buildOccupancyTable(dateInput.value);
+    safeBuildOccupancyTable(dateInput.value);
   }
 
   // listener só de data
@@ -726,9 +726,6 @@ async function initOccupancyUpdates() {
     refreshTable();
   }, 2 * 60 * 1000);
 }
-
-
-
 
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
@@ -755,7 +752,7 @@ onReady(async () => {
     info => {
       // atualiza date-picker e tabela
       dateInput.value = info.dateStr;
-      buildOccupancyTable(info.dateStr, turnoSelect.value);
+      safeBuildOccupancyTable(info.dateStr, turnoSelect.value);
 
       // abre formulário
       FormModule.open(null, {
@@ -784,10 +781,10 @@ onReady(async () => {
   dateInput.value = new Date().toISOString().slice(0, 10);
 
   dateInput.addEventListener('change', () => {
-    buildOccupancyTable(dateInput.value, turnoSelect.value);
+    safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
   });
   turnoSelect.addEventListener('change', () => {
-    buildOccupancyTable(dateInput.value, turnoSelect.value);
+    safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
   });
 
   // 3) Ativa atualização automática da tabela (com filtro por data e turno)
@@ -806,7 +803,7 @@ onReady(async () => {
   // (… seu código existente …)
 
   // 5) Chamada inicial
-  buildOccupancyTable(dateInput.value, turnoSelect.value);
+  safeBuildOccupancyTable(dateInput.value, turnoSelect.value);
 });
 
 
