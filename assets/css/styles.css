@@ -157,7 +157,7 @@ body {
 body {
   font-family: "Lato", sans-serif;
   background: var(--bg, #f7fafc);
-  color: var(--text, #1a202c);
+  color: var(--text, #3b4861);
   overflow-x: hidden;
 }
 
