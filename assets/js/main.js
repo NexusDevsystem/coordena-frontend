@@ -563,7 +563,53 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // já populado via Api.fetchFixedSchedules()
+// Aqui definimos **todos** os horários fixos, sem depender de API:
+let fixedSlots = [
+  // ── LAB B401 ──
+  // Manhã (Segunda a Sexta)
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '08:20', endTime: '09:10', turno: 'Manhã', professor: 'Sergio Andrade', disciplina: 'Microprocessadores' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '09:20', endTime: '10:10', turno: 'Manhã', professor: 'Sergio Andrade', disciplina: 'Microprocessadores' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '10:10', endTime: '11:00', turno: 'Manhã', professor: 'Sergio Andrade', disciplina: 'Microprocessadores' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '11:00', endTime: '11:50', turno: 'Manhã', professor: 'Sergio Andrade', disciplina: 'Microprocessadores' },
+
+  { lab: 'Lab B401', dayOfWeek: 2, startTime: '08:20', endTime: '09:10', turno: 'Manhã', professor: 'Erick Melo', disciplina: 'Sistemas Digitais' },
+  { lab: 'Lab B401', dayOfWeek: 2, startTime: '09:20', endTime: '10:10', turno: 'Manhã', professor: 'Erick Melo', disciplina: 'Sistemas Digitais' },
+  { lab: 'Lab B401', dayOfWeek: 2, startTime: '10:10', endTime: '11:00', turno: 'Manhã', professor: 'Erick Melo', disciplina: 'Sistemas Digitais' },
+  { lab: 'Lab B401', dayOfWeek: 2, startTime: '11:00', endTime: '11:50', turno: 'Manhã', professor: 'Erick Melo', disciplina: 'Sistemas Digitais' },
+
+  { lab: 'Lab B401', dayOfWeek: 3, startTime: '08:20', endTime: '09:10', turno: 'Manhã', professor: 'Suzane Alfaia Dias', disciplina: 'Banco de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 3, startTime: '09:20', endTime: '10:10', turno: 'Manhã', professor: 'Suzane Alfaia Dias', disciplina: 'Banco de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 3, startTime: '10:10', endTime: '11:00', turno: 'Manhã', professor: 'Suzane Alfaia Dias', disciplina: 'Banco de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 3, startTime: '11:00', endTime: '11:50', turno: 'Manhã', professor: 'Suzane Alfaia Dias', disciplina: 'Banco de Dados' },
+
+  { lab: 'Lab B401', dayOfWeek: 4, startTime: '08:20', endTime: '09:10', turno: 'Manhã', professor: 'Frederico Santana Filho', disciplina: 'Estrutura de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 4, startTime: '09:20', endTime: '10:10', turno: 'Manhã', professor: 'Frederico Santana Filho', disciplina: 'Estrutura de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 4, startTime: '10:10', endTime: '11:00', turno: 'Manhã', professor: 'Frederico Santana Filho', disciplina: 'Estrutura de Dados' },
+  { lab: 'Lab B401', dayOfWeek: 4, startTime: '11:00', endTime: '11:50', turno: 'Manhã', professor: 'Frederico Santana Filho', disciplina: 'Estrutura de Dados' },
+
+  { lab: 'Lab B401', dayOfWeek: 5, startTime: '08:20', endTime: '09:10', turno: 'Manhã', professor: 'Frederico Filho', disciplina: 'Int A Prog Estr' },
+  { lab: 'Lab B401', dayOfWeek: 5, startTime: '09:20', endTime: '10:10', turno: 'Manhã', professor: 'Frederico Filho', disciplina: 'Int A Prog Estr' },
+  { lab: 'Lab B401', dayOfWeek: 5, startTime: '10:10', endTime: '11:00', turno: 'Manhã', professor: 'Frederico Filho', disciplina: 'Int A Prog Estr' },
+  { lab: 'Lab B401', dayOfWeek: 5, startTime: '11:00', endTime: '11:50', turno: 'Manhã', professor: 'Frederico Filho', disciplina: 'Int A Prog Estr' },
+
+  // Tarde — Programa Bolsa Família
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '13:00', endTime: '14:20', turno: 'Tarde', professor: 'Programa Bolsa Família', disciplina: '09 & 23/06' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '14:20', endTime: '15:10', turno: 'Tarde', professor: 'Programa Bolsa Família', disciplina: '09 & 23/06' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '15:20', endTime: '16:10', turno: 'Tarde', professor: 'Programa Bolsa Família', disciplina: '09 & 23/06' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '16:10', endTime: '17:00', turno: 'Tarde', professor: 'Programa Bolsa Família', disciplina: '09 & 23/06' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '17:00', endTime: '18:00', turno: 'Tarde', professor: 'Programa Bolsa Família', disciplina: '09 & 23/06' },
+
+  // Tarde — repita para dias 2 a 5 e para os demais laboratórios conforme planilha…
+
+  // Noite — Exemplo para B401, segunda
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '19:00', endTime: '19:50', turno: 'Noite', professor: 'Eudes Danilo', disciplina: 'Introd. a Prog. de Comput.' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '19:50', endTime: '20:40', turno: 'Noite', professor: 'Eudes Danilo', disciplina: 'Introd. a Prog. de Comput.' },
+  { lab: 'Lab B401', dayOfWeek: 1, startTime: '20:50', endTime: '21:40', turno: 'Noite', professor: 'Eudes Danilo', disciplina: 'Introd. a Prog. de Comput.' },
+
+  // Noite — repita para os demais dias e laboratórios (B402, B403, B405…)
+
+  // Caso o Lab não tenha horário em um dia/turno, simplesmente não inclua entradas.
+];
 
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
