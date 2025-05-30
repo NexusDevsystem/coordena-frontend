@@ -563,7 +563,7 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // já populado via Api.fetchFixedSchedules()
+let fixedSlots = [];  // vai ser populado em initOccupancyUpdates()
 
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -573,12 +573,18 @@ function toDate(Y, M, D, hm) {
   return new Date(Y, M - 1, D, h, m);
 }
 
+// **wrapper** que protege contra crashes
 async function safeBuildOccupancyTable(filterDate) {
-  const table = document.getElementById('occupancy-table');
-  if (!table) {
-    console.error('❌ #occupancy-table não encontrado no DOM');
-    return;
+  try {
+    await buildOccupancyTable(filterDate);
+  } catch (err) {
+    console.error('Erro na tabela de ocupação:', err);
+    // aqui podemos até mostrar uma mensagem de fallback, mas não re-throw
   }
+}
+
+async function buildOccupancyTable(filterDate) {
+  const table = document.getElementById('occupancy-table');
   table.innerHTML = '';  // limpa antes de tudo
 
   // 1) dados de reservas e slots fixos do dia
@@ -636,7 +642,7 @@ async function safeBuildOccupancyTable(filterDate) {
       const cellStart    = toDate(Y, M, D, start);
       const cellEnd      = toDate(Y, M, D, end);
 
-      // existe reserva que cruza este intervalo?
+      // reserva?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
@@ -644,24 +650,22 @@ async function safeBuildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // existe slot fixo (aula) que cruza este intervalo?
+      // aula fixa?
       const fixed = fixedTodaySlots.find(fs =>
         fs.lab === lab &&
         toDate(Y, M, D, fs.startTime) < cellEnd &&
         toDate(Y, M, D, fs.endTime) > cellStart
       );
 
-      // escolhe cor e texto
+      // cor/texto
       let style = '', label = '';
       if (hasReservation) {
         style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        // aula fixa: cor do turno, sempre visível
         style = `background-color: ${turnoColors[fixed.turno]};`;
         label = fixed.turno;
       } else {
-        // livre nos demais casos
         style = 'background-color: rgba(16,185,129,0.8);'; // verde
         label = 'livre';
       }
@@ -692,7 +696,7 @@ async function refreshEvents() {
 }
 
 async function initOccupancyUpdates() {
-  // carrega fixedSlots só uma vez
+  // carrega fixedSlots
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
@@ -700,32 +704,20 @@ async function initOccupancyUpdates() {
   }
 
   const dateInput = document.getElementById('occupancy-date');
-  if (!dateInput) {
-    console.error('❌ #occupancy-date não encontrado no DOM');
-    return;
-  }
-
-  // função única de refresh da tabela
-  function refreshTable() {
-    safeBuildOccupancyTable(dateInput.value);
-  }
-
-  // listener só de data
-  dateInput.addEventListener('change', refreshTable);
-
-  // valor inicial e primeiros ciclos
   dateInput.value = new Date().toISOString().slice(0, 10);
-  refreshTable();
 
-  // re‐monta a tabela a cada 5s
-  setInterval(refreshTable, 5 * 1000);
+  // listener de data
+  dateInput.addEventListener('change', () => safeBuildOccupancyTable(dateInput.value));
 
-  // re‐busca reservas a cada 2min e reconstrói
+  // ciclos de atualização
+  safeBuildOccupancyTable(dateInput.value);
+  setInterval(() => safeBuildOccupancyTable(dateInput.value), 5 * 1000);
   setInterval(async () => {
     await refreshEvents();
-    refreshTable();
+    safeBuildOccupancyTable(dateInput.value);
   }, 2 * 60 * 1000);
 }
+
 
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
