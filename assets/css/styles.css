@@ -210,11 +210,27 @@ body {
   transition: left 0.3s ease;
 }
 
+/* bloco de usuário */
+.offcanvas-menu .menu-user-info {
+  text-align: center;
+  color: #cbd5e1;
+  margin-bottom: 2rem;            /* espaço abaixo do user info */
+}
+.offcanvas-menu .menu-user-info #menu-user-name {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+.offcanvas-menu .menu-user-info #menu-user-email {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
 /* marca */
 .offcanvas-menu .brand {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem;          /* espaço abaixo da marca */
 }
 .offcanvas-menu .brand a {
   display: flex;
@@ -230,7 +246,7 @@ body {
 
 /* lista de links */
 .offcanvas-menu .menu-list {
-  margin-top: 2rem;
+  margin-top: 3rem;               /* empurra as opções mais pra baixo */
   list-style: none;
   counter-reset: nav-link;
 }
@@ -256,17 +272,21 @@ body {
 
 /* ações fixas (Tema / Sair) */
 .offcanvas-menu .menu-footer-btns {
-  margin-top: auto;
+  position: absolute;
+  bottom: 1rem;                   /* mais para baixo */
+  left: 0;
+  width: 100%;
   display: flex;
-  justify-content: space-around;
-  padding-top: 2rem;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0 2rem;
 }
 .offcanvas-menu .footer-btn {
   width: 3.5rem;
   height: 3.5rem;
   border: none;
   border-radius: 50%;
-  background: #1e293b;        /* cinza escuro */
+  background: #1e293b;            /* cinza escuro */
   color: #e2e8f0;
   display: flex;
   align-items: center;
@@ -276,11 +296,11 @@ body {
   transition: background 0.2s, transform 0.1s;
 }
 .offcanvas-menu .footer-btn:hover {
-  background: #5c7cfa;        /* azul Coordena+ */
+  background: #5c7cfa;            /* azul Coordena+ */
   transform: scale(1.05);
 }
 .offcanvas-menu .footer-btn.logout {
-  background: #dc2626;        /* vermelho */
+  background: #dc2626;            /* vermelho */
 }
 .offcanvas-menu .footer-btn.logout:hover {
   background: #ef4444;
@@ -339,6 +359,7 @@ body {
 .offcanvas-menu .menu-list li:hover {
   animation: hover 0.5s;
 }
+
 
 /* ================================================
    Grade de Ocupação Estilo “Mini-Calendário”
