@@ -166,7 +166,7 @@ body {
   display: none;
 }
 
-/* botões de abrir/fechar (2 linhas que viram X) */
+/* ————— BOTÃO TOGGLE COM 2 BARRAS QUE VIRAM X ————— */
 .offcanvas-menu label {
   position: fixed;
   top: 1.5rem;
@@ -177,41 +177,58 @@ body {
   z-index: 9999;
   display: flex;
   align-items: center;
-  transition: 0.3s ease;
+  justify-content: center;
 }
 
-/* Duas linhas */
-.offcanvas-menu label span,
-.offcanvas-menu label span::before {
-  content: "";
-  position: absolute;
+/* o span central */
+.offcanvas-menu label span {
+  position: relative;
   width: 100%;
   height: 0.25rem;
   background: #5c7cfa;
-  /* Azul Coordena+ */
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+
+/* cria a barra de cima */
+.offcanvas-menu label span::before {
+  content: "";
+  position: absolute;
+  top: -0.6rem;
+  left: 0;
+  width: 100%;
+  height: 0.25rem;
+  background: #5c7cfa;
+  border-radius: 2px;
   transition: top 0.3s, transform 0.3s;
 }
 
-/* Linha de cima */
-.offcanvas-menu label span::before {
-  top: 40%;
+/* cria a barra de baixo */
+.offcanvas-menu label span::after {
+  content: "";
+  position: absolute;
+  top: 0.6rem;
+  left: 0;
+  width: 100%;
+  height: 0.25rem;
+  background: #5c7cfa;
+  border-radius: 2px;
+  transition: top 0.3s, transform 0.3s;
 }
 
-/* Linha de baixo */
-.offcanvas-menu label span {
-  top: 60%;
+/* quando aberto, faz X */
+.offcanvas-menu input[type="checkbox"]:checked ~ label span {
+  background: transparent;
 }
-
-/* Estado aberto: sobrepõe e gira em X */
-.offcanvas-menu input[type="checkbox"]:checked~label span {
-  top: 50%;
+.offcanvas-menu input[type="checkbox"]:checked ~ label span::before {
+  top: 0;
   transform: rotate(45deg);
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~label span::before {
-  top: 50%;
+.offcanvas-menu input[type="checkbox"]:checked ~ label span::after {
+  top: 0;
   transform: rotate(-45deg);
 }
+
 
 /* Garante que não exista mais uma terceira barra */
 .offcanvas-menu label span::after {
