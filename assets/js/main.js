@@ -563,163 +563,214 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // já populado via Api.fetchFixedSchedules()
+let fixedSlots = [];  // será preenchido via Api.fetchFixedSchedules()
 
-function padHM(date) {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+/**
+ * Converte minutos desde meia-noite em "HH:MM"
+ */
+function padHM(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 }
-function toDate(Y, M, D, hm) {
+
+/**
+ * Cria um Date a partir de Y,M,D + string "HH:MM"
+ */
+function toDateHM(Y, M, D, hm) {
   const [h, m] = hm.split(':').map(Number);
   return new Date(Y, M - 1, D, h, m);
 }
 
+/**
+ * Reconstroi a tabela de ocupação para a data informada.
+ * @param {string} filterDate — "YYYY-MM-DD"
+ */
 async function buildOccupancyTable(filterDate) {
-  const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';  // limpa antes de tudo
+  try {
+    const table = document.getElementById('occupancy-table');
+    table.innerHTML = '';
 
-  // 1) dados de reservas e slots fixos do dia
-  const allEvents       = CalendarModule.getEvents();
-  const dateStr         = filterDate || new Date().toISOString().slice(0,10);
-  const [Y, M, D]       = dateStr.split('-').map(Number);
-  const weekday         = new Date(Y, M-1, D).getDay();
-  const now             = new Date();
-  const dayEvents       = allEvents.filter(e => e.date === dateStr);
-  const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
+    // 1) Dados básicos
+    const allEvents       = CalendarModule.getEvents();
+    const dateStr         = filterDate || new Date().toISOString().slice(0,10);
+    const [Y, M, D]       = dateStr.split('-').map(Number);
+    const weekday         = new Date(Y, M-1, D).getDay();
+    const dayEvents       = allEvents.filter(e => e.date === dateStr);
+    const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
-  const slotStart = toDate(Y, M, D, '08:00');
-  const slotEnd   = toDate(Y, M, D, '22:00');
-  const timeRanges = [];
-  let cursor = new Date(slotStart);
-  while (cursor < slotEnd) {
-    const next = new Date(cursor);
-    next.setMinutes(cursor.getMinutes() + 50);
-    timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
-    cursor = next;
-  }
-
-  // 3) lista de salas (fixos + reservas)
-  const labs = Array.from(new Set([
-    ...fixedTodaySlots.map(s => s.lab),
-    ...dayEvents.map(e => e.sala || e.resource)
-  ]));
-
-  // 4) se não há dados
-  if (!timeRanges.length || !labs.length) {
-    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
-    return;
-  }
-
-  // 5) cabeçalho
-  const thead = document.createElement('thead');
-  thead.innerHTML = `
-    <tr>
-      <th class="px-2 py-1 border">Sala / Horário</th>
-      ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
-    </tr>`;
-  table.appendChild(thead);
-
-  // 6) corpo
-  const tbody = document.createElement('tbody');
-  labs.forEach(lab => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
-
-    timeRanges.forEach(range => {
-      const [start, end] = range.split('-');
-      const cellStart    = toDate(Y, M, D, start);
-      const cellEnd      = toDate(Y, M, D, end);
-
-      // existe reserva que cruza este intervalo?
-      const hasReservation = dayEvents.some(ev => {
-        if ((ev.sala || ev.resource) !== lab) return false;
-        const evStart = toDate(Y, M, D, ev.start);
-        const evEnd   = toDate(Y, M, D, ev.end);
-        return evStart < cellEnd && evEnd > cellStart;
-      });
-
-      // existe slot fixo (aula) que cruza este intervalo?
-      const fixed = fixedTodaySlots.find(fs =>
-        fs.lab === lab &&
-        toDate(Y, M, D, fs.startTime) < cellEnd &&
-        toDate(Y, M, D, fs.endTime) > cellStart
-      );
-
-      // escolhe cor e texto
-      let style = '', label = '';
-      if (hasReservation) {
-        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
-        label = 'ocupado';
-      } else if (fixed) {
-        // aula fixa: cor do turno, sempre visível
-        style = `background-color: ${turnoColors[fixed.turno]};`;
-        label = fixed.turno;
-      } else {
-        // livre nos demais casos
-        style = 'background-color: rgba(16,185,129,0.8);'; // verde
-        label = 'livre';
-      }
-
-      tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center" style="${style}">
-          ${label}
-        </td>`;
+    // 2) Determina range mínimo/máximo em minutos
+    const times = [
+      ...fixedTodaySlots.flatMap(s => [s.startTime, s.endTime]),
+      ...dayEvents.flatMap(e => [e.start, e.end])
+    ].map(hm => {
+      const [h,m] = hm.split(':').map(Number);
+      return h*60 + m;
     });
 
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
+    if (times.length === 0) {
+      table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
+      return;
+    }
+
+    const minM = Math.min(...times);
+    const maxM = Math.max(...times);
+
+    // 3) Gera colunas de 50min entre minM e maxM
+    const timeRanges = [];
+    for (let t = minM; t < maxM; t += 50) {
+      const end = Math.min(t + 50, maxM);
+      timeRanges.push(`${padHM(t)}-${padHM(end)}`);
+    }
+
+    // 4) Lista de laboratórios
+    const labs = Array.from(new Set([
+      ...fixedTodaySlots.map(s => s.lab),
+      ...dayEvents.map(e => e.sala || e.resource)
+    ]));
+
+    // 5) Monta o <thead>
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th class="px-2 py-1 border">Sala / Horário</th>
+        ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+      </tr>`;
+    table.appendChild(thead);
+
+    // 6) Monta o <tbody>
+    const tbody = document.createElement('tbody');
+    labs.forEach(lab => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+
+      timeRanges.forEach(range => {
+        const [start, end] = range.split('-');
+        const cs = toDateHM(Y, M, D, start);
+        const ce = toDateHM(Y, M, D, end);
+
+        // Checa reserva dinâmica
+        const hasReservation = dayEvents.some(ev => {
+          if ((ev.sala || ev.resource) !== lab) return false;
+          const es = toDateHM(Y, M, D, ev.start);
+          const ee = toDateHM(Y, M, D, ev.end);
+          return es < ce && ee > cs;
+        });
+
+        // Checa slot fixo
+        const fixed = fixedTodaySlots.find(fs => {
+          if (fs.lab !== lab) return false;
+          const fsS = toDateHM(Y, M, D, fs.startTime);
+          const fsE = toDateHM(Y, M, D, fs.endTime);
+          return fsS < ce && fsE > cs;
+        });
+
+        let style = '', label = '';
+        if (hasReservation) {
+          style = 'background-color: rgba(220,38,38,0.8);'; label = 'ocupado';
+        } else if (fixed) {
+          style = `background-color: ${turnoColors[fixed.turno]};`; label = fixed.turno;
+        } else {
+          style = 'background-color: rgba(16,185,129,0.8);'; label = 'livre';
+        }
+
+        tr.innerHTML += `
+          <td class="px-2 py-1 border text-white text-center" style="${style}">
+            ${label}
+          </td>`;
+      });
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+  } catch (err) {
+    console.error('🛑 Erro em buildOccupancyTable:', err);
+  }
 }
 
-// ────────────────────────────────────
-// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
-// ────────────────────────────────────
-
+/**
+ * Recarrega eventos dinâmicos do backend no FullCalendar
+ */
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
-    // limpa o calendário interno
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    // re‐adiciona tudo
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
-    console.error('Erro ao buscar eventos:', err);
+    console.error('🛑 Erro em refreshEvents:', err);
   }
 }
 
+/**
+ * Configura listeners e timers para recarregar a tabela automaticamente.
+ */
 async function initOccupancyUpdates() {
-  // carrega fixedSlots só uma vez
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
-    console.error('Falha ao buscar fixedSchedules:', err);
+    console.error('🛑 Erro ao carregar fixedSchedules:', err);
   }
 
   const dateInput = document.getElementById('occupancy-date');
-
-  // função única de refresh da tabela
-  function refreshTable() {
-    buildOccupancyTable(dateInput.value);
+  if (!dateInput) {
+    console.error('🛑 #occupancy-date não encontrado');
+    return;
   }
 
-  // listener só de data
-  dateInput.addEventListener('change', refreshTable);
+  // Atualiza sempre que a data muda
+  dateInput.addEventListener('change', () => buildOccupancyTable(dateInput.value));
 
-  // valor inicial e primeiros ciclos
-  dateInput.value = new Date().toISOString().slice(0, 10);
-  refreshTable();
+  // Valor inicial + primeira renderização
+  dateInput.value = new Date().toISOString().slice(0,10);
+  buildOccupancyTable(dateInput.value);
 
-  // re‐monta a tabela a cada 5s
-  setInterval(refreshTable, 5 * 1000);
-
-  // re‐busca reservas a cada 2min e reconstrói
+  // Timers periódicos
+  setInterval(() => buildOccupancyTable(dateInput.value), 5 * 1000);
   setInterval(async () => {
     await refreshEvents();
-    refreshTable();
+    buildOccupancyTable(dateInput.value);
   }, 2 * 60 * 1000);
 }
+
+// ────────────────────────────────────
+// INICIALIZAÇÃO PRINCIPAL
+// ────────────────────────────────────
+onReady(async () => {
+  ThemeToggle.init();
+  FormModule.init();
+  DetailModule.init();
+
+  // Carrega reservas dinâmicas e monta o calendário
+  let data = [];
+  try {
+    data = await Api.fetchEvents();
+  } catch (err) {
+    console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
+  }
+  CalendarModule.init(data,
+    info => {
+      document.getElementById('occupancy-date').value = info.dateStr;
+      buildOccupancyTable(info.dateStr);
+      FormModule.open(null, {
+        date: info.dateStr,
+        start: '00:00', end: '00:00',
+        resource: '', sala: '',
+        type: '', responsible: '',
+        department: '', status: '',
+        description: '', time: ''
+      });
+    },
+    info => {
+      const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
+      if (ev) DetailModule.open(ev);
+    }
+  );
+
+  // Inicia o pipeline de ocupação
+  initOccupancyUpdates();
+});
+
 
 
 // ----------------------
