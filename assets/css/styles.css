@@ -245,7 +245,7 @@ body {
 .offcanvas-menu .menu-user-info {
   text-align: center;
   color: #cbd5e1;
-  margin-bottom: 3rem 0 1.5rem;
+  margin: 3rem 0 1.5rem; /* 3rem de espaço acima, 1.5rem abaixo */
 }
 
 .offcanvas-menu .menu-user-info #menu-user-name {
