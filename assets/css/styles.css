@@ -258,25 +258,29 @@ body {
 .offcanvas-menu .menu-footer-btns {
   margin-top: auto;
   display: flex;
-  gap: .5rem;
+  justify-content: space-around;
+  padding-top: 2rem;
 }
 .offcanvas-menu .footer-btn {
-  flex: 1;
-  padding: .6rem;
-  font-size: 1.4rem;
-  background: #1e293b;             /* cinza escuro */
-  color: #e2e8f0;
+  width: 3.5rem;
+  height: 3.5rem;
   border: none;
-  border-radius: .375rem;
+  border-radius: 50%;
+  background: #1e293b;        /* cinza escuro */
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
   cursor: pointer;
-  transition: background .2s;
+  transition: background 0.2s, transform 0.1s;
 }
 .offcanvas-menu .footer-btn:hover {
-  background: #5c7cfa;
-  color: #fff;
+  background: #5c7cfa;        /* azul Coordena+ */
+  transform: scale(1.05);
 }
 .offcanvas-menu .footer-btn.logout {
-  background: #dc2626;             /* vermelho */
+  background: #dc2626;        /* vermelho */
 }
 .offcanvas-menu .footer-btn.logout:hover {
   background: #ef4444;
@@ -335,9 +339,6 @@ body {
 .offcanvas-menu .menu-list li:hover {
   animation: hover 0.5s;
 }
-
-
-
 
 /* ================================================
    Grade de Ocupação Estilo “Mini-Calendário”
