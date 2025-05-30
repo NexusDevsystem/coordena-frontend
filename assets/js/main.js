@@ -563,21 +563,21 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // populado via Api.fetchFixedSchedules()
+let fixedSlots = [];  // já populado via Api.fetchFixedSchedules()
 
-function padHM(hm) {
-  return hm;
+function padHM(date) {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
-function toDateHM(Y, M, D, hm) {
+function toDate(Y, M, D, hm) {
   const [h, m] = hm.split(':').map(Number);
   return new Date(Y, M - 1, D, h, m);
 }
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+  table.innerHTML = '';  // limpa antes de tudo
 
-  // 1) eventos e fixedSlots do dia
+  // 1) dados de reservas e slots fixos do dia
   const allEvents       = CalendarModule.getEvents();
   const dateStr         = filterDate || new Date().toISOString().slice(0,10);
   const [Y, M, D]       = dateStr.split('-').map(Number);
@@ -586,45 +586,38 @@ async function buildOccupancyTable(filterDate) {
   const dayEvents       = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) calcula min e max em minutos
-  const times = [
-    ...fixedTodaySlots.flatMap(s => [s.startTime, s.endTime]),
-    ...dayEvents.flatMap(e => [e.start, e.end])
-  ].map(hm => {
-    const [h, m] = hm.split(':').map(Number);
-    return h * 60 + m;
-  });
-
-  if (!times.length) {
-    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
-    return;
-  }
-
-  const minM = Math.min(...times);
-  const maxM = Math.max(...times);
-
-  // 3) gera colunas de 50min
+  // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
+  const slotStart = toDate(Y, M, D, '08:00');
+  const slotEnd   = toDate(Y, M, D, '22:00');
   const timeRanges = [];
-  for (let t = minM; t < maxM; t += 50) {
-    const h1 = Math.floor(t/60),    m1 = t%60;
-    const h2 = Math.floor((t+50)/60), m2 = (t+50)%60;
-    const start = `${String(h1).padStart(2,'0')}:${String(m1).padStart(2,'0')}`;
-    const end   = `${String(h2).padStart(2,'0')}:${String(m2).padStart(2,'0')}`;
-    timeRanges.push(`${start}-${end}`);
+  let cursor = new Date(slotStart);
+  while (cursor < slotEnd) {
+    const next = new Date(cursor);
+    next.setMinutes(cursor.getMinutes() + 50);
+    timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
+    cursor = next;
   }
 
-  // 4) lista de salas
+  // 3) lista de salas (fixos + reservas)
   const labs = Array.from(new Set([
     ...fixedTodaySlots.map(s => s.lab),
     ...dayEvents.map(e => e.sala || e.resource)
   ]));
 
-  // 5) renderiza cabeçalho
+  // 4) se não há dados
+  if (!timeRanges.length || !labs.length) {
+    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
+    return;
+  }
+
+  // 5) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
-      ${timeRanges.map(r => `<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+      ${timeRanges.map(r =>
+        `<th class="px-2 py-1 border text-center">${r}</th>`
+      ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -636,31 +629,35 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-      const cellStart = toDateHM(Y, M, D, start);
-      const cellEnd   = toDateHM(Y, M, D, end);
+      const cellStart    = toDate(Y, M, D, start);
+      const cellEnd      = toDate(Y, M, D, end);
 
+      // existe reserva que cruza este intervalo?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
-        const evStart = toDateHM(Y, M, D, ev.start);
-        const evEnd   = toDateHM(Y, M, D, ev.end);
+        const evStart = toDate(Y, M, D, ev.start);
+        const evEnd   = toDate(Y, M, D, ev.end);
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      const fixed = fixedTodaySlots.find(fs => {
-        if (fs.lab !== lab) return false;
-        const fsStart = toDateHM(Y, M, D, fs.startTime);
-        const fsEnd   = toDateHM(Y, M, D, fs.endTime);
-        return fsStart < cellEnd && fsEnd > cellStart;
-      });
+      // existe slot fixo (aula) que cruza este intervalo?
+      const fixed = fixedTodaySlots.find(fs =>
+        fs.lab === lab &&
+        toDate(Y, M, D, fs.startTime) < cellEnd &&
+        toDate(Y, M, D, fs.endTime) > cellStart
+      );
 
+      // escolhe cor e texto
       let style = '', label = '';
       if (hasReservation) {
         style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        style = `background-color: ${turnoColors[fixed.turno]};`; // cor do turno
+        // aula fixa: cor do turno, sempre visível
+        style = `background-color: ${turnoColors[fixed.turno]};`;
         label = fixed.turno;
       } else {
+        // livre nos demais casos
         style = 'background-color: rgba(16,185,129,0.8);'; // verde
         label = 'livre';
       }
@@ -683,7 +680,9 @@ async function buildOccupancyTable(filterDate) {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
+    // limpa o calendário interno
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+    // re‐adiciona tudo
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
     console.error('Erro ao buscar eventos:', err);
@@ -691,6 +690,7 @@ async function refreshEvents() {
 }
 
 async function initOccupancyUpdates() {
+  // carrega fixedSlots só uma vez
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
@@ -699,20 +699,28 @@ async function initOccupancyUpdates() {
 
   const dateInput = document.getElementById('occupancy-date');
 
+  // função única de refresh da tabela
   function refreshTable() {
     buildOccupancyTable(dateInput.value);
   }
 
+  // listener só de data
   dateInput.addEventListener('change', refreshTable);
+
+  // valor inicial e primeiros ciclos
   dateInput.value = new Date().toISOString().slice(0, 10);
   refreshTable();
 
+  // re‐monta a tabela a cada 5s
   setInterval(refreshTable, 5 * 1000);
+
+  // re‐busca reservas a cada 2min e reconstrói
   setInterval(async () => {
     await refreshEvents();
     refreshTable();
   }, 2 * 60 * 1000);
 }
+
 
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
