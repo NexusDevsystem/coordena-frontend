@@ -212,126 +212,73 @@ body.menu-open::before {
   color: #fff;
 }
 
- /* ─────────────────────────────────────────────────
-       FullCalendar – Estilo “Cartões Avançado”
-       ───────────────────────────────────────────────── */
+/* ================================================
+   Correções de Dark Mode para FullCalendar (fc)
+   ================================================ */
+.dark .fc .fc-col-header {
+  background-color: #1f2937; /* gray-800 */
+}
+.dark .fc .fc-col-header th,
+.dark .fc .fc-list-heading td {
+  border-color: #374151; /* gray-700 */
+  color: #d1d5db;        /* gray-300 */
+}
+.dark .fc .fc-col-header-cell-cushion {
+  color: #d1d5db;
+}
+.dark .fc .fc-list-head {
+  background-color: #1f2937;
+}
 
-    /* 1) Remove todas as linhas brancas de grade */
-    .fc .fc-scrollgrid,
-    .fc .fc-scrollgrid > div > div,
-    .fc .fc-scrollgrid > div > div > div,
-    .fc .fc-col-header,
-    .fc .fc-col-header-cell-cushion {
-      border: none !important;
-      box-shadow: none !important;
-    }
-
-    /* 2) Gap natural entre “cartões” */
-    .fc .fc-scrollgrid > div > div {
-      display: grid;
-      gap: 0.75rem !important;
-    }
-
-    /* 3) Cada dia vira um cartão */
-    .fc .fc-daygrid-day-frame {
-      position: relative;
-      background-color: #1f1f2e;
-      border-radius: 1rem;
-      padding: 0.75rem;
-      min-height: 5rem;
-      transition: background 0.2s;
-    }
-
-    /* 4) Hover suave */
-    .fc .fc-daygrid-day-frame:hover {
-      background-color: #2d2d44;
-      cursor: pointer;
-    }
-
-    /* 5) Dias fora do mês com opacidade */
-    .fc .fc-day-other .fc-daygrid-day-frame {
-      opacity: 0.4;
-    }
-
-    /* 6) Destacar hoje */
-    .fc .fc-daygrid-day.today .fc-daygrid-day-frame {
-      background-color: #3b3b5a;
-      box-shadow: 0 0 0 2px #7254ea;
-    }
-
-    /* 7) Cabeçalhos sem borda */
-    .fc .fc-col-header {
-      background: transparent;
-    }
-    .fc .fc-col-header-cell-cushion {
-      color: #9ca3af;
-      font-weight: 400;
-      padding: 0.5rem 0;
-    }
-
-    /* 8) Botões de navegação “pill” */
-    .fc .fc-button {
-      background: #7254ea;
-      color: #fff;
-      border: none;
-      border-radius: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      margin: 0 0.2rem;
-      transition: background 0.2s, transform 0.1s;
-    }
-    .fc .fc-button:hover {
-      background: #593ec9;
-      transform: translateY(-2px);
-    }
-    .fc .fc-toolbar-title {
-      color: #f9fafb;
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-
-    /* 9) Eventos em pílula no rodapé do cartão */
-    .fc .fc-event {
-      position: absolute;
-      bottom: 0.5rem;
-      left: 0.5rem;
-      right: 0.5rem;
-      background: #ff5a5f;
-      border: none !important;
-      border-radius: 9999px !important;
-      padding: 0.3rem 0.6rem !important;
-      font-size: 0.75rem !important;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: transform 0.1s;
-    }
-    .fc .fc-event:hover {
-      transform: scale(1.05);
-    }
-
-    /* 10) Badge de pontinho */
-    .fc .fc-event-dot {
-      width: 0.4rem;
-      height: 0.4rem;
-      margin-right: 0.25rem;
-    }
-
-    /* 11) Ajuste mobile */
-    @media (max-width: 640px) {
-      .fc .fc-daygrid-day-frame {
-        padding: 0.5rem;
-        min-height: 4rem;
-      }
-      .fc .fc-button {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.75rem;
-      }
-      .fc .fc-event {
-        padding: 0.25rem 0.5rem !important;
-        font-size: 0.65rem !important;
-      }
-    }
+/* ==============================================
+   Grade de Ocupação Estilo “Mini-Calendário”
+   ============================================== */
+#occupancy-section .overflow-auto {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#occupancy-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.875rem;
+}
+#occupancy-table th,
+#occupancy-table td {
+  width: 80px;
+  height: 50px;
+  padding: 0.25rem;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid #374151; /* gray-700 */
+}
+#occupancy-table thead th {
+  position: sticky;
+  top: 0;
+  background: #1f2937; /* gray-800 */
+  color: #f9fafb;      /* gray-50 */
+  z-index: 2;
+}
+#occupancy-table thead th:first-child,
+#occupancy-table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  background: #111827; /* gray-900 */
+  color: #f9fafb;
+  z-index: 3;
+}
+#occupancy-table td.bg-red-600 {
+  background-color: #dc2626 !important;
+  color: #fff;
+}
+#occupancy-table td.bg-green-600 {
+  background-color: #16a34a !important;
+  color: #fff;
+}
 
 
 
