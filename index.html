@@ -40,62 +40,40 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
   <!-- Botão do menu -->
-  <div class="menu-button" onclick="toggleMenu()">
-    <img src="assets/img/menu.png" alt="Menu" />
+  <div class="menu-button fixed top-4 left-4 z-50" onclick="document.getElementById('toggle-menu').click()">
+    <img src="assets/img/menu.png" alt="Menu" class="w-8 h-8" />
   </div>
 
-  <!-- Off-canvas Menu Modernizado -->
-  <nav id="side-menu" class="">
-    <!-- Cabeçalho com ações -->
-    <div class="menu-header">
-      <div class="user-block">
-        <img src="assets/img/avatar-placeholder.png" alt="Avatar" class="user-avatar" />
-        <div class="user-info">
-          <div id="menu-user-name">Sergio Andrade</div>
-          <div id="menu-user-email">202302450921@professor.estacio.br</div>
-        </div>
+  <!-- Off-Canvas Menu (ExPoNjm) -->
+  <header class="offcanvas-menu">
+    <input type="checkbox" id="toggle-menu" />
+
+    <!-- botão de abrir -->
+    <label for="toggle-menu" class="toggle-open">
+      <span></span>
+    </label>
+
+    <nav>
+      <div class="brand">
+        <a href="#">
+          <i class="fab fa-css3-alt"></i>
+          Coordena+
+        </a>
+        <!-- botão de fechar -->
+        <label for="toggle-menu" class="toggle-close">
+          <span></span>
+        </label>
       </div>
-      <button id="menu-close-btn" aria-label="Fechar menu">
-        <svg width="24" height="24" stroke="#fff" stroke-width="2" fill="none">
-          <line x1="5" y1="5" x2="19" y2="19" />
-          <line x1="19" y1="5" x2="5" y2="19" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Ações Tema/Logout -->
-    <div class="menu-actions-top">
-      <button id="menu-theme-btn" class="action-btn">
-        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 3a9 9 0 0 0 0 18 9 9 0 0 1 0-18z" />
-        </svg>
-        Tema
-      </button>
-      <button id="menu-logout-btn" class="action-btn logout-btn">
-        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M16 17l5-5-5-5M21 12H9" />
-          <path d="M13 5v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2" />
-        </svg>
-        Sair
-      </button>
-    </div>
-
-    <!-- Itens de navegação -->
-    <ul class="nav-list">
-      <li><a href="#" class="nav-item active">Perfil</a></li>
-      <li><a href="#" class="nav-item">Seus Agendamentos</a></li>
-      <li><a href="#" class="nav-item">Configurações</a></li>
-      <li><a href="#" class="nav-item">Ajuda</a></li>
-    </ul>
-
-    <!-- Rodapé -->
-    <div class="menu-footer">
-      <small>Português do Brasil</small>
-    </div>
-  </nav>
-
-
-
+      <ul class="menu-list">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#user">Usuário</a></li>
+        <li><a href="#contact">Contato</a></li>
+        <li><a href="#map">Mapa</a></li>
+        <li><a href="#settings">Config.</a></li>
+        <li><a href="#search">Buscar</a></li>
+      </ul>
+    </nav>
+  </header>
 
   <!-- Main content -->
   <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
