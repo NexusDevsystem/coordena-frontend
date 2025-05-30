@@ -120,7 +120,7 @@ body {
 #side-menu.show {
   transform: translateX(0);
 }
-/* cabeçalho */
+
 #side-menu .menu-header {
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@ body {
   font-weight: 600;
   color: #fff;
 }
-/* links */
+
 #side-menu nav a {
   display: flex;
   align-items: center;
@@ -144,13 +144,10 @@ body {
   border-bottom: 1px solid rgba(255,255,255,0.05);
   transition: background .2s;
 }
-#side-menu nav a i {
-  margin-right: .75rem;
-}
 #side-menu nav a:hover {
   background: rgba(255,255,255,0.1);
 }
-/* overlay leve */
+
 body.menu-open::before {
   content: '';
   position: fixed;
@@ -166,6 +163,7 @@ body.menu-open::before {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
 #occupancy-table {
   border-collapse: collapse;
   table-layout: fixed;
@@ -173,6 +171,7 @@ body.menu-open::before {
   min-width: 100%;
   font-size: 0.875rem;
 }
+
 #occupancy-table th,
 #occupancy-table td {
   width: 80px;
@@ -185,6 +184,7 @@ body.menu-open::before {
   text-overflow: ellipsis;
   border: 1px solid #374151; /* gray-700 */
 }
+
 /* cabeçalho sempre visível */
 #occupancy-table thead th {
   position: sticky;
@@ -193,6 +193,7 @@ body.menu-open::before {
   color: #f9fafb;      /* gray-50 */
   z-index: 2;
 }
+
 /* primeira coluna fixa */
 #occupancy-table thead th:first-child,
 #occupancy-table tbody td:first-child {
@@ -202,6 +203,7 @@ body.menu-open::before {
   color: #f9fafb;
   z-index: 3;
 }
+
 /* estados */
 #occupancy-table td.bg-red-600 {
   background-color: #dc2626 !important;
@@ -230,55 +232,6 @@ body.menu-open::before {
   background-color: #1f2937;
 }
 
-/* ==============================================
-   Grade de Ocupação Estilo “Mini-Calendário”
-   ============================================== */
-#occupancy-section .overflow-auto {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-#occupancy-table {
-  border-collapse: collapse;
-  table-layout: fixed;
-  width: max-content;
-  min-width: 100%;
-  font-size: 0.875rem;
-}
-#occupancy-table th,
-#occupancy-table td {
-  width: 80px;
-  height: 50px;
-  padding: 0.25rem;
-  text-align: center;
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border: 1px solid #374151; /* gray-700 */
-}
-#occupancy-table thead th {
-  position: sticky;
-  top: 0;
-  background: #1f2937; /* gray-800 */
-  color: #f9fafb;      /* gray-50 */
-  z-index: 2;
-}
-#occupancy-table thead th:first-child,
-#occupancy-table tbody td:first-child {
-  position: sticky;
-  left: 0;
-  background: #111827; /* gray-900 */
-  color: #f9fafb;
-  z-index: 3;
-}
-#occupancy-table td.bg-red-600 {
-  background-color: #dc2626 !important;
-  color: #fff;
-}
-#occupancy-table td.bg-green-600 {
-  background-color: #16a34a !important;
-  color: #fff;
-}
 
 
 
