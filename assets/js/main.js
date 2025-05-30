@@ -563,9 +563,8 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // vai receber o array de horários fixos
+let fixedSlots = [];  // já populado via Api.fetchFixedSchedules()
 
-/** Helpers internos **/
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
@@ -574,42 +573,38 @@ function toDate(Y, M, D, hm) {
   return new Date(Y, M - 1, D, h, m);
 }
 
-/**
- * Reconstrói a tabela de ocupação para data e turno informados.
- *
- * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
- * @param {string} turnoFilter — 'all' | 'manha' | 'tarde' | 'noite'
- */
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';  // limpa antes de tudo
+  table.innerHTML = '';
 
-  // 1) reservas do usuário e slots fixos do dia
+  // 1) dados básicos
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const [Y, M, D] = dateStr.split('-').map(Number);
   const weekday = new Date(Y, M - 1, D).getDay();
+  const now = new Date();
+
   const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) monta lista de faixas (ranges) unindo fixos + reservas
-  const fixedRanges = fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`);
-  const userRanges = dayEvents.map(e => `${e.start}-${e.end}`);
-  const timeRanges = Array.from(new Set([...fixedRanges, ...userRanges]))
-    .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
+  // 2) colunas fixas do dia, na ordem (baseadas em slots)
+  const timeRanges = Array.from(
+    new Set(fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`))
+  ).sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 3) lista de laboratórios unindo fixos + reservas
-  const fixedLabs = fixedTodaySlots.map(s => s.lab);
-  const eventLabs = dayEvents.map(e => e.sala || e.resource);
-  const labs = Array.from(new Set([...fixedLabs, ...eventLabs]));
+  // 3) lista de laboratórios (todos que aparecem em fixos ou reservas)
+  const labs = Array.from(new Set([
+    ...fixedTodaySlots.map(s => s.lab),
+    ...dayEvents.map(e => e.sala || e.resource)
+  ]));
 
-  // 4) se não houver dados, exibe mensagem
+  // se não há nada, exibe mensagem
   if (!timeRanges.length || !labs.length) {
     table.innerHTML = '<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>';
     return;
   }
 
-  // 5) cabeçalho
+  // 4) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -620,7 +615,7 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
-  // 6) corpo
+  // 5) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -640,23 +635,28 @@ async function buildOccupancyTable(filterDate) {
       });
 
       // slot fixo que cruza este intervalo?
-      const fixed = fixedTodaySlots.find(fs => {
-        if (fs.lab !== lab) return false;
-        const fsStart = toDate(Y, M, D, fs.startTime);
-        const fsEnd = toDate(Y, M, D, fs.endTime);
-        return fsStart < cellEnd && fsEnd > cellStart;
-      });
+      const fixed = fixedTodaySlots.find(fs =>
+        fs.lab === lab &&
+        fs.startTime === start &&
+        fs.endTime === end
+      );
 
-      // define cor e label
+      // escolhe cor e label
       let style = '', label = '';
       if (hasReservation) {
-        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
+        style = 'background-color: rgba(220,38,38,0.8);';  // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        style = `background-color: ${turnoColors[fixed.turno]};`; // cor do turno
-        label = fixed.turno;
+        // se a hora atual ainda não ultrapassou o fim do slot, "aula", senão "livre"
+        if (now < toDate(Y, M, D, fixed.endTime)) {
+          style = `background-color: ${turnoColors[fixed.turno]};`;
+          label = fixed.turno;
+        } else {
+          style = 'background-color: rgba(16,185,129,0.8);'; // verde
+          label = 'livre';
+        }
       } else {
-        style = 'background-color: rgba(16,185,129,0.8);'; // verde
+        style = 'background-color: rgba(16,185,129,0.8);';   // verde
         label = 'livre';
       }
 
@@ -669,18 +669,9 @@ async function buildOccupancyTable(filterDate) {
 
     tbody.appendChild(tr);
   });
-
   table.appendChild(tbody);
 }
 
-// Helpers que você já tinha:
-function padHM(date) {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-function toDate(Y, M, D, hm) {
-  const [h, m] = hm.split(':').map(Number);
-  return new Date(Y, M - 1, D, h, m);
-}
 
 
 // ────────────────────────────────────
