@@ -167,6 +167,10 @@ body {
 }
 
 /* BOTÃO TOGGLE: 2 LINHAS QUE VIRAM X (SEM SPAN) */
+.offcanvas-menu input[type="checkbox"] {
+  display: none;
+}
+
 .offcanvas-menu label {
   position: fixed;
   top: 1.5rem;
@@ -202,12 +206,12 @@ body {
   top: calc(50% + 0.6rem);
 }
 
-/* estado “X” */
-.offcanvas-menu input[type="checkbox"]:checked ~ label::before {
+/* quando o checkbox estiver marcado transforma em X */
+.offcanvas-menu input[type="checkbox"]:checked + label::before {
   top: 50%;
   transform: rotate(45deg);
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ label::after {
+.offcanvas-menu input[type="checkbox"]:checked + label::after {
   top: 50%;
   transform: rotate(-45deg);
 }
