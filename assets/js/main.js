@@ -4,7 +4,7 @@
 // ======================================
 const turnoColors = {
   "Manhã": "rgba(59, 130, 246, 0.2)",   // azul claro
-  "Tarde": "rgba(234, 88, 12, 0.2)",    // laranja claro
+  "Tarde": "rgba(245, 241, 6, 0.2)",    // laranja claro
   "Noite": "rgba(75, 85, 99, 0.2)"      // cinza claro
 };
 
