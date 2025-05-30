@@ -567,10 +567,10 @@ let fixedSlots = [];  // vai receber o array de horários fixos
 
 /** Helpers internos **/
 function padHM(date) {
-  return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 function toDate(Y, M, D, hm) {
-  const [h,m] = hm.split(':').map(Number);
+  const [h, m] = hm.split(':').map(Number);
   return new Date(Y, M - 1, D, h, m);
 }
 
@@ -580,113 +580,108 @@ function toDate(Y, M, D, hm) {
  * @param {string} filterDate — “YYYY-MM-DD”. Se falsy, usa hoje.
  * @param {string} turnoFilter — 'all' | 'manha' | 'tarde' | 'noite'
  */
-async function buildOccupancyTable(filterDate, turnoFilter = 'all') {
+async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';  // limpa
+  table.innerHTML = '';  // limpa antes de tudo
 
   // 1) reservas do usuário e slots fixos do dia
   const allEvents = CalendarModule.getEvents();
-  const dateStr    = filterDate || new Date().toISOString().slice(0,10);
-  const [Y, M, D]  = dateStr.split('-').map(Number);
-  const weekday    = new Date(Y, M-1, D).getDay();
-
-  const dayEvents       = allEvents.filter(e => e.date === dateStr);
+  const dateStr = filterDate || new Date().toISOString().slice(0, 10);
+  const [Y, M, D] = dateStr.split('-').map(Number);
+  const weekday = new Date(Y, M - 1, D).getDay();
+  const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) filtros de turno
-  const turnoRanges = {
-    manha: { start:'06:00', end:'12:00' },
-    tarde: { start:'12:00', end:'18:00' },
-    noite: { start:'18:00', end:'23:59' }
-  };
-  const inTurno = (start, end, t) => {
-    if (t==='all') return true;
-    const { start:ts, end:te } = turnoRanges[t];
-    return end > ts && start < te;
-  };
-  const eventsFiltered = dayEvents.filter(e => inTurno(e.start, e.end, turnoFilter));
-  const fixedFiltered  = fixedTodaySlots.filter(s => inTurno(s.startTime, s.endTime, turnoFilter));
+  // 2) monta lista de faixas (ranges) unindo fixos + reservas
+  const fixedRanges = fixedTodaySlots.map(s => `${s.startTime}-${s.endTime}`);
+  const userRanges = dayEvents.map(e => `${e.start}-${e.end}`);
+  const timeRanges = Array.from(new Set([...fixedRanges, ...userRanges]))
+    .sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
-  // 3) monta faixas de horário (50min para fixos + reservas atípicas)
-  const fixedRanges = [];
-  fixedFiltered.forEach(fs=>{
-    let cur = toDate(Y,M,D,fs.startTime);
-    const endF = toDate(Y,M,D,fs.endTime);
-    while(cur<endF){
-      const nxt = new Date(cur);
-      nxt.setMinutes(cur.getMinutes()+50);
-      const final = nxt>endF? endF: nxt;
-      fixedRanges.push(`${padHM(cur)}-${padHM(final)}`);
-      cur = final;
-    }
-  });
-  const userRanges = eventsFiltered.map(e=>`${e.start}-${e.end}`);
-  const timeRanges = Array.from(new Set([...fixedRanges,...userRanges]))
-    .sort((a,b)=>a.split('-')[0].localeCompare(b.split('-')[0]));
+  // 3) lista de laboratórios unindo fixos + reservas
+  const fixedLabs = fixedTodaySlots.map(s => s.lab);
+  const eventLabs = dayEvents.map(e => e.sala || e.resource);
+  const labs = Array.from(new Set([...fixedLabs, ...eventLabs]));
 
-  // 4) lista de laboratórios
-  const labs = Array.from(new Set([
-    ...fixedFiltered.map(s=>s.lab),
-    ...eventsFiltered.map(e=>e.sala||e.resource)
-  ]));
-
-  // se vazio, mostra mensagem
-  if(!timeRanges.length||!labs.length){
-    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
+  // 4) se não houver dados, exibe mensagem
+  if (!timeRanges.length || !labs.length) {
+    table.innerHTML = '<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>';
     return;
   }
 
-  // 5) renderiza cabeçalho
+  // 5) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
       <th class="px-2 py-1 border text-left">Sala / Horário</th>
-      ${timeRanges.map(r=>`<th class="px-2 py-1 border text-center">${r}</th>`).join('')}
+      ${timeRanges.map(r =>
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
-  // 6) renderiza corpo
+  // 6) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
 
-    timeRanges.forEach(range=>{
-      const [start,end] = range.split('-');
-      const cellStart = toDate(Y,M,D,start);
-      const cellEnd   = toDate(Y,M,D,end);
+    timeRanges.forEach(range => {
+      const [start, end] = range.split('-');
+      const cellStart = toDate(Y, M, D, start);
+      const cellEnd = toDate(Y, M, D, end);
 
-      // overlap reserva?
-      const hasReservation = eventsFiltered.some(ev=>{
-        if((ev.sala||ev.resource)!==lab) return false;
-        const evStart = toDate(Y,M,D,ev.start);
-        const evEnd   = toDate(Y,M,D,ev.end);
-        return evStart<cellEnd && evEnd>cellStart;
+      // reserva que cruza este intervalo?
+      const hasReservation = dayEvents.some(ev => {
+        if ((ev.sala || ev.resource) !== lab) return false;
+        const evStart = toDate(Y, M, D, ev.start);
+        const evEnd = toDate(Y, M, D, ev.end);
+        return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // overlap slot fixo?
-      const isFixed = fixedFiltered.some(fs=>{
-        if(fs.lab!==lab) return false;
-        const fsStart = toDate(Y,M,D,fs.startTime);
-        const fsEnd   = toDate(Y,M,D,fs.endTime);
-        return fsStart<cellEnd && fsEnd>cellStart;
+      // slot fixo que cruza este intervalo?
+      const fixed = fixedTodaySlots.find(fs => {
+        if (fs.lab !== lab) return false;
+        const fsStart = toDate(Y, M, D, fs.startTime);
+        const fsEnd = toDate(Y, M, D, fs.endTime);
+        return fsStart < cellEnd && fsEnd > cellStart;
       });
 
-      let cssClass,label;
-      if(hasReservation)   { cssClass='bg-red-600';   label='ocupado'; }
-      else if(isFixed)     { cssClass='bg-gray-600';  label='aula';    }
-      else                 { cssClass='bg-green-600'; label='livre';   }
+      // define cor e label
+      let style = '', label = '';
+      if (hasReservation) {
+        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
+        label = 'ocupado';
+      } else if (fixed) {
+        style = `background-color: ${turnoColors[fixed.turno]};`; // cor do turno
+        label = fixed.turno;
+      } else {
+        style = 'background-color: rgba(16,185,129,0.8);'; // verde
+        label = 'livre';
+      }
 
       tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center ${cssClass}">
-          ${label}
-        </td>`;
+        <td
+          class="px-2 py-1 border text-white text-center"
+          style="${style}"
+        >${label}</td>`;
     });
 
     tbody.appendChild(tr);
   });
+
   table.appendChild(tbody);
 }
+
+// Helpers que você já tinha:
+function padHM(date) {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+function toDate(Y, M, D, hm) {
+  const [h, m] = hm.split(':').map(Number);
+  return new Date(Y, M - 1, D, h, m);
+}
+
 
 // ────────────────────────────────────
 // SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
@@ -695,9 +690,9 @@ async function buildOccupancyTable(filterDate, turnoFilter = 'all') {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
-    CalendarModule.getEvents().slice().forEach(e=>CalendarModule.remove(e._id));
-    updated.forEach(e=>CalendarModule.add(e));
-  } catch(err){
+    CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+    updated.forEach(e => CalendarModule.add(e));
+  } catch (err) {
     console.error('Erro ao buscar eventos:', err);
   }
 }
@@ -706,7 +701,7 @@ async function initOccupancyUpdates({ getDate, getTurno }) {
   // carrega fixedSlots só uma vez
   try {
     fixedSlots = await Api.fetchFixedSchedules();
-  } catch(err){
+  } catch (err) {
     console.error('Falha fixedSchedules:', err);
   }
 
@@ -722,11 +717,11 @@ async function initOccupancyUpdates({ getDate, getTurno }) {
 
   // inicial e ciclos
   refreshTable();
-  setInterval(refreshTable, 5*1000);
-  setInterval(async ()=>{
+  setInterval(refreshTable, 5 * 1000);
+  setInterval(async () => {
     await refreshEvents();
     refreshTable();
-  }, 2*60*1000);
+  }, 2 * 60 * 1000);
 }
 
 
