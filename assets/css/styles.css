@@ -206,7 +206,7 @@ body {
   top: calc(50% + 0.6rem);
 }
 
-/* quando o checkbox estiver marcado transforma em X */
+/* quando o checkbox estiver marcado transforma em X 
 .offcanvas-menu input[type="checkbox"]:checked + label::before {
   top: 50%;
   transform: rotate(45deg);
@@ -214,7 +214,7 @@ body {
 .offcanvas-menu input[type="checkbox"]:checked + label::after {
   top: 50%;
   transform: rotate(-45deg);
-}
+}*/
 
 
 
