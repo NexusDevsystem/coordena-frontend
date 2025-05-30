@@ -686,40 +686,46 @@ async function buildOccupancyTable(filterDate) {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
+    // limpa o calendário interno
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
+    // re‐adiciona tudo
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
     console.error('Erro ao buscar eventos:', err);
   }
 }
 
-async function initOccupancyUpdates({ getDate, getTurno }) {
+async function initOccupancyUpdates() {
   // carrega fixedSlots só uma vez
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
-    console.error('Falha fixedSchedules:', err);
+    console.error('Falha ao buscar fixedSchedules:', err);
   }
 
+  const dateInput = document.getElementById('occupancy-date');
+
+  // função única de refresh da tabela
   function refreshTable() {
-    buildOccupancyTable(getDate(), getTurno());
+    buildOccupancyTable(dateInput.value);
   }
 
-  // listener data & turno
-  document.getElementById('occupancy-date')
-    .addEventListener('change', refreshTable);
-  document.getElementById('turno-filter')
-    .addEventListener('change', refreshTable);
+  // listener só de data
+  dateInput.addEventListener('change', refreshTable);
 
-  // inicial e ciclos
+  // valor inicial e primeiros ciclos
+  dateInput.value = new Date().toISOString().slice(0, 10);
   refreshTable();
+
+  // re‐monta a tabela a cada 5s
   setInterval(refreshTable, 5 * 1000);
+
+  // re‐busca reservas a cada 2min e reconstrói
   setInterval(async () => {
     await refreshEvents();
     refreshTable();
   }, 2 * 60 * 1000);
 }
-
 
 
 // ----------------------
@@ -737,19 +743,14 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // referências únicas
   const dateInput = document.getElementById('occupancy-date');
-  const turnoSelect = document.getElementById('turno-filter');
 
-  // 1) Inicializa o calendário com seus callbacks originais
+  // 1) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
-      // atualiza date-picker e tabela
       dateInput.value = info.dateStr;
-      buildOccupancyTable(info.dateStr, turnoSelect.value);
-
-      // abre formulário
+      buildOccupancyTable(info.dateStr);
       FormModule.open(null, {
         date: info.dateStr,
         start: '00:00',
@@ -772,33 +773,24 @@ onReady(async () => {
     }
   );
 
-  // 2) Preenche data inicial e listeners de filtro
+  // 2) listeners só de data
   dateInput.value = new Date().toISOString().slice(0, 10);
-
   dateInput.addEventListener('change', () => {
-    buildOccupancyTable(dateInput.value, turnoSelect.value);
-  });
-  turnoSelect.addEventListener('change', () => {
-    buildOccupancyTable(dateInput.value, turnoSelect.value);
+    buildOccupancyTable(dateInput.value);
   });
 
-  // 3) Ativa atualização automática da tabela (com filtro por data e turno)
-  initOccupancyUpdates({
-    getDate: () => dateInput.value,
-    getTurno: () => turnoSelect.value
-  });
+  // 3) inicializa atualização automática
+  initOccupancyUpdates();
 
-  // 4) Demais listeners…
+  // 4) demais listeners...
   document.getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // off-canvas menu…
-  // (… seu código existente …)
-
-  // 5) Chamada inicial
-  buildOccupancyTable(dateInput.value, turnoSelect.value);
+  // 5) chamada inicial
+  buildOccupancyTable(dateInput.value);
 });
+
 
 
