@@ -80,9 +80,9 @@
 nav.menu {
   position: fixed;
   top: 0;
-  right: -100vw; /* inicia fora da tela */
-  width: 50vw;
-  max-width: 400px;
+  right: -50%;      /* inicia fora, metade da viewport */
+  width: 50%;       /* ocupa metade exata da tela */
+  max-width: 400px; /* opcional: limite máximo */
   height: 100vh;
   background: #111;
   color: white;
@@ -91,7 +91,7 @@ nav.menu {
   z-index: 65;
 }
 nav.menu.open {
-  right: 0; /* mostra */
+  right: 0; /* desliza até o meio da tela */
 }
 
 /* Flex interno */
@@ -210,6 +210,7 @@ nav.menu .right .footer {
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 0.75rem;
 }
+
 
   </style>
 </head>
