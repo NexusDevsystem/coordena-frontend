@@ -575,20 +575,20 @@ function toDate(Y, M, D, hm) {
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';
+  table.innerHTML = '';  // limpa antes de tudo
 
-  // 1) reserva + slots fixos do dia
-  const allEvents = CalendarModule.getEvents();
-  const dateStr = filterDate || new Date().toISOString().slice(0, 10);
-  const [Y, M, D] = dateStr.split('-').map(Number);
-  const weekday = new Date(Y, M - 1, D).getDay();
-  const now = new Date();
-  const dayEvents = allEvents.filter(e => e.date === dateStr);
+  // 1) dados de reservas e slots fixos do dia
+  const allEvents       = CalendarModule.getEvents();
+  const dateStr         = filterDate || new Date().toISOString().slice(0,10);
+  const [Y, M, D]       = dateStr.split('-').map(Number);
+  const weekday         = new Date(Y, M-1, D).getDay();
+  const now             = new Date();
+  const dayEvents       = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
   // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
   const slotStart = toDate(Y, M, D, '08:00');
-  const slotEnd = toDate(Y, M, D, '22:00');
+  const slotEnd   = toDate(Y, M, D, '22:00');
   const timeRanges = [];
   let cursor = new Date(slotStart);
   while (cursor < slotEnd) {
@@ -600,30 +600,30 @@ async function buildOccupancyTable(filterDate) {
     cursor = next;
   }
 
-  // 3) lista de salas
+  // 3) lista de salas (fixos + reservas)
   const labs = Array.from(new Set([
     ...fixedTodaySlots.map(s => s.lab),
     ...dayEvents.map(e => e.sala || e.resource)
   ]));
 
-  // se não há nada
+  // 4) se não há dados
   if (!timeRanges.length || !labs.length) {
     table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
     return;
   }
 
-  // 4) cabeçalho
+  // 5) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-    `<th class="px-2 py-1 border text-center">${r}</th>`
-  ).join('')}
+        `<th class="px-2 py-1 border text-center">${r}</th>`
+      ).join('')}
     </tr>`;
   table.appendChild(thead);
 
-  // 5) corpo
+  // 6) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -631,39 +631,40 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-      const cellStart = toDate(Y, M, D, start);
-      const cellEnd = toDate(Y, M, D, end);
+      const cellStart    = toDate(Y, M, D, start);
+      const cellEnd      = toDate(Y, M, D, end);
 
-      // reserva?
+      // existe reserva que cruza este intervalo?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
-        const evEnd = toDate(Y, M, D, ev.end);
+        const evEnd   = toDate(Y, M, D, ev.end);
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // slot fixo (aula)?
+      // existe slot fixo (aula) que cruza este intervalo?
       const fixed = fixedTodaySlots.find(fs =>
         fs.lab === lab &&
         toDate(Y, M, D, fs.startTime) < cellEnd &&
         toDate(Y, M, D, fs.endTime) > cellStart
       );
 
+      // escolhe cor e texto
       let style = '', label = '';
       if (hasReservation) {
         style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
         label = 'ocupado';
       } else if (fixed) {
-        // antes de terminar, cor do turno, depois livre
+        // se o agora for antes do fim da aula, mostra turno; se não, mostra livre
         if (now < toDate(Y, M, D, fixed.endTime)) {
           style = `background-color: ${turnoColors[fixed.turno]};`;
           label = fixed.turno;
         } else {
-          style = 'background-color: rgba(16,185,129,0.8);';
+          style = 'background-color: rgba(16,185,129,0.8);'; // verde
           label = 'livre';
         }
       } else {
-        style = 'background-color: rgba(16,185,129,0.8);';
+        style = 'background-color: rgba(16,185,129,0.8);'; // verde
         label = 'livre';
       }
 
@@ -677,16 +678,6 @@ async function buildOccupancyTable(filterDate) {
   });
   table.appendChild(tbody);
 }
-
-// Helpers:
-function padHM(date) {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-function toDate(Y, M, D, hm) {
-  const [h, m] = hm.split(':').map(Number);
-  return new Date(Y, M - 1, D, h, m);
-}
-
 
 // ────────────────────────────────────
 // SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
