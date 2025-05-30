@@ -198,14 +198,14 @@ body {
 
 /* nav fora da tela */
 .offcanvas-menu nav {
-  position: fixed;
+  position: relative;             /* para posicionar o rodapé */
   top: 0;
   left: -22rem;
   width: 22rem;
   height: 100%;
   padding: 2.5rem 2rem;
-  background: #1d2c50;             /* Azul escuro / quase preto */
-  color: #cbd5e1;                  /* cinza claro */
+  background: #1d2c50;            /* Azul escuro / quase preto */
+  color: #cbd5e1;                 /* cinza claro */
   overflow: hidden;
   transition: left 0.3s ease;
 }
@@ -221,7 +221,7 @@ body {
   align-items: center;
   gap: .5rem;
   font-size: 2.4rem;
-  color: #5c7cfa;                  /* Azul Coordena+ */
+  color: #5c7cfa;                 /* Azul Coordena+ */
 }
 .offcanvas-menu .brand .brand-logo {
   width: 2.5rem;
@@ -244,11 +244,11 @@ body {
 .offcanvas-menu .menu-list li a {
   font-size: 2rem;
   line-height: 1.5;
-  color: #cbd5e1;                  /* cinza claro */
+  color: #cbd5e1;                 /* cinza claro */
   text-decoration: none;
 }
 .offcanvas-menu .menu-list li a:hover {
-  color: #5c7cfa;                  /* azul no hover */
+  color: #5c7cfa;                 /* azul no hover */
 }
 .offcanvas-menu .menu-list li a::after {
   content: " 0" counter(nav-link);
@@ -256,17 +256,21 @@ body {
 
 /* ações fixas (Tema / Sair) */
 .offcanvas-menu .menu-footer-btns {
-  margin-top: auto;
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  width: 100%;
   display: flex;
-  justify-content: space-around;
-  padding-top: 2rem;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0 2rem;
 }
 .offcanvas-menu .footer-btn {
   width: 3.5rem;
   height: 3.5rem;
   border: none;
   border-radius: 50%;
-  background: #1e293b;        /* cinza escuro */
+  background: #1e293b;            /* cinza escuro */
   color: #e2e8f0;
   display: flex;
   align-items: center;
@@ -276,11 +280,11 @@ body {
   transition: background 0.2s, transform 0.1s;
 }
 .offcanvas-menu .footer-btn:hover {
-  background: #5c7cfa;        /* azul Coordena+ */
+  background: #5c7cfa;            /* azul Coordena+ */
   transform: scale(1.05);
 }
 .offcanvas-menu .footer-btn.logout {
-  background: #dc2626;        /* vermelho */
+  background: #dc2626;            /* vermelho */
 }
 .offcanvas-menu .footer-btn.logout:hover {
   background: #ef4444;
@@ -339,6 +343,7 @@ body {
 .offcanvas-menu .menu-list li:hover {
   animation: hover 0.5s;
 }
+
 
 /* ================================================
    Grade de Ocupação Estilo “Mini-Calendário”
