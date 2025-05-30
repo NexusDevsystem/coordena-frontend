@@ -212,138 +212,126 @@ body.menu-open::before {
   color: #fff;
 }
 
-/* ────────────────────────────────────────────────────────────────────
-   FullCalendar – Estilo “Cartões Avançado”
-   ──────────────────────────────────────────────────────────────────── */
+ /* ─────────────────────────────────────────────────
+       FullCalendar – Estilo “Cartões Avançado”
+       ───────────────────────────────────────────────── */
 
-/* 1) Remover todas as linhas de grade internas do mês */
-.fc .fc-scrollgrid,
-.fc .fc-scrollgrid > div > div,
-.fc .fc-scrollgrid > div > div > div,
-.fc .fc-daygrid-day-frame,
-.fc .fc-col-header,
-.fc .fc-col-header-cell,
-.fc .fc-col-header-cell-cushion {
-  border: none !important;
-  box-shadow: none !important;
-}
+    /* 1) Remove todas as linhas brancas de grade */
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid > div > div,
+    .fc .fc-scrollgrid > div > div > div,
+    .fc .fc-col-header,
+    .fc .fc-col-header-cell-cushion {
+      border: none !important;
+      box-shadow: none !important;
+    }
 
-/* 2) Forçar remoção da linha entre células */
-.fc .fc-scrollgrid .fc-scrollgrid-section > div {
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-}
+    /* 2) Gap natural entre “cartões” */
+    .fc .fc-scrollgrid > div > div {
+      display: grid;
+      gap: 0.75rem !important;
+    }
 
-/* 3) Gap entre os cartões (sem bordas) */
-.fc .fc-scrollgrid > div > div {
-  display: grid;
-  grid-auto-rows: auto;
-  gap: 0.75rem !important;
-}
+    /* 3) Cada dia vira um cartão */
+    .fc .fc-daygrid-day-frame {
+      position: relative;
+      background-color: #1f1f2e;
+      border-radius: 1rem;
+      padding: 0.75rem;
+      min-height: 5rem;
+      transition: background 0.2s;
+    }
 
-/* 4) Cada dia vira um cartão */
-.fc .fc-daygrid-day-frame {
-  position: relative;       /* para posicionar eventos no rodapé */
-  background-color: #1f1f2e; /* tom escuro */
-  border-radius: 1rem;      /* cantos arredondados */
-  padding: 0.75rem;         /* espaçamento interno */
-  min-height: 5.5rem;       /* altura mínima */
-  transition: background 0.2s;
-}
+    /* 4) Hover suave */
+    .fc .fc-daygrid-day-frame:hover {
+      background-color: #2d2d44;
+      cursor: pointer;
+    }
 
-/* 5) Hover suave */
-.fc .fc-daygrid-day-frame:hover {
-  background-color: #2d2d44;
-  cursor: pointer;
-}
+    /* 5) Dias fora do mês com opacidade */
+    .fc .fc-day-other .fc-daygrid-day-frame {
+      opacity: 0.4;
+    }
 
-/* 6) Dias fora do mês com opacidade baixa */
-.fc .fc-day-other .fc-daygrid-day-frame {
-  opacity: 0.4;
-}
+    /* 6) Destacar hoje */
+    .fc .fc-daygrid-day.today .fc-daygrid-day-frame {
+      background-color: #3b3b5a;
+      box-shadow: 0 0 0 2px #7254ea;
+    }
 
-/* 7) Destacar “hoje” */
-.fc .fc-daygrid-day.today .fc-daygrid-day-frame {
-  background-color: #3b3b5a;
-  box-shadow: 0 0 0 2px #7254ea;
-}
+    /* 7) Cabeçalhos sem borda */
+    .fc .fc-col-header {
+      background: transparent;
+    }
+    .fc .fc-col-header-cell-cushion {
+      color: #9ca3af;
+      font-weight: 400;
+      padding: 0.5rem 0;
+    }
 
-/* 8) Cabeçalhos sem borda, texto leve */
-.fc .fc-col-header {
-  background: transparent;
-  border-bottom: none !important;
-}
-.fc .fc-col-header-cell-cushion {
-  color: #9ca3af;
-  font-weight: 400;
-  padding: 0.5rem 0;
-}
+    /* 8) Botões de navegação “pill” */
+    .fc .fc-button {
+      background: #7254ea;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      margin: 0 0.2rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .fc .fc-button:hover {
+      background: #593ec9;
+      transform: translateY(-2px);
+    }
+    .fc .fc-toolbar-title {
+      color: #f9fafb;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
 
-/* 9) Botões de navegação mais chamativos */
-.fc .fc-button {
-  background: #7254ea;
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  margin: 0 0.2rem;
-  transition: background 0.2s, transform 0.1s;
-}
-.fc .fc-button:hover {
-  background: #593ec9;
-  transform: translateY(-2px);
-}
-/* Título (mês/ano) */
-.fc .fc-toolbar-title {
-  color: #f9fafb;
-  font-size: 1.25rem;
-  font-weight: 500;
-}
+    /* 9) Eventos em pílula no rodapé do cartão */
+    .fc .fc-event {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 0.5rem;
+      right: 0.5rem;
+      background: #ff5a5f;
+      border: none !important;
+      border-radius: 9999px !important;
+      padding: 0.3rem 0.6rem !important;
+      font-size: 0.75rem !important;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: transform 0.1s;
+    }
+    .fc .fc-event:hover {
+      transform: scale(1.05);
+    }
 
-/* 10) Eventos em “pill” fixados no rodapé do cartão */
-.fc .fc-event {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  right: 0.5rem;
-  background: #ff5a5f;
-  border: none !important;
-  border-radius: 9999px !important;
-  padding: 0.3rem 0.6rem !important;
-  font-size: 0.75rem !important;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: transform 0.1s;
-}
-.fc .fc-event:hover {
-  transform: scale(1.05);
-}
+    /* 10) Badge de pontinho */
+    .fc .fc-event-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      margin-right: 0.25rem;
+    }
 
-/* 11) Badge de ponto */
-.fc .fc-event-dot {
-  width: 0.4rem;
-  height: 0.4rem;
-  margin-right: 0.25rem;
-}
-
-/* 12) Ajustes mobile */
-@media (max-width: 640px) {
-  .fc .fc-daygrid-day-frame {
-    padding: 0.5rem;
-    min-height: 4rem;
-  }
-  .fc .fc-button {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
-  }
-  .fc .fc-event {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.65rem !important;
-  }
-}
+    /* 11) Ajuste mobile */
+    @media (max-width: 640px) {
+      .fc .fc-daygrid-day-frame {
+        padding: 0.5rem;
+        min-height: 4rem;
+      }
+      .fc .fc-button {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+      }
+      .fc .fc-event {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.65rem !important;
+      }
+    }
 
 
 
