@@ -167,10 +167,6 @@ body {
 }
 
 /* BOTÃO TOGGLE: 2 LINHAS QUE VIRAM X (SEM SPAN) */
-.offcanvas-menu input[type="checkbox"] {
-  display: none;
-}
-
 .offcanvas-menu label {
   position: fixed;
   top: 1.5rem;
@@ -206,23 +202,16 @@ body {
   top: calc(50% + 0.6rem);
 }
 
-/* quando o checkbox estiver marcado transforma em X 
-.offcanvas-menu input[type="checkbox"]:checked + label::before {
+/* quando o checkbox estiver marcado, forma o X */
+.offcanvas-menu input[type="checkbox"]:checked~label::before {
   top: 50%;
   transform: rotate(45deg);
 }
-.offcanvas-menu input[type="checkbox"]:checked + label::after {
+
+.offcanvas-menu input[type="checkbox"]:checked~label::after {
   top: 50%;
   transform: rotate(-45deg);
-}*/
-
-
-
-/* Garante que não exista mais uma terceira barra */
-.offcanvas-menu label span::after {
-  display: none;
 }
-
 
 /* nav off-canvas */
 .offcanvas-menu nav {
@@ -235,9 +224,7 @@ body {
   flex-direction: column;
   padding: 2.5rem 2rem;
   background: #0f172a;
-  /* Azul escuro */
   color: #cbd5e1;
-  /* cinza claro */
   transition: left 0.3s ease;
 }
 
@@ -246,7 +233,6 @@ body {
   text-align: center;
   color: #cbd5e1;
   margin: 3rem 0 1.5rem;
-  /* 3rem de espaço acima, 1.5rem abaixo */
 }
 
 .offcanvas-menu .menu-user-info #menu-user-name {
@@ -273,7 +259,6 @@ body {
   gap: .5rem;
   font-size: 2.4rem;
   color: #5c7cfa;
-  /* Azul Coordena+ */
 }
 
 .offcanvas-menu .brand .brand-logo {
@@ -338,7 +323,6 @@ body {
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
-/* Hover e clique */
 .offcanvas-menu .footer-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
@@ -356,48 +340,19 @@ body {
   display: inline-block;
 }
 
-/* espaçamento dos ícones */
-.footer-btn i {
-  font-size: 1.4rem;
-}
-
-/* mantém o estilo de botões repaginados */
-.offcanvas-menu .footer-btn {
-  width: 3.2rem;
-  height: 3.2rem;
-  border: none;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-}
-
-.offcanvas-menu .footer-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
 /* logout mantém o tom vermelho e exibe ícone local */
 .offcanvas-menu .footer-btn.logout {
   background-color: rgba(220, 38, 38, 0.9);
-  background-image: url("assets/img/icons/logout.png");
+  background-image: url("../img/icons/logout.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 1.6rem 1.6rem;
-  padding: 0;              /* Ajusta o tamanho apenas ao ícone */
+  padding: 0;
 }
 
-/* hover com tom mais vivo */
 .offcanvas-menu .footer-btn.logout:hover {
   background-color: rgba(239, 68, 68, 1);
 }
-
 
 /* abrir/fechar menu */
 .offcanvas-menu input[type="checkbox"]:checked~nav {
@@ -407,18 +362,6 @@ body {
 .offcanvas-menu input[type="checkbox"]:checked~label.toggle-open {
   opacity: 0;
   pointer-events: none;
-}
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .toggle-close span {
-  background: transparent;
-}
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .toggle-close span::before {
-  transform: rotate(-45deg);
-}
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .toggle-close span::after {
-  transform: rotate(45deg);
 }
 
 /* animação itens */
@@ -461,6 +404,7 @@ body {
 .offcanvas-menu .menu-list li:hover {
   animation: hover 0.5s;
 }
+
 
 
 /* ================================================
