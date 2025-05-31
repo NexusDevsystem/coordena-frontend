@@ -1,7 +1,7 @@
 // assets/js/auth.js
 
 const Auth = (() => {
-  // 1) Verifica se estamos em localhost; se sim, usa o servidor local, senão aponta pro onrender
+  // Verifica se estamos em localhost ou produção
   const API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/auth'
     : 'https://coordena-backend.onrender.com/api/auth';
@@ -15,51 +15,85 @@ const Auth = (() => {
   }
 
   async function login(email, password) {
-    // ← usa backticks para interpolar a constante API
-    const res = await fetch(`${API}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    // 1) Logamos a URL final que será chamada
+    console.log('[Auth.login] API endpoint:', `${API}/login`);
+
+    // 2) Logamos o payload (apenas para debug; não deixe exposto em produção)
+    console.log('[Auth.login] Payload →', { email, password });
+
+    let res;
+    try {
+      res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    } catch (fetchErr) {
+      // erro de rede / CORS / DNS
+      console.error('[Auth.login] Erro no fetch:', fetchErr);
+      throw new Error('Falha ao conectar com o servidor. Verifique a rede.');
+    }
+
+    // 3) Logamos o status HTTP que veio do servidor
+    console.log('[Auth.login] Status HTTP da resposta:', res.status);
 
     if (!res.ok) {
+      // 4) Caso não seja OK, tentamos extrair o JSON de erro (se houver) e mostrar
       let errText = 'Credenciais inválidas.';
       try {
         const errJson = await res.json();
+        console.log('[Auth.login] JSON de erro recebido:', errJson);
+
         if (res.status === 403 && errJson.error) {
-          // caso específico (por exemplo "aguardando aprovação")
-          errText = errJson.error;
+          errText = errJson.error; // ex: “aguardando aprovação”, ou outro texto vindo do backend
         } else if (errJson.error) {
           errText = errJson.error;
         }
-      } catch {
-        // se não conseguir ler o JSON, mantemos a mensagem genérica
+      } catch (jsonErr) {
+        console.warn('[Auth.login] Não foi possível ler JSON de erro:', jsonErr);
+        // mantém errText genérico
       }
       throw new Error(errText);
     }
 
-    const data = await res.json();
+    // 5) Se chegou aqui, foi 200 OK (ou 201 etc). Vamos extrair o JSON de sucesso
+    let data;
+    try {
+      data = await res.json();
+    } catch (jsonParseErr) {
+      console.error('[Auth.login] Erro ao fazer parse do JSON de sucesso:', jsonParseErr);
+      throw new Error('Resposta inválida do servidor.');
+    }
+
+    console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
+
     saveToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    // redireciona para a página principal após login bem‐sucedido
     window.location.assign('/index.html');
     return data.token;
   }
 
   async function register(data) {
+    console.log('[Auth.register] API endpoint:', `${API}/register`);
+    console.log('[Auth.register] Payload →', data);
+
     const res = await fetch(`${API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
+
+    console.log('[Auth.register] Status HTTP da resposta:', res.status);
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      console.error('[Auth.register] JSON de erro recebido:', err);
       throw new Error(err.error || 'Erro no cadastro');
     }
 
     const result = await res.json();
-    // após cadastro, redireciona para a página de login
+    console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
+
     window.location.assign('/login.html');
     return result;
   }
@@ -80,19 +114,12 @@ const Auth = (() => {
     }
   }
 
-  // expondo apenas o que for necessário no objeto Auth
   return { login, register, logout, getCurrentUser, getToken };
 })();
-
-// 2) Se você precisar chamar `login(...)` ou `register(...)` diretamente no seu HTML,
-//    basta copiar essas funções para o escopo global.
-//    Caso seu formulário invoque `Auth.login(...)`, você pode ignorar as linhas abaixo.
 
 window.login = Auth.login;
 window.register = Auth.register;
 window.logout = Auth.logout;
 window.getCurrentUser = Auth.getCurrentUser;
 window.getToken = Auth.getToken;
-
-// Também expõe todo o objeto principal, caso prefira usar Auth.login() etc.
 window.Auth = Auth;
