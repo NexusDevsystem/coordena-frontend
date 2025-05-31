@@ -70,6 +70,9 @@
         <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
       </p>
     </form>
+
+    <!-- Aqui exibiremos a mensagem de erro / aguarde aprovação -->
+    <p id="login-message" class="mt-2 text-center text-red-600 dark:text-red-400"></p>
   </div>
 
   <!-- Dark/Light Toggle -->
@@ -89,7 +92,7 @@
   <!-- Scripts -->
   <script src="assets/js/auth.js"></script>
   <script>
-    // Tema dark/light
+    // Controle de tema dark/light (igual ao original)
     const btn2 = document.getElementById('theme-toggle');
     const root2 = document.documentElement;
     const saved2 = localStorage.getItem('theme') || 'light';
@@ -103,21 +106,33 @@
     document.getElementById('login-form').addEventListener('submit', async e => {
       e.preventDefault();
 
+      // Limpa mensagem anterior
+      const msgEl = document.getElementById('login-message');
+      msgEl.textContent = '';
+
       const email = document.getElementById('email').value.trim().toLowerCase();
       const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
       if (!estacioRegex.test(email)) {
-        return alert(
+        msgEl.textContent = 
           'Use um e-mail institucional válido:\n' +
           '- Aluno: @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br'
-        );
+          '- Professor: @professor.estacio.br';
+        return;
       }
 
       try {
+        // Auth.login já faz fetch('/api/auth/login', ...)
         await Auth.login(email, document.getElementById('password').value);
+
+        // Se chegar aqui, o Auth.login não lançou erro → login bem-sucedido
+        // Redirecione para a página principal (ex: agendamento ou index.html)
         window.location.href = 'index.html';
+
       } catch (err) {
-        alert(err.message);
+        // Se o servidor retornou 403 (pendente de aprovação), ou outro código de erro,
+        // Auth.login deverá lançar um erro com mensagem vinda do back-end.
+        // Basta exibir essa mensagem aqui:
+        msgEl.textContent = err.message || 'Falha no login.';
       }
     });
   </script>
