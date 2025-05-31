@@ -71,23 +71,19 @@
   <!-- Proteção de rota: só Admin -->
   <script>
     // ** MUDANÇA AQUI **
-    // Agora usamos admin_user e admin_token em vez de user/token
     const storedAdminUser  = localStorage.getItem('admin_user');
     const storedAdminToken = localStorage.getItem('admin_token');
 
     if (!storedAdminUser || !storedAdminToken) {
-      // Se não encontrar a sessão de admin, volta pro login
       alert('Sessão do Admin expirada ou inexistente. Faça login novamente.');
       window.location.replace('../login.html');
     } else {
       try {
         const userObj = JSON.parse(storedAdminUser);
         if (userObj.role !== 'admin') {
-          // Se essa pessoa não for admin, manda pra home comum
           window.location.replace('../index.html');
         }
       } catch {
-        // JSON corrompido, limpa e manda pra login
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_token');
         window.location.replace('../login.html');
@@ -164,7 +160,6 @@
         });
         if (res.status === 401 || res.status === 403) {
           alert('Sem permissão ou token inválido. Faça login novamente.');
-          // Limpa apenas a sessão do Admin, não toca nas chaves genéricas
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_user');
           window.location.replace('../login.html');
@@ -302,7 +297,6 @@
     async function aprovarUsuario(id) {
       if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
       try {
-        // ** MUDANÇA: usa admin_token em vez de token **
         const token = localStorage.getItem('admin_token');
         const res = await fetch(`${BASE_API}/api/admin/approve/${id}`, {
           method: 'PATCH',
@@ -327,7 +321,6 @@
     async function rejeitarUsuario(id) {
       if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
       try {
-        // ** MUDANÇA: usa admin_token em vez de token **
         const token = localStorage.getItem('admin_token');
         const res = await fetch(`${BASE_API}/api/admin/reject/${id}`, {
           method: 'DELETE',
@@ -354,7 +347,6 @@
       if (!confirm(`Deseja rejeitar todos os ${pendentes.length} usuários pendentes?`)) return;
       for (const u of pendentes) {
         try {
-          // ** MUDANÇA: usa admin_token em vez de token **
           const token = localStorage.getItem('admin_token');
           await fetch(`${BASE_API}/api/admin/reject/${u._id}`, {
             method: 'DELETE',
@@ -388,6 +380,76 @@
 
     // 7) Carrega a lista assim que a página for aberta
     carregarPendentes();
+  </script>
+
+  <!-- SCRIPT PARA PUSH NOTIFICATIONS -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (async () => {
+      // Registra o Service Worker e faz subscribe para Push
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+          const registration = await navigator.serviceWorker.register('/service-worker.js');
+          console.log('Service Worker registrado:', registration);
+
+          // Consulta a chave pública VAPID do backend
+          const keyResp = await fetch(`${BASE_API}/api/push/publicKey`);
+          const { publicKey } = await keyResp.json();
+
+          // Solicita permissão de notificações
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            console.log('Permissão de notificações não concedida.');
+            return;
+          }
+
+          // Converte base64 para Uint8Array
+          function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+              .replace(/-/g, '+')
+              .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+          }
+
+          // Subscreve para Push
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          });
+
+          // Envia a subscription para o backend
+          const token = localStorage.getItem('admin_token');
+          await fetch(`${BASE_API}/api/push/subscribe`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(subscription.toJSON())
+          });
+
+          console.log('Subscription enviada ao backend:', subscription.toJSON());
+        } catch (err) {
+          console.error('Erro ao configurar Service Worker / Push:', err);
+        }
+      } else {
+        console.warn('Push API ou Service Worker não suportado neste navegador.');
+      }
+
+      // Conexão opcional com Socket.IO para notificações in-app
+      try {
+        const token = localStorage.getItem('admin_token');
+        const socket = io({ auth: { token } });
+        socket.on('connect', () => console.log('Socket.IO conectado:', socket.id));
+        socket.on('newUserRequest', data => {
+          alert(`🟡 Nova solicitação de cadastro: ${data.userName}`);
+        });
+      } catch (err) {
+        console.warn('Não foi possível conectar ao Socket.IO:', err);
+      }
+    })();
   </script>
 </body>
 </html>

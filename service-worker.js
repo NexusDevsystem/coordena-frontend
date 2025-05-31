@@ -1,28 +1,24 @@
-const CACHE_NAME = 'agendamento-cache-v1';
-const ASSETS = [
-  '/frontend/pages/agendamento.html',
-  '/frontend/assets/css/styles.css',
-  '/frontend/assets/js/main.js',
-  '/frontend/manifest.json',
-  // se tiver ícones:
-  '/frontend/assets/icons/icon-192.png',
-  '/frontend/assets/icons/icon-512.png'
-];
+// frontend/service-worker.js
 
-self.addEventListener('install', evt => {
-  evt.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('push', event => {
+  if (event.data) {
+    const data = event.data.json();
+    const title = data.title || 'Notificação';
+    const options = {
+      body: data.body || '',
+      icon: '/assets/img/notification-icon.png',
+      badge: '/assets/img/notification-badge.png',
+      data: data.data || {}
+    };
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  }
 });
 
-self.addEventListener('activate', evt => {
-  evt.waitUntil(self.clients.claim());
-});
-
-self.addEventListener('fetch', evt => {
-  evt.respondWith(
-    caches.match(evt.request).then(cached => cached || fetch(evt.request))
-  );
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  if (event.notification.data?.url) {
+    event.waitUntil(clients.openWindow(event.notification.data.url));
+  }
 });
