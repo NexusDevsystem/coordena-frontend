@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Painel de Administração – Usuários Pendentes</title>
+  <title>Painel de Administração – Coordena+</title>
 
   <!-- Bootstrap 5 e FontAwesome (CDN) -->
   <link
@@ -15,7 +15,9 @@
   />
 
   <style>
-    /* Cores principais do Coordena+ */
+    /* -----------------------------
+       TEMA COORDENA+
+    ------------------------------ */
     :root {
       --primary-color: #4e73df;      /* azul principal */
       --secondary-color: #2e59d9;    /* azul escuro */
@@ -26,6 +28,7 @@
       --card-bg: #ffffff;            /* branco das cards */
       --text-color: #5a5c69;         /* cinza escuro para textos */
       --text-light: #858796;         /* cinza médio */
+      --border-color: #e3e6f0;       /* bordas */
     }
 
     body {
@@ -36,7 +39,7 @@
       padding: 0;
     }
 
-    /* Barra superior com logo e título */
+    /* Navbar Coordenaplus */
     .navbar-coordena {
       background: var(--primary-color);
       padding: 0.75rem 1.5rem;
@@ -62,11 +65,13 @@
       color: var(--background);
     }
 
+    /* Container principal do painel */
     .container-admin {
       max-width: 1200px;
       margin: 2rem auto 4rem;
     }
 
+    /* Cabeçalho do painel */
     .admin-header {
       background-color: var(--secondary-color);
       color: #fff;
@@ -96,24 +101,44 @@
       color: #fff;
     }
 
-    /* Caixa de busca */
+    /* Nav-tabs */
+    .tab-coordena .nav-link {
+      color: var(--text-light);
+      font-weight: 500;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-bottom-color 0.2s;
+    }
+    .tab-coordena .nav-link.active {
+      color: var(--secondary-color);
+      border-bottom-color: var(--secondary-color);
+      background: transparent;
+    }
+    .tab-coordena .nav-link:hover {
+      color: var(--secondary-color);
+    }
+
+    /* Busca e ordenação genéricas */
     .search-container {
       display: flex;
       gap: 1rem;
       align-items: center;
       margin-bottom: 1.5rem;
+      flex-wrap: wrap;
     }
     .search-box {
       position: relative;
       flex: 1;
+      min-width: 200px;
     }
     .search-box input {
       padding-left: 2.5rem;
       border-radius: 0.35rem;
-      border: 1px solid #d1d3e2;
+      border: 1px solid var(--border-color);
       height: 2.75rem;
       font-size: 0.95rem;
       color: var(--text-color);
+      width: 100%;
     }
     .search-box i {
       position: absolute;
@@ -127,11 +152,11 @@
       max-width: 200px;
       height: 2.75rem;
       border-radius: 0.35rem;
-      border: 1px solid #d1d3e2;
+      border: 1px solid var(--border-color);
     }
 
-    /* Cards de usuário pendente */
-    .card-user {
+    /* Cards genéricos */
+    .card-coordena {
       background-color: var(--card-bg);
       border: none;
       border-radius: 0.75rem;
@@ -139,49 +164,59 @@
       transition: transform 0.3s, box-shadow 0.3s;
       border-left: 0.25rem solid var(--primary-color);
     }
-    .card-user:hover {
+    .card-coordena:hover {
       transform: translateY(-3px);
       box-shadow: 0 0.5rem 1rem rgba(58,59,69,0.15);
     }
-    .card-user .card-body {
+    .card-coordena .card-body {
       padding: 1.5rem;
     }
-    .card-user .card-title {
+    .card-coordena .card-title {
       font-size: 1.15rem;
       font-weight: 600;
       color: var(--text-color);
     }
-    .card-user .card-subtitle {
+    .card-coordena .card-subtitle {
       font-size: 0.9rem;
       color: var(--text-light);
     }
-    .card-user .badge-pendente {
-      background-color: var(--warning-color);
-      color: #fff;
+    .card-coordena .badge-status {
       font-size: 0.75rem;
       font-weight: 600;
       padding: 0.45rem 0.75rem;
       border-radius: 10rem;
       text-transform: uppercase;
     }
-    .card-user .info-line {
+    .badge-pendente {
+      background-color: var(--warning-color);
+      color: #fff;
+    }
+    .badge-aprovado {
+      background-color: var(--accent-color);
+      color: #fff;
+    }
+    .badge-rejeitado {
+      background-color: var(--danger-color);
+      color: #fff;
+    }
+    .card-coordena .info-line {
       display: flex;
       align-items: center;
       margin-top: 0.75rem;
       color: var(--text-light);
       font-size: 0.9rem;
     }
-    .card-user .info-line i {
+    .card-coordena .info-line i {
       margin-right: 0.5rem;
       color: var(--primary-color);
     }
-    .card-user .card-actions {
+    .card-coordena .card-actions {
       margin-top: 1rem;
       display: flex;
       gap: 0.75rem;
     }
-    .card-user .btn-approve,
-    .card-user .btn-reject {
+    .card-coordena .btn-approve,
+    .card-coordena .btn-reject {
       flex: 1;
       padding: 0.6rem 0;
       font-size: 0.9rem;
@@ -189,28 +224,28 @@
       border-radius: 0.35rem;
       transition: background-color 0.2s, color 0.2s;
     }
-    .card-user .btn-approve {
+    .card-coordena .btn-approve {
       background-color: var(--accent-color);
       color: #fff;
       border: none;
     }
-    .card-user .btn-approve:hover {
+    .card-coordena .btn-approve:hover {
       background-color: #17a673;
     }
-    .card-user .btn-reject {
+    .card-coordena .btn-reject {
       background-color: var(--danger-color);
       color: #fff;
       border: none;
     }
-    .card-user .btn-reject:hover {
+    .card-coordena .btn-reject:hover {
       background-color: #c0392b;
     }
 
-    /* Paginador estilizado */
+    /* Paginação estilizada */
     .pagination-coordena .page-link {
       color: var(--secondary-color);
       border-radius: 0.35rem;
-      border: 1px solid #d1d3e2;
+      border: 1px solid var(--border-color);
       margin: 0 0.2rem;
     }
     .pagination-coordena .page-item.active .page-link {
@@ -223,13 +258,7 @@
       color: #fff;
     }
 
-    /* Container dos cards */
-    #lista-pendentes .row {
-      margin: 0;
-      gap: 1rem;
-    }
-
-    /* Mixer final para responsividade */
+    /* Responsividade */
     @media (max-width: 768px) {
       .search-container {
         flex-direction: column;
@@ -332,47 +361,135 @@
     <div class="admin-header">
       <div>
         <h1>Painel de Administração</h1>
-        <p>Gerencie as solicitações de novos usuários</p>
+        <p>Gerencie solicitações de usuários e reservas</p>
       </div>
-      <button class="btn btn-update" onclick="carregarPendentesComCount()">
+      <button class="btn btn-update" onclick="carregarTudo()">
         <i class="fas fa-sync-alt me-1"></i> Atualizar
       </button>
     </div>
 
-    <!-- Busca e ordenação -->
-    <div class="search-container mb-4">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          id="busca"
-          class="form-control"
-          placeholder="Buscar por nome ou email..."
-        />
+    <!-- Abas: Usuários Pendentes / Reservas Pendentes -->
+    <ul class="nav nav-tabs tab-coordena mb-4" id="tabMenu" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          id="usuarios-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#usuarios"
+          type="button"
+          role="tab"
+          aria-controls="usuarios"
+          aria-selected="true"
+        >
+          <i class="fas fa-user-shield me-1"></i> Usuários Pendentes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="reservas-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#reservas"
+          type="button"
+          role="tab"
+          aria-controls="reservas"
+          aria-selected="false"
+        >
+          <i class="fas fa-calendar-alt me-1"></i> Reservas Pendentes
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="tabContent">
+      <!-- ======== Aba Usuários Pendentes ======== -->
+      <div
+        class="tab-pane fade show active"
+        id="usuarios"
+        role="tabpanel"
+        aria-labelledby="usuarios-tab"
+      >
+        <!-- Busca e ordenação para Usuários -->
+        <div class="search-container mb-4">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="busca-usuarios"
+              class="form-control"
+              placeholder="Buscar usuário por nome ou email..."
+            />
+          </div>
+          <div>
+            <select id="ordenacao-usuarios" class="form-select">
+              <option value="createdAt">Ordem de Chegada</option>
+              <option value="name">Nome (A-Z)</option>
+              <option value="email">Email (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Container para cards de usuários pendentes -->
+        <div id="lista-usuarios-pendentes"></div>
       </div>
-      <div>
-        <select id="ordenacao" class="form-select">
-          <option value="createdAt">Ordem de Chegada</option>
-          <option value="name">Nome (A-Z)</option>
-          <option value="email">Email (A-Z)</option>
-        </select>
+
+      <!-- ======== Aba Reservas Pendentes ======== -->
+      <div
+        class="tab-pane fade"
+        id="reservas"
+        role="tabpanel"
+        aria-labelledby="reservas-tab"
+      >
+        <!-- Busca e ordenação para Reservas -->
+        <div class="search-container mb-4">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="busca-reservas"
+              class="form-control"
+              placeholder="Buscar reserva por laboratório ou requisitante..."
+            />
+          </div>
+          <div>
+            <select id="ordenacao-reservas" class="form-select">
+              <option value="date">Data (mais antiga)</option>
+              <option value="lab">Laboratório (A-Z)</option>
+              <option value="responsible">Requisitante (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Container para cards de reservas pendentes -->
+        <div id="lista-reservas-pendentes"></div>
       </div>
     </div>
-
-    <!-- Local onde os cards de usuários pendentes serão renderizados -->
-    <div id="lista-pendentes"></div>
   </div>
 
   <!-- Scripts necessários -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    let pendentes    = [];
-    let porPagina    = 6;
-    let paginaAtual  = 1;
-    let ultimoCount  = null; // null indica primeira vez carregando
+    /*********************************************
+     * VARIÁVEIS GLOBAIS
+    *********************************************/
+    let usuariosPendentes    = [];
+    let reservasPendentes    = [];
+    let paginaAtualUsuarios  = 1;
+    let paginaAtualReservas  = 1;
+    const porPagina          = 6;
+    let ultimoCountUsuarios  = null;
+    let ultimoCountReservas  = null;
 
-    // 1) Carrega todos os usuários pendentes do backend e compara com count anterior
-    async function carregarPendentesComCount() {
+    /*********************************************
+     * CARREGAMENTO GERAL (Usuários + Reservas)
+    *********************************************/
+    async function carregarTudo() {
+      await Promise.all([carregarUsuariosPendentes(), carregarReservasPendentes()]);
+    }
+
+    /*********************************************
+     * 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
+    *********************************************/
+    async function carregarUsuariosPendentes() {
       try {
         const token = localStorage.getItem('admin_token');
         if (!token) {
@@ -380,7 +497,6 @@
           window.location.replace('../login.html');
           return;
         }
-
         const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -393,38 +509,30 @@
         }
         if (!res.ok) {
           const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || 'Falha ao carregar pendentes.');
+          throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
         }
-
         const dados = await res.json();
 
-        // Se for a primeira vez e já houver pendentes, mostramos toast dizendo quantos já existem
-        if (ultimoCount === null && dados.length > 0) {
-          mostrarNotificacaoInApp(dados.length);
+        // Notificar apenas se houve incremento
+        if (ultimoCountUsuarios === null && dados.length > 0) {
+          mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+        } else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+          const diff = dados.length - ultimoCountUsuarios;
+          mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
         }
-        // Se não for a primeira vez, e houve incremento no total, avisamos apenas a diferença
-        else if (ultimoCount !== null && dados.length > ultimoCount) {
-          const diff = dados.length - ultimoCount;
-          mostrarNotificacaoInApp(diff);
-        }
-
-        // Atualiza ultimoCount para próximo ciclo
-        ultimoCount = dados.length;
-
-        pendentes = dados;
-        renderizarPendentes();
+        ultimoCountUsuarios = dados.length;
+        usuariosPendentes = dados;
+        renderizarUsuariosPendentes();
       } catch (err) {
         console.error(err);
-        // Para não ficar mostrando alert repetido em cada erro de polling, não exibimos alert aqui
       }
     }
 
-    // 2) Renderiza cards de cada usuário pendente (com paginação, busca e ordenação)
-    function renderizarPendentes() {
-      const busca      = document.getElementById('busca').value.trim().toLowerCase();
-      const ordenacao  = document.getElementById('ordenacao').value;
+    function renderizarUsuariosPendentes() {
+      const busca = document.getElementById('busca-usuarios').value.trim().toLowerCase();
+      const ordenacao = document.getElementById('ordenacao-usuarios').value;
 
-      let filtrados = pendentes.filter(u =>
+      let filtrados = usuariosPendentes.filter(u =>
         u.name.toLowerCase().includes(busca) ||
         u.email.toLowerCase().includes(busca)
       );
@@ -437,37 +545,34 @@
       });
 
       const totalPaginas = Math.ceil(filtrados.length / porPagina);
-      if (paginaAtual > totalPaginas && totalPaginas > 0) {
-        paginaAtual = totalPaginas;
+      if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
+        paginaAtualUsuarios = totalPaginas;
       }
-      const inicio  = (paginaAtual - 1) * porPagina;
+      const inicio = (paginaAtualUsuarios - 1) * porPagina;
       const exibidos = filtrados.slice(inicio, inicio + porPagina);
 
-      const container = document.getElementById('lista-pendentes');
+      const container = document.getElementById('lista-usuarios-pendentes');
       if (filtrados.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-5 text-muted">
-            <i class="fas fa-user-clock fa-3x mb-3" style="color: var(--text-light);"></i>
-            <h4 class="text-light">Nenhuma solicitação pendente</h4>
+          <div class="text-center py-5 text-light">
+            <i class="fas fa-user-clock fa-3x mb-3"></i>
+            <h4>Nenhuma solicitação de usuário pendente</h4>
             <p>Não há novos usuários aguardando aprovação.</p>
           </div>
         `;
         return;
       }
 
-      // Monta cards alinhados em grid
-      let htmlCards = '<div class="row gx-3 gy-4">';
+      let html = '<div class="row gx-3 gy-4">';
       exibidos.forEach(u => {
-        htmlCards += `
+        html += `
           <div class="col-md-6 col-lg-4">
-            <div class="card card-user">
+            <div class="card card-coordena">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <div>
                     <h5 class="card-title mb-1">${u.name}</h5>
-                    <h6 class="card-subtitle text-light">
-                      <i class="fas fa-envelope me-1"></i> ${u.email}
-                    </h6>
+                    <h6 class="card-subtitle">${u.email}</h6>
                   </div>
                   <span class="badge badge-pendente">Pendente</span>
                 </div>
@@ -480,55 +585,49 @@
                   <span><strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString('pt-BR')}</span>
                 </div>
                 <div class="card-actions">
-                  <button
-                    class="btn btn-approve"
-                    onclick="aprovarUsuario('${u._id}')"
-                  >
+                  <button class="btn btn-approve" onclick="aprovarUsuario('${u._id}')">
                     <i class="fas fa-check me-1"></i> Aprovar
                   </button>
-                  <button
-                    class="btn btn-reject"
-                    onclick="rejeitarUsuario('${u._id}')"
-                  >
+                  <button class="btn btn-reject" onclick="rejeitarUsuario('${u._1d}')">
                     <i class="fas fa-times me-1"></i> Rejeitar
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        `;
+          </div>`;
       });
-      htmlCards += `</div>`;
+      html += `</div>`;
 
       // Paginação
-      let htmlPaging = '';
       if (totalPaginas > 1) {
-        htmlPaging += `<nav aria-label="Navegação de páginas" class="mt-4">`;
-        htmlPaging += `<ul class="pagination pagination-coordena justify-content-center mb-0">`;
-        htmlPaging += `
-          <li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">&laquo;</a>
-          </li>
-        `;
+        html += `<nav aria-label="Paginação de Usuários" class="mt-4">`;
+        html += `<ul class="pagination pagination-coordena justify-content-center mb-0">`;
+        html += `
+          <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
+          </li>`;
         for (let p = 1; p <= totalPaginas; p++) {
-          htmlPaging += `
-            <li class="page-item ${paginaAtual === p ? 'active' : ''}">
-              <a class="page-link" href="#" onclick="mudarPagina(${p})">${p}</a>
-            </li>
-          `;
+          html += `
+            <li class="page-item ${paginaAtualUsuarios === p ? 'active' : ''}">
+              <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a>
+            </li>`;
         }
-        htmlPaging += `
-          <li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">&raquo;</a>
-          </li>
-        `;
-        htmlPaging += `</ul></nav>`;
+        html += `
+          <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
+          </li>`;
+        html += `</ul></nav>`;
       }
 
-      container.innerHTML = htmlCards + htmlPaging;
+      container.innerHTML = html;
     }
 
-    // 3) Aprova um usuário (PATCH /api/admin/approve/:id)
+    function mudarPaginaUsuarios(p) {
+      paginaAtualUsuarios = p;
+      renderizarUsuariosPendentes();
+      document.getElementById('lista-usuarios-pendentes').scrollIntoView({ behavior: 'smooth' });
+    }
+
     async function aprovarUsuario(id) {
       if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
       try {
@@ -544,14 +643,13 @@
           const errJson = await res.json().catch(() => ({}));
           throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
         }
-        carregarPendentesComCount();
+        carregarUsuariosPendentes();
       } catch (err) {
         console.error(err);
         alert(err.message);
       }
     }
 
-    // 4) Rejeita (exclui) um usuário (DELETE /api/admin/reject/:id)
     async function rejeitarUsuario(id) {
       if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
       try {
@@ -567,93 +665,268 @@
           const errJson = await res.json().catch(() => ({}));
           throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
         }
-        carregarPendentesComCount();
+        carregarUsuariosPendentes();
       } catch (err) {
         console.error(err);
         alert(err.message);
       }
     }
 
-    // 5) Rejeita todos de uma vez
-    async function rejeitarTodos() {
-      if (pendentes.length === 0) return;
-      if (!confirm(`Deseja rejeitar todos os ${pendentes.length} usuários pendentes?`)) return;
-      for (const u of pendentes) {
-        try {
-          const token = localStorage.getItem('admin_token');
-          await fetch(`${BASE_API}/api/admin/reject/${u._id}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-        } catch (e) {
-          console.error(`Falha ao rejeitar ${u._id}`, e);
+    /*********************************************
+     * 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
+    *********************************************/
+    async function carregarReservasPendentes() {
+      try {
+        const token = localStorage.getItem('admin_token');
+        const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401 || res.status === 403) {
+          // Se token inválido, direciona para login
+          alert('Sem permissão ou token inválido. Faça login novamente.');
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          window.location.replace('../login.html');
+          return;
         }
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
+        }
+        const dados = await res.json();
+
+        // Notificar se houver incremento
+        if (ultimoCountReservas === null && dados.length > 0) {
+          mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+        } else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+          const diff = dados.length - ultimoCountReservas;
+          mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+        }
+        ultimoCountReservas = dados.length;
+        reservasPendentes = dados;
+        renderizarReservasPendentes();
+      } catch (err) {
+        console.error(err);
       }
-      carregarPendentesComCount();
     }
 
-    // 6) Paginação, busca e ordenação
-    function mudarPagina(p) {
-      paginaAtual = p;
-      renderizarPendentes();
-      document.getElementById('lista-pendentes').scrollIntoView({ behavior: 'smooth' });
-    }
-    document.getElementById('busca').addEventListener('input', () => {
-      paginaAtual = 1;
-      renderizarPendentes();
-    });
-    document.getElementById('ordenacao').addEventListener('change', () => {
-      paginaAtual = 1;
-      renderizarPendentes();
-    });
+    function renderizarReservasPendentes() {
+      const busca = document.getElementById('busca-reservas').value.trim().toLowerCase();
+      const ordenacao = document.getElementById('ordenacao-reservas').value;
 
-    // 7) Exibe notificação in‐app usando Toast do Bootstrap
-    function mostrarNotificacaoInApp(novas) {
-      document.getElementById('meuToastBody').innerText =
-        `${novas} nova(s) solicitação(ões) de cadastro!`;
+      let filtrados = reservasPendentes.filter(r =>
+        r.lab.toLowerCase().includes(busca) ||
+        r.responsible.toLowerCase().includes(busca)
+      );
+
+      filtrados.sort((a, b) => {
+        if (ordenacao === 'date') {
+          return new Date(a.date) - new Date(b.date);
+        }
+        return a[ordenacao].localeCompare(b[ordenacao]);
+      });
+
+      const totalPaginas = Math.ceil(filtrados.length / porPagina);
+      if (paginaAtualReservas > totalPaginas && totalPaginas > 0) {
+        paginaAtualReservas = totalPaginas;
+      }
+      const inicio = (paginaAtualReservas - 1) * porPagina;
+      const exibidos = filtrados.slice(inicio, inicio + porPagina);
+
+      const container = document.getElementById('lista-reservas-pendentes');
+      if (filtrados.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5 text-light">
+            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+            <h4>Nenhuma solicitação de reserva pendente</h4>
+            <p>Não há novas solicitações de reserva.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="row gx-3 gy-4">';
+      exibidos.forEach(r => {
+        html += `
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-coordena">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <h5 class="card-title mb-1">${r.lab} - ${r.sala || '-'}</h5>
+                    <h6 class="card-subtitle">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
+                  </div>
+                  <span class="badge badge-pendente">Pendente</span>
+                </div>
+                <div class="info-line">
+                  <i class="fas fa-clock"></i>
+                  <span><strong>Horário:</strong> ${r.start} – ${r.end}</span>
+                </div>
+                <div class="info-line">
+                  <i class="fas fa-user"></i>
+                  <span><strong>Requisitante:</strong> ${r.responsible}</span>
+                </div>
+                <div class="info-line">
+                  <i class="fas fa-building"></i>
+                  <span><strong>Departamento:</strong> ${r.department}</span>
+                </div>
+                <div class="info-line">
+                  <i class="fas fa-info-circle"></i>
+                  <span><strong>Tipo:</strong> ${r.type}</span>
+                </div>
+                <div class="card-actions">
+                  <button class="btn btn-approve" onclick="aprovarReserva('${r._id}')">
+                    <i class="fas fa-check me-1"></i> Aprovar
+                  </button>
+                  <button class="btn btn-reject" onclick="rejeitarReserva('${r._id}')">
+                    <i class="fas fa-times me-1"></i> Rejeitar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+
+      // Paginação
+      if (totalPaginas > 1) {
+        html += `<nav aria-label="Paginação de Reservas" class="mt-4">`;
+        html += `<ul class="pagination pagination-coordena justify-content-center mb-0">`;
+        html += `
+          <li class="page-item ${paginaAtualReservas === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a>
+          </li>`;
+        for (let p = 1; p <= totalPaginas; p++) {
+          html += `
+            <li class="page-item ${paginaAtualReservas === p ? 'active' : ''}">
+              <a class="page-link" href="#" onclick="mudarPaginaReservas(${p})">${p}</a>
+            </li>`;
+        }
+        html += `
+          <li class="page-item ${paginaAtualReservas === totalPaginas ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a>
+          </li>`;
+        html += `</ul></nav>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function mudarPaginaReservas(p) {
+      paginaAtualReservas = p;
+      renderizarReservasPendentes();
+      document.getElementById('lista-reservas-pendentes').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function aprovarReserva(id) {
+      if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
+      try {
+        const token = localStorage.getItem('admin_token');
+        const res = await fetch(`${BASE_API}/api/admin/approve-reservation/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
+        }
+        carregarReservasPendentes();
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      }
+    }
+
+    async function rejeitarReserva(id) {
+      if (!confirm('Tem certeza que deseja rejeitar esta reserva?')) return;
+      try {
+        const token = localStorage.getItem('admin_token');
+        const res = await fetch(`${BASE_API}/api/admin/reject-reservation/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
+        }
+        carregarReservasPendentes();
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      }
+    }
+
+    /*********************************************
+     * TOAST IN‐APP (Bootstrap)
+    *********************************************/
+    function mostrarToast(texto) {
+      document.getElementById('meuToastBody').innerText = texto;
       const toastEl = document.getElementById('toastNovoCadastro');
       const toast = new bootstrap.Toast(toastEl);
       toast.show();
     }
 
-    // 8) Configura polling automático (10s) e chamada inicial
+    /*********************************************
+     * WIND?O GERAL E POLLING
+    *********************************************/
     (async () => {
-      await carregarPendentesComCount();
+      await carregarTudo();
       setInterval(async () => {
-        await carregarPendentesComCount();
-      }, 10000); // 10000ms = 10 segundos
+        await carregarTudo();
+      }, 10000); // atualiza a cada 10s
     })();
+
+    // Atualiza apenas a aba ativa ao pesquisar/ordenar
+    document.getElementById('busca-usuarios').addEventListener('input', () => {
+      paginaAtualUsuarios = 1;
+      if (document.getElementById('usuarios-tab').classList.contains('active')) {
+        renderizarUsuariosPendentes();
+      }
+    });
+    document.getElementById('ordenacao-usuarios').addEventListener('change', () => {
+      paginaAtualUsuarios = 1;
+      if (document.getElementById('usuarios-tab').classList.contains('active')) {
+        renderizarUsuariosPendentes();
+      }
+    });
+    document.getElementById('busca-reservas').addEventListener('input', () => {
+      paginaAtualReservas = 1;
+      if (document.getElementById('reservas-tab').classList.contains('active')) {
+        renderizarReservasPendentes();
+      }
+    });
+    document.getElementById('ordenacao-reservas').addEventListener('change', () => {
+      paginaAtualReservas = 1;
+      if (document.getElementById('reservas-tab').classList.contains('active')) {
+        renderizarReservasPendentes();
+      }
+    });
   </script>
 
-  <!-- SCRIPT PARA PUSH NOTIFICATIONS (opcional, pode manter mesmo sem uso imediato) -->
+  <!-- SCRIPT PARA PUSH NOTIFICATIONS (opcional) -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
     (async () => {
-      // Só tenta registrar se o browser suportar SW e Push
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         try {
-          // 1) Registra o Service Worker
           const registration = await navigator.serviceWorker.register('/service-worker.js');
           console.log('Service Worker registrado:', registration);
 
-          // 2) Busca a chave pública VAPID do backend
           const keyResp = await fetch(`${BASE_API}/api/push/publicKey`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
           });
           if (!keyResp.ok) throw new Error('Não consegui buscar chave pública VAPID');
           const { publicKey } = await keyResp.json();
 
-          // 3) Solicita permissão para NOTIFICAÇÕES do navegador
           const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            console.log('Permissão de notificações não concedida.');
-            return;
-          }
+          if (permission !== 'granted') return;
 
-          // 4) Converte base64 (VAPID) para Uint8Array
           function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding)
@@ -663,14 +936,11 @@
             return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
           }
 
-          // 5) Efetua a subscribe no PushManager
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(publicKey)
           });
-          console.log('Subscription gerada:', subscription.toJSON());
 
-          // 6) Envia a subscription para o seu backend
           const token = localStorage.getItem('admin_token');
           const resp = await fetch(`${BASE_API}/api/push/subscribe`, {
             method: 'POST',
@@ -681,13 +951,10 @@
             body: JSON.stringify(subscription.toJSON())
           });
           if (!resp.ok) throw new Error('Falha ao enviar subscription ao backend');
-          console.log('Subscription enviada ao backend com sucesso!');
 
         } catch (err) {
           console.error('Erro ao configurar Service Worker / Push:', err);
         }
-      } else {
-        console.warn('Push API ou Service Worker NÃO suportado neste navegador.');
       }
     })();
   </script>
