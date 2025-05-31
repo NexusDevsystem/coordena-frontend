@@ -67,9 +67,19 @@ const Auth = (() => {
 
     console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
 
+    // 6) Armazena token e user no localStorage
     saveToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    window.location.assign('/index.html');
+
+    // 7) Redireciona conforme o role que veio no data.user.role
+    if (data.user.role === 'admin') {
+      // Se for administrador, vai para a página de administração
+      window.location.assign('/pages/admin.html');
+    } else {
+      // Caso contrário, vai para a página padrão (index.html)
+      window.location.assign('/index.html');
+    }
+
     return data.token;
   }
 
@@ -117,6 +127,7 @@ const Auth = (() => {
   return { login, register, logout, getCurrentUser, getToken };
 })();
 
+// Expõe as funções no escopo global para serem chamadas do HTML
 window.login = Auth.login;
 window.register = Auth.register;
 window.logout = Auth.logout;
