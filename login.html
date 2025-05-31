@@ -90,43 +90,41 @@
   <!-- Scripts -->
   <script src="assets/js/auth.js"></script>
   <script>
-    // → Gerencia o tema dark/light:
-    const btn2 = document.getElementById('theme-toggle');
-    const root2 = document.documentElement;
-    const saved2 = localStorage.getItem('theme') || 'light';
-    if (saved2 === 'dark') root2.classList.add('dark');
-    btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark');
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-    });
+  // Tema dark/light
+  const btn2 = document.getElementById('theme-toggle');
+  const root2 = document.documentElement;
+  const saved2 = localStorage.getItem('theme') || 'light';
+  if (saved2 === 'dark') root2.classList.add('dark');
+  btn2.addEventListener('click', () => {
+    root2.classList.toggle('dark');
+    localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+  });
 
-    // → Login via Auth e validação de e-mail institucional (agora inclui @admin.estacio.br):
-    document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
+  // Login via Auth e validação de e-mail institucional (agora com exceção para @admin.estacio.br)
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
 
-      const email = document.getElementById('email').value.trim().toLowerCase();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    // Adicionamos "admin" ao agrupamento:
+    const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
 
-      //    inclui “alunos”, “professor” ou “admin” como domínios válidos
-      const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
-      if (!estacioRegex.test(email)) {
-        return alert(
-          'Use um e-mail institucional válido:\n' +
-          '- Aluno:     @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br\n' +
-          '- Admin:     @admin.estacio.br'
-        );
-      }
+    if (!estacioRegex.test(email)) {
+      return alert(
+        'Use um e-mail institucional válido:\n' +
+        '- Aluno:   @alunos.estacio.br\n' +
+        '- Professor: @professor.estacio.br\n' +
+        '- Admin:   @admin.estacio.br'
+      );
+    }
 
-      try {
-        await Auth.login(
-          email,
-          document.getElementById('password').value
-        );
-        window.location.href = 'index.html';
-      } catch (err) {
-        alert(err.message);
-      }
-    });
-  </script>
+    try {
+      await Auth.login(email, document.getElementById('password').value);
+      window.location.href = 'index.html';
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+</script>
+
 </body>
 </html>
