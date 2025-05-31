@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <title>Painel de Administração – Coordena+</title>
@@ -8,14 +9,8 @@
   <link rel="stylesheet" href="../assets/css/styles.css" />
 
   <!-- Bootstrap 5 e FontAwesome (CDN) -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    rel="stylesheet"
-  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
   <!-- Fonte Lato (Google Fonts) já importada no CSS -->
 </head>
@@ -113,30 +108,6 @@
     </nav>
   </header>
 
-
-  <!-- ================================================
-       NAVBAR SUPERIOR
-       ================================================ -->
-  <nav class="navbar-coordena">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <i class="fas fa-cogs"></i> Coordena+
-      </a>
-      <div>
-        <!-- Botão de atualiza -->
-        <button class="btn btn-sm btn-light btn-update" onclick="carregarUsuariosPendentes(); carregarReservasPendentes();">
-          <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-
-        <!-- Ícone de notificações -->
-        <button class="notification-btn ms-3" id="notification-toggle">
-          <i class="fas fa-bell"></i>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-
   <!-- ================================================
        CONTEÚDO PRINCIPAL
        ================================================ -->
@@ -152,30 +123,14 @@
     <!-- Abas: Usuários / Reservas -->
     <ul class="nav tab-coordena mb-3" role="tablist">
       <li class="nav-item" role="presentation">
-        <button
-          class="nav-link active"
-          id="tab-usuarios"
-          data-bs-toggle="tab"
-          data-bs-target="#usuarios-pendentes-pane"
-          type="button"
-          role="tab"
-          aria-controls="usuarios-pendentes-pane"
-          aria-selected="true"
-        >
+        <button class="nav-link active" id="tab-usuarios" data-bs-toggle="tab" data-bs-target="#usuarios-pendentes-pane"
+          type="button" role="tab" aria-controls="usuarios-pendentes-pane" aria-selected="true">
           <i class="fas fa-user-check me-1"></i> Usuários Pendentes
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          id="tab-reservas"
-          data-bs-toggle="tab"
-          data-bs-target="#reservas-pendentes-pane"
-          type="button"
-          role="tab"
-          aria-controls="reservas-pendentes-pane"
-          aria-selected="false"
-        >
+        <button class="nav-link" id="tab-reservas" data-bs-toggle="tab" data-bs-target="#reservas-pendentes-pane"
+          type="button" role="tab" aria-controls="reservas-pendentes-pane" aria-selected="false">
           <i class="fas fa-calendar-alt me-1"></i> Reservas Pendentes
         </button>
       </li>
@@ -185,25 +140,18 @@
       <!-- ===========================
            PAINEL: USUÁRIOS PENDENTES
            =========================== -->
-      <div
-        class="tab-pane fade show active"
-        id="usuarios-pendentes-pane"
-        role="tabpanel"
-        aria-labelledby="tab-usuarios"
-      >
+      <div class="tab-pane fade show active" id="usuarios-pendentes-pane" role="tabpanel"
+        aria-labelledby="tab-usuarios">
         <!-- Busca e ordenação -->
         <div class="search-container mb-4">
           <div class="search-box">
             <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="busca-usuarios"
-              class="form-control"
+            <input type="text" id="busca-usuarios" class="form-control"
               placeholder="Buscar usuário por nome ou email..."
-              oninput="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();"
-            />
+              oninput="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();" />
           </div>
-          <select id="ordenacao-usuarios" class="form-select" onchange="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();">
+          <select id="ordenacao-usuarios" class="form-select"
+            onchange="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();">
             <option value="createdAt">Ordem de Chegada</option>
             <option value="name">Nome (A-Z)</option>
             <option value="email">Email (A-Z)</option>
@@ -217,25 +165,17 @@
       <!-- ===========================
            PAINEL: RESERVAS PENDENTES
            =========================== -->
-      <div
-        class="tab-pane fade"
-        id="reservas-pendentes-pane"
-        role="tabpanel"
-        aria-labelledby="tab-reservas"
-      >
+      <div class="tab-pane fade" id="reservas-pendentes-pane" role="tabpanel" aria-labelledby="tab-reservas">
         <!-- Busca e ordenação -->
         <div class="search-container mb-4">
           <div class="search-box">
             <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="busca-reservas"
-              class="form-control"
+            <input type="text" id="busca-reservas" class="form-control"
               placeholder="Buscar reserva por lab ou requisitante..."
-              oninput="paginaAtualReservas = 1; renderizarReservasPendentes();"
-            />
+              oninput="paginaAtualReservas = 1; renderizarReservasPendentes();" />
           </div>
-          <select id="ordenacao-reservas" class="form-select" onchange="paginaAtualReservas = 1; renderizarReservasPendentes();">
+          <select id="ordenacao-reservas" class="form-select"
+            onchange="paginaAtualReservas = 1; renderizarReservasPendentes();">
             <option value="date">Data</option>
             <option value="lab">Lab (A-Z)</option>
             <option value="responsible">Requisitante (A-Z)</option>
@@ -253,23 +193,14 @@
        TOAST PARA NOTIFICAÇÕES IN-APP (Bootstrap)
        ================================================ -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
-    <div
-      id="toastNovoCadastro"
-      class="toast align-items-center text-bg-warning border-0"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-    >
+    <div id="toastNovoCadastro" class="toast align-items-center text-bg-warning border-0" role="alert"
+      aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
         <div class="toast-body" id="meuToastBody">
           <!-- Texto preenchido dinamicamente -->
         </div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          data-bs-dismiss="toast"
-          aria-label="Fechar"
-        ></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+          aria-label="Fechar"></button>
       </div>
     </div>
   </div>
@@ -282,4 +213,5 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="../assets/js/main.js"></script>
 </body>
+
 </html>
