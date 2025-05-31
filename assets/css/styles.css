@@ -236,7 +236,7 @@ body {
   text-align: left;          /* alinha texto à esquerda */
   color: #cbd5e1;
   margin: 3rem 0 1.5rem;
-  margin-left: 0.5rem;       /* empurra um pouco para a esquerda */
+  margin-left: -0.5rem;       /* empurra um pouco para a esquerda */
 }
 
 .offcanvas-menu .menu-user-info #menu-user-name {
