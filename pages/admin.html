@@ -68,9 +68,31 @@
 
 <body class="bg-light">
 
+  <!-- Toast do Bootstrap para notificações in‐app -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div
+      id="toastNovoCadastro"
+      class="toast align-items-center text-bg-warning border-0"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      <div class="d-flex">
+        <div class="toast-body" id="meuToastBody">
+          <!-- Texto será preenchido dinamicamente -->
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          data-bs-dismiss="toast"
+          aria-label="Fechar"
+        ></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Proteção de rota: só Admin -->
   <script>
-    // ** MUDANÇA AQUI **
     const storedAdminUser  = localStorage.getItem('admin_user');
     const storedAdminToken = localStorage.getItem('admin_token');
 
@@ -106,7 +128,7 @@
           </h1>
           <p class="mb-0 text-white-50">Gerencie as solicitações de novos usuários</p>
         </div>
-        <button class="btn btn-light" onclick="carregarPendentes()">
+        <button class="btn btn-light" onclick="carregarPendentesComCount()">
           <i class="fas fa-sync-alt"></i> Atualizar
         </button>
       </div>
@@ -143,11 +165,11 @@
     let pendentes    = [];
     let porPagina    = 6;
     let paginaAtual  = 1;
+    let ultimoCount  = 0; // Guarda quantos pendentes tínhamos na última checagem
 
-    // 1) Carrega todos os usuários pendentes do backend
-    async function carregarPendentes() {
+    // 1) Carrega todos os usuários pendentes do backend e compara com count anterior
+    async function carregarPendentesComCount() {
       try {
-        // ** MUDANÇA: usa admin_token em vez de token **
         const token = localStorage.getItem('admin_token');
         if (!token) {
           alert('Sessão do Admin expirada. Faça login novamente.');
@@ -169,11 +191,21 @@
           const errJson = await res.json().catch(() => ({}));
           throw new Error(errJson.error || 'Falha ao carregar pendentes.');
         }
-        pendentes = await res.json();
+
+        const dados = await res.json();
+
+        // Se já havia pendentes e agora há mais, notificamos
+        if (ultimoCount > 0 && dados.length > ultimoCount) {
+          const diff = dados.length - ultimoCount;
+          mostrarNotificacaoInApp(diff);
+        }
+        ultimoCount = dados.length;
+
+        pendentes = dados;
         renderizarPendentes();
       } catch (err) {
         console.error(err);
-        alert('Erro ao carregar usuários pendentes. Verifique o console para detalhes.');
+        // Não exibir alert repetido para erros de polling
       }
     }
 
@@ -182,13 +214,11 @@
       const busca      = document.getElementById('busca').value.trim().toLowerCase();
       const ordenacao  = document.getElementById('ordenacao').value;
 
-      // Filtra por nome ou e-mail
       let filtrados = pendentes.filter(u =>
         u.name.toLowerCase().includes(busca) ||
         u.email.toLowerCase().includes(busca)
       );
 
-      // Ordenação
       filtrados.sort((a, b) => {
         if (ordenacao === 'createdAt') {
           return new Date(a.createdAt) - new Date(b.createdAt);
@@ -196,7 +226,6 @@
         return a[ordenacao].localeCompare(b[ordenacao]);
       });
 
-      // Paginação
       const totalPaginas = Math.ceil(filtrados.length / porPagina);
       if (paginaAtual > totalPaginas && totalPaginas > 0) {
         paginaAtual = totalPaginas;
@@ -216,7 +245,6 @@
         return;
       }
 
-      // Monta o HTML com cards + paginação
       container.innerHTML = `
         <div class="row mb-3">
           <div class="col-12 d-flex gap-2 mb-3 flex-wrap">
@@ -310,7 +338,7 @@
           throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
         }
         alert('Usuário aprovado com sucesso!');
-        carregarPendentes();
+        carregarPendentesComCount();
       } catch (err) {
         console.error(err);
         alert(err.message);
@@ -334,7 +362,7 @@
           throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
         }
         alert('Usuário rejeitado e excluído!');
-        carregarPendentes();
+        carregarPendentesComCount();
       } catch (err) {
         console.error(err);
         alert(err.message);
@@ -360,7 +388,7 @@
         }
       }
       alert('Todos os usuários pendentes foram rejeitados.');
-      carregarPendentes();
+      carregarPendentesComCount();
     }
 
     // 6) Paginação, busca e ordenação
@@ -378,32 +406,42 @@
       renderizarPendentes();
     });
 
-    // 7) Carrega a lista assim que a página for aberta
-    carregarPendentes();
+    // 7) Exibe notificação in‐app usando Toast do Bootstrap
+    function mostrarNotificacaoInApp(novas) {
+      document.getElementById('meuToastBody').innerText =
+        `${novas} nova(s) solicitação(ões) de cadastro!`;
+      const toastEl = document.getElementById('toastNovoCadastro');
+      const toast = new bootstrap.Toast(toastEl);
+      toast.show();
+    }
+
+    // 8) Chama a função inicial e seta polling a cada 20s
+    (async () => {
+      await carregarPendentesComCount();
+      setInterval(async () => {
+        await carregarPendentesComCount();
+      }, 20000);
+    })();
   </script>
 
-  <!-- SCRIPT PARA PUSH NOTIFICATIONS -->
+  <!-- SCRIPT PARA PUSH NOTIFICATIONS (pode permanecer, mesmo que sem efeito imediato) -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
     (async () => {
-      // Registra o Service Worker e faz subscribe para Push
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         try {
           const registration = await navigator.serviceWorker.register('/service-worker.js');
           console.log('Service Worker registrado:', registration);
 
-          // Consulta a chave pública VAPID do backend
           const keyResp = await fetch(`${BASE_API}/api/push/publicKey`);
           const { publicKey } = await keyResp.json();
 
-          // Solicita permissão de notificações
           const permission = await Notification.requestPermission();
           if (permission !== 'granted') {
             console.log('Permissão de notificações não concedida.');
             return;
           }
 
-          // Converte base64 para Uint8Array
           function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding)
@@ -413,13 +451,11 @@
             return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
           }
 
-          // Subscreve para Push
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(publicKey)
           });
 
-          // Envia a subscription para o backend
           const token = localStorage.getItem('admin_token');
           await fetch(`${BASE_API}/api/push/subscribe`, {
             method: 'POST',
@@ -438,8 +474,9 @@
         console.warn('Push API ou Service Worker não suportado neste navegador.');
       }
 
-      // Conexão opcional com Socket.IO para notificações in-app
-      /*try {
+      // Se você não usar Socket.IO, mantenha comentado
+      /*
+      try {
         const token = localStorage.getItem('admin_token');
         const socket = io({ auth: { token } });
         socket.on('connect', () => console.log('Socket.IO conectado:', socket.id));
@@ -448,7 +485,8 @@
         });
       } catch (err) {
         console.warn('Não foi possível conectar ao Socket.IO:', err);
-      }*/
+      }
+      */
     })();
   </script>
 </body>
