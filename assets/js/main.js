@@ -740,12 +740,9 @@ onReady(async () => {
   // 2) Sincroniza o comportamento do botão de tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
-    // Se já estiver em dark, exibe ícone de lua
     if (document.documentElement.classList.contains('dark')) {
       menuThemeBtn.classList.add('dark');
     }
-
-    // Ao clicar, alterna root.classList e persiste em localStorage
     menuThemeBtn.addEventListener('click', () => {
       const isDark = document.documentElement.classList.contains('dark');
       if (isDark) {
@@ -760,15 +757,15 @@ onReady(async () => {
     });
   }
 
-  // 3) Botão de logout
+  // 3) Botão de logout — redireciona para "/pages/login.html"
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
-      // Chama seu método de logout (de Auth)
+      // Se existir método Auth.logout(), chama-o para limpar tokens
       if (typeof Auth !== 'undefined' && Auth.logout) {
         Auth.logout();
       }
-      // Redireciona para a página de login
+      // Redireciona para a rota correta de login:
       window.location.href = '/pages/login.html';
     });
   }
@@ -792,7 +789,6 @@ onReady(async () => {
   CalendarModule.init(
     data,
     info => {
-      // quando clica numa data do calendário
       dateInput.value = info.dateStr;
       buildOccupancyTable(info.dateStr);
 
@@ -811,7 +807,6 @@ onReady(async () => {
       });
     },
     info => {
-      // quando clica num evento do calendário
       const ev = CalendarModule
         .getEvents()
         .find(e => e._id === info.event.id);
@@ -838,6 +833,7 @@ onReady(async () => {
   // 10) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
+
 
 
 
