@@ -737,21 +737,43 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
-  // 2) Sincroniza o ícone do botão de tema no menu
+  // 2) Sincroniza o comportamento do botão de tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
-    // Se já estiver em dark, marca o botão para exibir lua
+    // Se já estiver em dark, exibe ícone de lua
     if (document.documentElement.classList.contains('dark')) {
       menuThemeBtn.classList.add('dark');
     }
-    // Ao clicar, ThemeToggle alterna o tema no <html>.
-    // Aqui mantemos/removemos a classe .dark no botão para trocar o ícone.
+
+    // Ao clicar, alterna root.classList e persiste em localStorage
     menuThemeBtn.addEventListener('click', () => {
-      menuThemeBtn.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        menuThemeBtn.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        menuThemeBtn.classList.add('dark');
+      }
     });
   }
 
-  // 3) Busca reservas iniciais para o FullCalendar
+  // 3) Botão de logout
+  const menuLogoutBtn = document.getElementById('menu-logout-btn');
+  if (menuLogoutBtn) {
+    menuLogoutBtn.addEventListener('click', () => {
+      // Chama seu método de logout (de Auth)
+      if (typeof Auth !== 'undefined' && Auth.logout) {
+        Auth.logout();
+      }
+      // Redireciona para a página de login
+      window.location.href = 'login.html';
+    });
+  }
+
+  // 4) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -759,14 +781,14 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 4) Referência única ao date-picker
+  // 5) Referência única ao date-picker
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-date não encontrado!');
     return;
   }
 
-  // 5) Inicializa o FullCalendar
+  // 6) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
@@ -797,25 +819,26 @@ onReady(async () => {
     }
   );
 
-  // 6) Configura date-picker
+  // 7) Configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value);
   });
 
-  // 7) Inicia auto-refresh da tabela de ocupação
+  // 8) Inicia auto-refresh da tabela de ocupação
   initOccupancyUpdates();
 
-  // 8) Listener extra (importação desativada)
+  // 9) Listener extra (importação desativada)
   document
     .getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // 9) Chamada inicial para popular a tabela
+  // 10) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
+
 
 
 
