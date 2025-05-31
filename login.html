@@ -26,11 +26,11 @@
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
 
-  <!-- Background -->
+  <!-- Background (opcional) -->
   <div class="absolute inset-0 bg-[url('assets/img/background.png')] dark:bg-[url('assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"></div>
 
-  <!-- Card -->
-  <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
+  <!-- Card de Login -->
+  <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6 z-10">
     <div class="flex justify-center">
       <img src="assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
     </div>
@@ -41,13 +41,14 @@
         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail</label>
         <input type="email" id="email" name="email" required
                class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"
-               />
+               placeholder="seu.nome@alunos.estacio.br ou @professor.estacio.br ou @admin.estacio.br"/>
       </div>
 
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
         <input type="password" id="password" name="password" required
-               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition" />
+               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"
+               placeholder="••••••••••"/>
       </div>
 
       <div class="flex items-center justify-between text-sm">
@@ -66,18 +67,15 @@
       </div>
 
       <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-        Não tem conta?
+        Não tem conta? 
         <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
       </p>
     </form>
-
-    <!-- Aqui exibiremos a mensagem de erro / aguarde aprovação -->
-    <p id="login-message" class="mt-2 text-center text-red-600 dark:text-red-400"></p>
   </div>
 
-  <!-- Dark/Light Toggle -->
+  <!-- Botão Toggle Dark/Light (canto superior) -->
   <button id="theme-toggle"
-          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
+          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300 z-10">
     <svg xmlns="http://www.w3.org/2000/svg"
          class="h-6 w-6 text-gray-800 dark:text-gray-200"
          fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +90,7 @@
   <!-- Scripts -->
   <script src="assets/js/auth.js"></script>
   <script>
-    // Controle de tema dark/light (igual ao original)
+    // → Gerencia o tema dark/light:
     const btn2 = document.getElementById('theme-toggle');
     const root2 = document.documentElement;
     const saved2 = localStorage.getItem('theme') || 'light';
@@ -102,30 +100,33 @@
       localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Login via Auth e validação de e-mail institucional (agora também aceita “admin”)
-document.getElementById('login-form').addEventListener('submit', async e => {
-  e.preventDefault();
+    // → Login via Auth e validação de e-mail institucional (agora inclui @admin.estacio.br):
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
 
-  const email = document.getElementById('email').value.trim().toLowerCase();
-  const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
-  if (!estacioRegex.test(email)) {
-    return alert(
-      'Use um e-mail institucional válido:\n' +
-      '- Aluno:     @alunos.estacio.br\n' +
-      '- Professor: @professor.estacio.br\n' +
-      '- Admin:     @admin.estacio.br'
-    );
-  }
+      const email = document.getElementById('email').value.trim().toLowerCase();
 
-  try {
-    await Auth.login(email, document.getElementById('password').value);
-    window.location.href = 'index.html';
-  } catch (err) {
-    alert(err.message);
-  }
-});
+      //    inclui “alunos”, “professor” ou “admin” como domínios válidos
+      const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
+      if (!estacioRegex.test(email)) {
+        return alert(
+          'Use um e-mail institucional válido:\n' +
+          '- Aluno:     @alunos.estacio.br\n' +
+          '- Professor: @professor.estacio.br\n' +
+          '- Admin:     @admin.estacio.br'
+        );
+      }
 
-
+      try {
+        await Auth.login(
+          email,
+          document.getElementById('password').value
+        );
+        window.location.href = 'index.html';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
   </script>
 </body>
 </html>
