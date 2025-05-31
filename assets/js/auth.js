@@ -82,7 +82,7 @@ const Auth = (() => {
       window.location.assign('pages/admin.html');
     } else {
       // Caso 2: Qualquer outro papel → redireciona para a home (index.html)
-      window.location.assign('index.html');
+      window.location.assign('pages/admin.html');
     }
 
     return data.token;
