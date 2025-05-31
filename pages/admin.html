@@ -434,67 +434,67 @@
   <!-- SCRIPT PARA PUSH NOTIFICATIONS (opcional, pode manter mesmo sem uso imediato) -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    (async () => {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        try {
-          const registration = await navigator.serviceWorker.register('/service-worker.js');
-          console.log('Service Worker registrado:', registration);
-
-          const keyResp = await fetch(`${BASE_API}/api/push/publicKey`);
-          const { publicKey } = await keyResp.json();
-
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            console.log('Permissão de notificações não concedida.');
-            return;
-          }
-
-          function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-              .replace(/-/g, '+')
-              .replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
-          }
-
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey)
-          });
-
-          const token = localStorage.getItem('admin_token');
-          await fetch(`${BASE_API}/api/push/subscribe`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(subscription.toJSON())
-          });
-
-          console.log('Subscription enviada ao backend:', subscription.toJSON());
-        } catch (err) {
-          console.error('Erro ao configurar Service Worker / Push:', err);
-        }
-      } else {
-        console.warn('Push API ou Service Worker não suportado neste navegador.');
-      }
-
-      // Se não usar Socket.IO, manter comentado
-      /*
+  (async () => {
+    // Só tenta registrar se o browser suportar SW e Push
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
-        const token = localStorage.getItem('admin_token');
-        const socket = io({ auth: { token } });
-        socket.on('connect', () => console.log('Socket.IO conectado:', socket.id));
-        socket.on('newUserRequest', data => {
-          alert(`🟡 Nova solicitação de cadastro: ${data.userName}`);
+        // 1) Registra o Service Worker
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker registrado:', registration);
+
+        // 2) Busca a chave pública VAPID do backend
+        const keyResp = await fetch(`${BASE_API}/api/push/publicKey`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
         });
+        if (!keyResp.ok) throw new Error('Não consegui buscar chave pública VAPID');
+        const { publicKey } = await keyResp.json();
+
+        // 3) Solicita permissão para NOTIFICAÇÕES do navegador
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.log('Permissão de notificações não concedida.');
+          return;
+        }
+
+        // 4) Converte base64 (VAPID) para Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+          const padding = '='.repeat((4 - base64String.length % 4) % 4);
+          const base64 = (base64String + padding)
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+          const rawData = window.atob(base64);
+          return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+        }
+
+        // 5) Efetua a subscribe no PushManager
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey)
+        });
+        console.log('Subscription gerada:', subscription.toJSON());
+
+        // 6) Envia a subscription para o seu backend
+        const token = localStorage.getItem('admin_token');
+        const resp = await fetch(`${BASE_API}/api/push/subscribe`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(subscription.toJSON())
+        });
+        if (!resp.ok) throw new Error('Falha ao enviar subscription ao backend');
+        console.log('Subscription enviada ao backend com sucesso!');
+
       } catch (err) {
-        console.warn('Não foi possível conectar ao Socket.IO:', err);
+        console.error('Erro ao configurar Service Worker / Push:', err);
       }
-      */
-    })();
+    } else {
+      console.warn('Push API ou Service Worker NÃO suportado neste navegador.');
+    }
+  })();
+</script>
+
   </script>
 </body>
 </html>
