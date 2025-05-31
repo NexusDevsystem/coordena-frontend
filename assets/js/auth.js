@@ -30,7 +30,6 @@ const Auth = (() => {
     }
 
     console.log('[Auth.login] Status HTTP da resposta:', res.status);
-
     if (!res.ok) {
       let errText = 'Credenciais inválidas.';
       try {
@@ -57,12 +56,13 @@ const Auth = (() => {
 
     console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
 
+    // 1) Armazena token e user
     saveToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // >>> AQUI É ONDE MUDAMOS o redirecionamento para admin ou index <<<
+    // 2) Redireciona conforme role
     if (data.user.role === 'admin') {
-      // Ajuste esta string para o caminho real do admin.html no seu servidor
+      // Se, de fato, o admin.html fica em /pages/admin.html:
       window.location.assign('pages/admin.html');
     } else {
       window.location.assign('index.html');
