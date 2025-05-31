@@ -133,9 +133,15 @@ body {
 
   html,
   body {
-    height: 100vh;
-    overflow: hidden;
-  }
+  background-image: url("assets/img/background.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+  /* + Mantemos overflow-y: auto para que sempre role verticalmente */
+  overflow-y: auto;
+}
 }
 
 @media (min-width: 769px) {
