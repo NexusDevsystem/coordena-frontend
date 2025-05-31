@@ -33,6 +33,7 @@
     </div>
     <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Entrar no Coordena+</h2>
 
+    <!-- Form sem atributo action, pois toda a lógica de redirecionamento fica em auth.js -->
     <form id="login-form" class="space-y-4">
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail</label>
@@ -80,33 +81,45 @@
   </button>
 
   <!-- Scripts -->
-  <script src="assets/js/auth.js"></script>
+  <!-- 1) Carrega auth.js que contém a função login(...) -->
+  <script src="assets/js/auth.js" defer></script>
+
   <script>
-    // Aguarda o DOM carregar (mensurar que auth.js já foi carregado com "defer")
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('login-form');
-      const errorMsg = document.getElementById('error-message');
+    // 2) Gerencia o tema dark/light
+    const btn2 = document.getElementById('theme-toggle');
+    const root2 = document.documentElement;
+    const saved2 = localStorage.getItem('theme') || 'light';
+    if (saved2 === 'dark') root2.classList.add('dark');
+    btn2.addEventListener('click', () => {
+      root2.classList.toggle('dark');
+      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+    });
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault(); // impediu qualquer action padrão do form
+    // 3) Lógica de login, sem redirecionar para index.html aqui!
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
 
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
+      if (!estacioRegex.test(email)) {
+        return alert(
+          'Use um e-mail institucional válido:\n' +
+          '- Aluno: @alunos.estacio.br\n' +
+          '- Professor: @professor.estacio.br\n' +
+          '- Admin: @admin.estacio.br'
+        );
+      }
 
-        // Limpa mensagem de erro anterior
-        errorMsg.textContent = '';
-        errorMsg.classList.add('hidden');
-
-        try {
-          // Chama a função exportada de auth.js
-          await login(email, password);
-          // Se login bem-sucesso, a própria função "login" já redireciona via window.location.assign(...)
-        } catch (err) {
-          // Em caso de falha (senha inválida, conta não aprovada, etc.), exibe o erro
-          errorMsg.textContent = err.message;
-          errorMsg.classList.remove('hidden');
-        }
-      });
+      try {
+        // Chama o login. Toda a lógica de redirecionamento está lá em auth.js
+        await Auth.login(
+          email,
+          document.getElementById('password').value
+        );
+        // → NÃO COLOQUE NENHUM outro window.location aqui
+      } catch (err) {
+        alert(err.message);
+      }
     });
   </script>
 </body>
