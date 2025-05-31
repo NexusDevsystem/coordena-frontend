@@ -103,38 +103,27 @@
     });
 
     // Login via Auth e validação de e-mail institucional
-    document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
 
-      // Limpa mensagem anterior
-      const msgEl = document.getElementById('login-message');
-      msgEl.textContent = '';
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
+  if (!estacioRegex.test(email)) {
+    return alert(
+      'Use um e-mail institucional válido:\n' +
+      '- Aluno: @alunos.estacio.br\n' +
+      '- Professor: @professor.estacio.br'
+    );
+  }
 
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
-      if (!estacioRegex.test(email)) {
-        msgEl.textContent = 
-          'Use um e-mail institucional válido:\n' +
-          '- Aluno: @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br';
-        return;
-      }
+  try {
+    await Auth.login(email, document.getElementById('password').value);
+    window.location.href = 'index.html';
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
-      try {
-        // Auth.login já faz fetch('/api/auth/login', ...)
-        await Auth.login(email, document.getElementById('password').value);
-
-        // Se chegar aqui, o Auth.login não lançou erro → login bem-sucedido
-        // Redirecione para a página principal (ex: agendamento ou index.html)
-        window.location.href = 'index.html';
-
-      } catch (err) {
-        // Se o servidor retornou 403 (pendente de aprovação), ou outro código de erro,
-        // Auth.login deverá lançar um erro com mensagem vinda do back-end.
-        // Basta exibir essa mensagem aqui:
-        msgEl.textContent = err.message || 'Falha no login.';
-      }
-    });
   </script>
 </body>
 </html>
