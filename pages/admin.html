@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Painel de Administração – Coordena+</title>
 
+  <!-- Link para CSS principal -->
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+
   <!-- Bootstrap 5 e FontAwesome (CDN) -->
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -14,24 +17,22 @@
     rel="stylesheet"
   />
 
-  <!-- Nosso CSS externo -->
-  <link rel="stylesheet" href="style.css" />
+  <!-- Fonte Lato (Google Fonts) já importada no CSS -->
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
-  <!-- ==============================
-       OFFCANVAS MENU (ExPoNjm)
-       ============================== -->
+
+  <!-- ================================================
+       OFFCANVAS MENU
+       ================================================ -->
   <header class="offcanvas-menu">
     <input type="checkbox" id="toggle-menu" />
 
     <!-- Ícone hambúrguer / X -->
-    <label for="toggle-menu" class="toggle-open">
-      <span></span>
-    </label>
+    <label for="toggle-menu" class="toggle-open"></label>
 
-    <nav>
-      <!-- Usuário logado -->
+    <nav id="side-menu">
+      <!-- Bloco usuário logado -->
       <div class="menu-user-info">
         <div id="menu-user-name">Seu Nome</div>
         <div id="menu-user-email">seu.email@exemplo.com</div>
@@ -42,11 +43,36 @@
 
       <!-- Lista de navegação -->
       <ul class="menu-list">
-        <li><a href="#home"><i class="fas fa-home me-2"></i>Dashboard</a></li>
-        <li><a href="#user"><i class="fas fa-user-shield me-2"></i>Usuários Pendentes</a></li>
-        <li><a href="#reservas"><i class="fas fa-calendar-alt me-2"></i>Reservas Pendentes</a></li>
-        <li><a href="#labs"><i class="fas fa-flask me-2"></i>Labs</a></li>
-        <li><a href="#settings"><i class="fas fa-cog me-2"></i>Configurações</a></li>
+        <li>
+          <a href="#dashboard">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#usuarios">
+            <i class="fas fa-user-check"></i>
+            <span>Usuários Pendentes</span>
+          </a>
+        </li>
+        <li>
+          <a href="#reservas">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Reservas Pendentes</span>
+          </a>
+        </li>
+        <li>
+          <a href="#labs">
+            <i class="fas fa-flask"></i>
+            <span>Labs</span>
+          </a>
+        </li>
+        <li>
+          <a href="#configuracoes">
+            <i class="fas fa-cog"></i>
+            <span>Configurações</span>
+          </a>
+        </li>
       </ul>
 
       <!-- Botões Tema / Sair -->
@@ -87,43 +113,146 @@
     </nav>
   </header>
 
-  <!-- ==============================
-       NAVBAR SUPERIOR (coordenaplus)
-       ============================== -->
-  <nav class="navbar navbar-coordena">
-    <label for="toggle-menu" class="btn toggle-open" style="background: transparent; border: none; padding: 0;">
-      <i class="fas fa-bars fa-lg" style="color: #fff;"></i>
-    </label>
-    <a class="navbar-brand ms-3" href="#">
-      <i class="fas fa-cogs"></i> Coordena+
-    </a>
-    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
-      <li class="nav-item me-4">
-        <i class="fas fa-bell fa-lg" style="color: #fff;"></i>
-      </li>
-      <li class="nav-item dropdown">
-        <a
-          class="nav-link dropdown-toggle"
-          href="#"
-          role="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <i class="fas fa-user-circle fa-lg"></i>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="#">Perfil</a></li>
-          <li><hr class="dropdown-divider" /></li>
-          <li><a class="dropdown-item" href="#" onclick="logoutAdmin()">Sair</a></li>
-        </ul>
-      </li>
-    </ul>
+
+  <!-- ================================================
+       NAVBAR SUPERIOR
+       ================================================ -->
+  <nav class="navbar-coordena">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-cogs"></i> Coordena+
+      </a>
+      <div>
+        <!-- Botão de atualiza -->
+        <button class="btn btn-sm btn-light btn-update" onclick="carregarUsuariosPendentes(); carregarReservasPendentes();">
+          <i class="fas fa-sync-alt"></i> Atualizar
+        </button>
+
+        <!-- Ícone de notificações -->
+        <button class="notification-btn ms-3" id="notification-toggle">
+          <i class="fas fa-bell"></i>
+        </button>
+      </div>
+    </div>
   </nav>
 
-  <!-- ==============================
-       TOAST IN-APP (Bootstrap)
-       ============================== -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;">
+
+  <!-- ================================================
+       CONTEÚDO PRINCIPAL
+       ================================================ -->
+  <div class="container-admin">
+    <!-- Cabeçalho do painel -->
+    <div class="admin-header">
+      <div>
+        <h1>Painel de Administração</h1>
+        <p class="text-light">Gerencie solicitações de usuários e reservas</p>
+      </div>
+    </div>
+
+    <!-- Abas: Usuários / Reservas -->
+    <ul class="nav tab-coordena mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          id="tab-usuarios"
+          data-bs-toggle="tab"
+          data-bs-target="#usuarios-pendentes-pane"
+          type="button"
+          role="tab"
+          aria-controls="usuarios-pendentes-pane"
+          aria-selected="true"
+        >
+          <i class="fas fa-user-check me-1"></i> Usuários Pendentes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="tab-reservas"
+          data-bs-toggle="tab"
+          data-bs-target="#reservas-pendentes-pane"
+          type="button"
+          role="tab"
+          aria-controls="reservas-pendentes-pane"
+          aria-selected="false"
+        >
+          <i class="fas fa-calendar-alt me-1"></i> Reservas Pendentes
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- ===========================
+           PAINEL: USUÁRIOS PENDENTES
+           =========================== -->
+      <div
+        class="tab-pane fade show active"
+        id="usuarios-pendentes-pane"
+        role="tabpanel"
+        aria-labelledby="tab-usuarios"
+      >
+        <!-- Busca e ordenação -->
+        <div class="search-container mb-4">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="busca-usuarios"
+              class="form-control"
+              placeholder="Buscar usuário por nome ou email..."
+              oninput="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();"
+            />
+          </div>
+          <select id="ordenacao-usuarios" class="form-select" onchange="paginaAtualUsuarios = 1; renderizarUsuariosPendentes();">
+            <option value="createdAt">Ordem de Chegada</option>
+            <option value="name">Nome (A-Z)</option>
+            <option value="email">Email (A-Z)</option>
+          </select>
+        </div>
+
+        <!-- Local onde os cards de usuários pendentes serão renderizados -->
+        <div id="lista-usuarios-pendentes"></div>
+      </div>
+
+      <!-- ===========================
+           PAINEL: RESERVAS PENDENTES
+           =========================== -->
+      <div
+        class="tab-pane fade"
+        id="reservas-pendentes-pane"
+        role="tabpanel"
+        aria-labelledby="tab-reservas"
+      >
+        <!-- Busca e ordenação -->
+        <div class="search-container mb-4">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="busca-reservas"
+              class="form-control"
+              placeholder="Buscar reserva por lab ou requisitante..."
+              oninput="paginaAtualReservas = 1; renderizarReservasPendentes();"
+            />
+          </div>
+          <select id="ordenacao-reservas" class="form-select" onchange="paginaAtualReservas = 1; renderizarReservasPendentes();">
+            <option value="date">Data</option>
+            <option value="lab">Lab (A-Z)</option>
+            <option value="responsible">Requisitante (A-Z)</option>
+          </select>
+        </div>
+
+        <!-- Local onde os cards de reservas pendentes serão renderizados -->
+        <div id="lista-reservas-pendentes"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================
+       TOAST PARA NOTIFICAÇÕES IN-APP (Bootstrap)
+       ================================================ -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
     <div
       id="toastNovoCadastro"
       class="toast align-items-center text-bg-warning border-0"
@@ -133,7 +262,7 @@
     >
       <div class="d-flex">
         <div class="toast-body" id="meuToastBody">
-          <!-- Texto será preenchido dinamicamente -->
+          <!-- Texto preenchido dinamicamente -->
         </div>
         <button
           type="button"
@@ -145,121 +274,12 @@
     </div>
   </div>
 
-  <!-- ==============================
-       CONTEÚDO PRINCIPAL
-       ============================== -->
-  <div class="container-admin">
-    <!-- Cabeçalho do painel -->
-    <div class="admin-header">
-      <div>
-        <h1>Painel de Administração</h1>
-        <p>Gerencie solicitações de usuários e reservas</p>
-      </div>
-      <button class="btn btn-update" onclick="carregarTudo()">
-        <i class="fas fa-sync-alt me-1"></i> Atualizar
-      </button>
-    </div>
 
-    <!-- Abas: Usuários Pendentes / Reservas Pendentes -->
-    <ul class="nav nav-tabs tab-coordena mb-4" id="tabMenu" role="tablist">
-      <li class="nav-item me-2" role="presentation">
-        <button
-          class="nav-link active"
-          id="usuarios-tab"
-          data-bs-toggle="tab"
-          data-bs-target="#usuarios"
-          type="button"
-          role="tab"
-          aria-controls="usuarios"
-          aria-selected="true"
-        >
-          <i class="fas fa-user-shield me-1"></i> Usuários Pendentes
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          id="reservas-tab"
-          data-bs-toggle="tab"
-          data-bs-target="#reservas"
-          type="button"
-          role="tab"
-          aria-controls="reservas"
-          aria-selected="false"
-        >
-          <i class="fas fa-calendar-alt me-1"></i> Reservas Pendentes
-        </button>
-      </li>
-    </ul>
-
-    <div class="tab-content" id="tabContent">
-      <!-- ======== Aba Usuários Pendentes ======== -->
-      <div
-        class="tab-pane fade show active"
-        id="usuarios"
-        role="tabpanel"
-        aria-labelledby="usuarios-tab"
-      >
-        <!-- Busca e ordenação para Usuários -->
-        <div class="search-container mb-4">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="busca-usuarios"
-              class="form-control"
-              placeholder="Buscar usuário por nome ou email..."
-            />
-          </div>
-          <div>
-            <select id="ordenacao-usuarios" class="form-select">
-              <option value="createdAt">Ordem de Chegada</option>
-              <option value="name">Nome (A-Z)</option>
-              <option value="email">Email (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Container para cards de usuários pendentes -->
-        <div id="lista-usuarios-pendentes"></div>
-      </div>
-
-      <!-- ======== Aba Reservas Pendentes ======== -->
-      <div
-        class="tab-pane fade"
-        id="reservas"
-        role="tabpanel"
-        aria-labelledby="reservas-tab"
-      >
-        <!-- Busca e ordenação para Reservas -->
-        <div class="search-container mb-4">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="busca-reservas"
-              class="form-control"
-              placeholder="Buscar reserva por laboratório ou requisitante..."
-            />
-          </div>
-          <div>
-            <select id="ordenacao-reservas" class="form-select">
-              <option value="date">Data (mais antiga)</option>
-              <option value="lab">Laboratório (A-Z)</option>
-              <option value="responsible">Requisitante (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Container para cards de reservas pendentes -->
-        <div id="lista-reservas-pendentes"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bootstrap JS (obrigatório para as tabs e dropdowns funcionarem) -->
+  <!-- ================================================
+       Scripts: Bootstrap, Socket.IO e nosso main.js
+       ================================================ -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Nosso JS externo -->
-  <script src="script.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="../assets/js/main.js"></script>
 </body>
 </html>
