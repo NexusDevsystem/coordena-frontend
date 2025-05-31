@@ -439,7 +439,7 @@
       }
 
       // Conexão opcional com Socket.IO para notificações in-app
-      try {
+      /*try {
         const token = localStorage.getItem('admin_token');
         const socket = io({ auth: { token } });
         socket.on('connect', () => console.log('Socket.IO conectado:', socket.id));
@@ -448,7 +448,7 @@
         });
       } catch (err) {
         console.warn('Não foi possível conectar ao Socket.IO:', err);
-      }
+      }*/
     })();
   </script>
 </body>
