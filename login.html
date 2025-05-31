@@ -82,41 +82,31 @@
   <!-- Scripts -->
   <script src="assets/js/auth.js"></script>
   <script>
-    // Tema dark/light
-    const btn2 = document.getElementById('theme-toggle');
-    const root2 = document.documentElement;
-    const saved2 = localStorage.getItem('theme') || 'light';
-    if (saved2 === 'dark') root2.classList.add('dark');
-    btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark');
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-    });
+    // Aguarda o DOM carregar (mensurar que auth.js já foi carregado com "defer")
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('login-form');
+      const errorMsg = document.getElementById('error-message');
 
-    // Login via Auth e validação de e-mail institucional
-    document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // impediu qualquer action padrão do form
 
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      // agora também aceita @admin.estacio.br
-      const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
-      if (!estacioRegex.test(email)) {
-        return alert(
-          'Use um e-mail institucional válido:\n' +
-          '- Aluno: @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br\n' +
-          '- Admin: @admin.estacio.br'
-        );
-      }
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
 
-      try {
-        await Auth.login(
-          email,
-          document.getElementById('password').value
-        );
-        window.location.href = 'index.html';
-      } catch (err) {
-        alert(err.message);
-      }
+        // Limpa mensagem de erro anterior
+        errorMsg.textContent = '';
+        errorMsg.classList.add('hidden');
+
+        try {
+          // Chama a função exportada de auth.js
+          await login(email, password);
+          // Se login bem-sucesso, a própria função "login" já redireciona via window.location.assign(...)
+        } catch (err) {
+          // Em caso de falha (senha inválida, conta não aprovada, etc.), exibe o erro
+          errorMsg.textContent = err.message;
+          errorMsg.classList.remove('hidden');
+        }
+      });
     });
   </script>
 </body>
