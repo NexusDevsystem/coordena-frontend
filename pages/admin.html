@@ -16,19 +16,22 @@
 
   <style>
     /* -----------------------------
-       TEMA COORDENA+
+       TEMA COORDENA+ – VERSÃO MODERNA
     ------------------------------ */
     :root {
-      --primary-color: #4e73df;      /* azul principal */
-      --secondary-color: #2e59d9;    /* azul escuro */
-      --accent-color: #1cc88a;       /* verde */
-      --danger-color:  #e74a3b;      /* vermelho */
-      --warning-color: #f6c23e;      /* amarelo */
-      --background: #f8f9fc;         /* cinza claro */
-      --card-bg: #ffffff;            /* branco das cards */
-      --text-color: #5a5c69;         /* cinza escuro para textos */
-      --text-light: #858796;         /* cinza médio */
-      --border-color: #e3e6f0;       /* bordas */
+      --primary-color: #4e73df;      /* Azul principal */
+      --secondary-color: #2e59d9;    /* Azul escuro */
+      --accent-color: #1cc88a;       /* Verde claro */
+      --danger-color:  #e74a3b;      /* Vermelho */
+      --warning-color: #f6c23e;      /* Amarelo */
+      --background: #F7FAFC;         /* Cinza suave */
+      --card-bg: #FFFFFF;            /* Branco puro para cards */
+      --text-color: #2C3E50;         /* Azul escuro para textos */
+      --text-light: #7F8C8D;         /* Cinza médio */
+      --border-color: #E0E6ED;       /* Bordas sutis */
+      --shadow-light: rgba(0, 0, 0, 0.05);
+      --shadow-strong: rgba(0, 0, 0, 0.1);
+      --radius: 0.75rem;
     }
 
     body {
@@ -39,11 +42,11 @@
       padding: 0;
     }
 
-    /* Navbar Coordenaplus */
+    /* Navbar Coordenaplus – Estilo “clean + moderno” */
     .navbar-coordena {
       background: var(--primary-color);
       padding: 0.75rem 1.5rem;
-      box-shadow: 0 0.15rem 1.75rem rgba(58,59,69,0.15);
+      box-shadow: 0 4px 12px var(--shadow-light);
     }
     .navbar-coordena .navbar-brand {
       color: #fff;
@@ -67,77 +70,98 @@
 
     /* Container principal do painel */
     .container-admin {
-      max-width: 1200px;
-      margin: 2rem auto 4rem;
+      max-width: 1140px;
+      margin: 2.5rem auto 4rem;
     }
 
-    /* Cabeçalho do painel */
+    /* Cabeçalho do painel – gradiente suave e bordas arredondadas */
     .admin-header {
-      background-color: var(--secondary-color);
+      background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
       color: #fff;
-      padding: 1.5rem;
-      border-radius: 0.35rem;
+      padding: 1.75rem 2rem;
+      border-radius: var(--radius);
       margin-bottom: 2rem;
-      box-shadow: 0 0.15rem 1.75rem rgba(58,59,69,0.15);
+      box-shadow: 0 4px 16px var(--shadow-light);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .admin-header h1 {
-      font-size: 1.75rem;
+      font-size: 1.875rem;
       margin: 0;
+      letter-spacing: 0.5px;
     }
     .admin-header p {
       margin: 0;
-      color: #e2e6ea;
+      color: #E5E7EB;
+      font-size: 1rem;
     }
     .admin-header .btn-update {
       background-color: #fff;
       color: var(--secondary-color);
-      font-weight: 500;
+      font-weight: 600;
+      border-radius: var(--radius);
+      height: 2.75rem;
+      padding: 0 1.25rem;
+      box-shadow: 0 2px 8px var(--shadow-light);
+      transition: background-color 0.2s, color 0.2s, transform 0.2s;
     }
     .admin-header .btn-update:hover {
       background-color: var(--accent-color);
       color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow-strong);
     }
 
-    /* Nav-tabs */
+    /* Abas (tabs) – estilo minimalista */
     .tab-coordena .nav-link {
       color: var(--text-light);
-      font-weight: 500;
+      font-weight: 600;
       border: none;
       border-bottom: 3px solid transparent;
-      transition: color 0.2s, border-bottom-color 0.2s;
+      padding: 0.75rem 1.5rem;
+      margin-right: 0.5rem;
+      transition: color 0.2s, border-bottom-color 0.2s, background 0.2s;
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px var(--shadow-light);
     }
     .tab-coordena .nav-link.active {
       color: var(--secondary-color);
       border-bottom-color: var(--secondary-color);
-      background: transparent;
+      background: #fff;
+      box-shadow: 0 4px 12px var(--shadow-light);
     }
     .tab-coordena .nav-link:hover {
       color: var(--secondary-color);
+      background: #fff;
+    }
+    .tab-coordena .nav-item:first-child .nav-link {
+      margin-left: 0;
     }
 
-    /* Busca e ordenação genéricas */
+    /* Busca e ordenação genéricos */
     .search-container {
       display: flex;
       gap: 1rem;
       align-items: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
       flex-wrap: wrap;
     }
     .search-box {
       position: relative;
       flex: 1;
-      min-width: 200px;
+      min-width: 240px;
     }
     .search-box input {
       padding-left: 2.5rem;
-      border-radius: 0.35rem;
+      border-radius: var(--radius);
       border: 1px solid var(--border-color);
-      height: 2.75rem;
-      font-size: 0.95rem;
+      height: 3rem;
+      font-size: 1rem;
       color: var(--text-color);
+      background: #fff;
+      box-shadow: 0 2px 8px var(--shadow-light);
       width: 100%;
     }
     .search-box i {
@@ -146,45 +170,51 @@
       left: 1rem;
       transform: translateY(-50%);
       color: var(--text-light);
-      font-size: 1rem;
+      font-size: 1.125rem;
     }
     .search-container .form-select {
-      max-width: 200px;
-      height: 2.75rem;
-      border-radius: 0.35rem;
+      max-width: 220px;
+      height: 3rem;
+      border-radius: var(--radius);
       border: 1px solid var(--border-color);
+      background: #fff;
+      box-shadow: 0 2px 8px var(--shadow-light);
+      font-size: 1rem;
+      color: var(--text-color);
     }
 
-    /* Cards genéricos */
+    /* Cards genéricos – aparência “flutuante” */
     .card-coordena {
       background-color: var(--card-bg);
       border: none;
-      border-radius: 0.75rem;
-      box-shadow: 0 0.125rem 0.75rem rgba(58,59,69,0.1);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px var(--shadow-light);
       transition: transform 0.3s, box-shadow 0.3s;
-      border-left: 0.25rem solid var(--primary-color);
+      border-left: 4px solid var(--primary-color);
     }
     .card-coordena:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 0.5rem 1rem rgba(58,59,69,0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px var(--shadow-strong);
     }
     .card-coordena .card-body {
-      padding: 1.5rem;
+      padding: 1.75rem;
     }
     .card-coordena .card-title {
-      font-size: 1.15rem;
-      font-weight: 600;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--text-color);
+      margin-bottom: 0.5rem;
     }
     .card-coordena .card-subtitle {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--text-light);
+      margin-bottom: 1rem;
     }
     .card-coordena .badge-status {
       font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.45rem 0.75rem;
-      border-radius: 10rem;
+      font-weight: 700;
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
       text-transform: uppercase;
     }
     .badge-pendente {
@@ -204,25 +234,28 @@
       align-items: center;
       margin-top: 0.75rem;
       color: var(--text-light);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
     .card-coordena .info-line i {
       margin-right: 0.5rem;
       color: var(--primary-color);
+      width: 1.25rem;
+      text-align: center;
     }
     .card-coordena .card-actions {
-      margin-top: 1rem;
+      margin-top: 1.5rem;
       display: flex;
-      gap: 0.75rem;
+      gap: 1rem;
     }
     .card-coordena .btn-approve,
     .card-coordena .btn-reject {
       flex: 1;
-      padding: 0.6rem 0;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 0.35rem;
-      transition: background-color 0.2s, color 0.2s;
+      padding: 0.75rem 0;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px var(--shadow-light);
+      transition: background-color 0.2s, color 0.2s, transform 0.2s;
     }
     .card-coordena .btn-approve {
       background-color: var(--accent-color);
@@ -231,6 +264,8 @@
     }
     .card-coordena .btn-approve:hover {
       background-color: #17a673;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px var(--shadow-strong);
     }
     .card-coordena .btn-reject {
       background-color: var(--danger-color);
@@ -239,14 +274,22 @@
     }
     .card-coordena .btn-reject:hover {
       background-color: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px var(--shadow-strong);
     }
 
-    /* Paginação estilizada */
+    /* Paginação estilizada – maior espaçamento */
     .pagination-coordena .page-link {
       color: var(--secondary-color);
-      border-radius: 0.35rem;
+      border-radius: var(--radius);
       border: 1px solid var(--border-color);
-      margin: 0 0.2rem;
+      margin: 0 0.25rem;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s, color 0.2s;
     }
     .pagination-coordena .page-item.active .page-link {
       background-color: var(--secondary-color);
@@ -267,6 +310,16 @@
       .search-container .form-select {
         width: 100%;
       }
+      .card-coordena .info-line {
+        font-size: 0.9rem;
+      }
+      .card-coordena .card-actions {
+        flex-direction: column;
+      }
+      .card-coordena .btn-approve,
+      .card-coordena .btn-reject {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -277,8 +330,8 @@
     <a class="navbar-brand" href="#">
       <i class="fas fa-cogs"></i> Coordena+
     </a>
-    <ul class="navbar-nav ms-auto d-flex flex-row">
-      <li class="nav-item me-3">
+    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
+      <li class="nav-item me-4">
         <i class="fas fa-bell fa-lg" style="color: #fff;"></i>
       </li>
       <li class="nav-item dropdown">
@@ -300,7 +353,7 @@
     </ul>
   </nav>
 
-  <!-- Toast do Bootstrap para notificações in‐app -->
+  <!-- Toast in‐app (Bootstrap) -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;">
     <div
       id="toastNovoCadastro"
@@ -370,7 +423,7 @@
 
     <!-- Abas: Usuários Pendentes / Reservas Pendentes -->
     <ul class="nav nav-tabs tab-coordena mb-4" id="tabMenu" role="tablist">
-      <li class="nav-item" role="presentation">
+      <li class="nav-item me-2" role="presentation">
         <button
           class="nav-link active"
           id="usuarios-tab"
@@ -588,7 +641,7 @@
                   <button class="btn btn-approve" onclick="aprovarUsuario('${u._id}')">
                     <i class="fas fa-check me-1"></i> Aprovar
                   </button>
-                  <button class="btn btn-reject" onclick="rejeitarUsuario('${u._1d}')">
+                  <button class="btn btn-reject" onclick="rejeitarUsuario('${u._id}')">
                     <i class="fas fa-times me-1"></i> Rejeitar
                   </button>
                 </div>
@@ -682,7 +735,6 @@
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.status === 401 || res.status === 403) {
-          // Se token inválido, direciona para login
           alert('Sem permissão ou token inválido. Faça login novamente.');
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_user');
@@ -753,7 +805,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <div>
-                    <h5 class="card-title mb-1">${r.lab} - ${r.sala || '-'}</h5>
+                    <h5 class="card-title mb-1">${r.lab}${r.sala ? ' – ' + r.sala : ''}</h5>
                     <h6 class="card-subtitle">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
                   </div>
                   <span class="badge badge-pendente">Pendente</span>
@@ -768,7 +820,7 @@
                 </div>
                 <div class="info-line">
                   <i class="fas fa-building"></i>
-                  <span><strong>Departamento:</strong> ${r.department}</span>
+                  <span><strong>Depto.:</strong> ${r.department}</span>
                 </div>
                 <div class="info-line">
                   <i class="fas fa-info-circle"></i>
@@ -873,7 +925,7 @@
     }
 
     /*********************************************
-     * WIND?O GERAL E POLLING
+     * INICIALIZAÇÃO E POLLING AUTOMÁTICO
     *********************************************/
     (async () => {
       await carregarTudo();
