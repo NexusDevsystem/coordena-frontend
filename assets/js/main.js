@@ -723,25 +723,35 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // ----------------------
 onReady(async () => {
+  // 0) Preenche nome e e-mail do usuário no menu
+  const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
+  if (user) {
+    const nameEl  = document.getElementById('menu-user-name');
+    const emailEl = document.getElementById('menu-user-email');
+    if (nameEl)  nameEl.textContent  = user.name  || '—';
+    if (emailEl) emailEl.textContent = user.email || '—';
+  }
+
+  // 1) Inicializa tema, formulários e detalhes
   ThemeToggle.init();
   FormModule.init();
   DetailModule.init();
 
-  // Sincroniza o ícone do botão de tema no menu
+  // 2) Sincroniza o ícone do botão de tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
-    // Estado inicial (exibe lua se estiver em dark)
+    // Se já estiver em dark, marca o botão para exibir lua
     if (document.documentElement.classList.contains('dark')) {
       menuThemeBtn.classList.add('dark');
     }
-    // Ao clicar, ThemeToggle já alterna o tema no <html>,
-    // aqui mantemos o .dark no botão pra trocar o ícone
+    // Ao clicar, ThemeToggle alterna o tema no <html>.
+    // Aqui mantemos/removemos a classe .dark no botão para trocar o ícone.
     menuThemeBtn.addEventListener('click', () => {
       menuThemeBtn.classList.toggle('dark');
     });
   }
 
-  // 1) busca reservas iniciais para o FullCalendar
+  // 3) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -749,14 +759,14 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 2) referência única ao date-picker
+  // 4) Referência única ao date-picker
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-date não encontrado!');
     return;
   }
 
-  // 3) inicializa o FullCalendar
+  // 5) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
@@ -787,25 +797,26 @@ onReady(async () => {
     }
   );
 
-  // 4) configura date-picker
+  // 6) Configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value);
   });
 
-  // 5) inicia auto-refresh da tabela
+  // 7) Inicia auto-refresh da tabela de ocupação
   initOccupancyUpdates();
 
-  // 6) listener extra (importação desativada)
+  // 8) Listener extra (importação desativada)
   document
     .getElementById('import-schedule')
     .addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // 7) chamada inicial para popular a tabela
+  // 9) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
+
 
 
 
