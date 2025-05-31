@@ -226,7 +226,10 @@ body {
   background: #0f172a;
   color: #cbd5e1;
   transition: left 0.3s ease;
+  z-index: 10000;        /* fica acima de todo conteúdo */
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5); /* sombra para destacar */
 }
+
 
 /* bloco de usuário */
 .offcanvas-menu .menu-user-info {
