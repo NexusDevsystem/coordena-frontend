@@ -766,7 +766,7 @@ onReady(async () => {
         Auth.logout();
       }
       // Redireciona para a rota correta de login:
-      window.location.href = '/pages/login.html';
+      window.location.href = '/login.html';
     });
   }
 
