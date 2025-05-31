@@ -1,6 +1,7 @@
 // assets/js/auth.js
 
 const Auth = (() => {
+  // Ajuste automático para usar localhost em dev ou o backend real em produção
   const API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/auth'
     : 'https://coordena-backend.onrender.com/api/auth';
@@ -14,7 +15,9 @@ const Auth = (() => {
   }
 
   async function login(email, password) {
+    // 1) Mostrar no console qual endpoint está sendo chamado
     console.log('[Auth.login] API endpoint:', `${API}/login`);
+    // 2) Mostrar payload de debug
     console.log('[Auth.login] Payload →', { email, password });
 
     let res;
@@ -55,14 +58,14 @@ const Auth = (() => {
     }
 
     console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
-
-    // 1) Armazena token e user
+    // 3) Salvar token e user no localStorage
     saveToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // 2) Redireciona conforme role
+    // 4) REDIRECIONAR conforme role
     if (data.user.role === 'admin') {
-      // Se, de fato, o admin.html fica em /pages/admin.html:
+      // *** IMPORTANTE ***: se o admin.html está servido em /pages/admin.html,
+      // use exatamente este caminho relativo:
       window.location.assign('pages/admin.html');
     } else {
       window.location.assign('index.html');
@@ -82,7 +85,6 @@ const Auth = (() => {
     });
 
     console.log('[Auth.register] Status HTTP da resposta:', res.status);
-
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       console.error('[Auth.register] JSON de erro recebido:', err);
@@ -115,6 +117,7 @@ const Auth = (() => {
   return { login, register, logout, getCurrentUser, getToken };
 })();
 
+// Expõe as funções para serem chamadas no HTML
 window.login = Auth.login;
 window.register = Auth.register;
 window.logout = Auth.logout;
