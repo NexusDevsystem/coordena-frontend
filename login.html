@@ -100,30 +100,36 @@
     localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
   });
 
-  // Login via Auth e validação de e-mail institucional (agora com exceção para @admin.estacio.br)
-  document.getElementById('login-form').addEventListener('submit', async e => {
-    e.preventDefault();
+  // Login via Auth e validação de e-mail institucional
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
 
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    // Adicionamos "admin" ao agrupamento:
-    const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  // ↓↓↓ antigo:
+  // const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
+  // ↓↓↓ altere para incluir admin:
+  const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
 
-    if (!estacioRegex.test(email)) {
-      return alert(
-        'Use um e-mail institucional válido:\n' +
-        '- Aluno:   @alunos.estacio.br\n' +
-        '- Professor: @professor.estacio.br\n' +
-        '- Admin:   @admin.estacio.br'
-      );
-    }
+  if (!estacioRegex.test(email)) {
+    return alert(
+      'Use um e-mail institucional válido:\n' +
+      '- Aluno: @alunos.estacio.br\n' +
+      '- Professor: @professor.estacio.br\n' +
+      '- Admin: @admin.estacio.br'
+    );
+  }
 
-    try {
-      await Auth.login(email, document.getElementById('password').value);
-      window.location.href = 'index.html';
-    } catch (err) {
-      alert(err.message);
-    }
-  });
+  try {
+    await Auth.login(
+      email,
+      document.getElementById('password').value
+    );
+    window.location.href = 'index.html';
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
 </script>
 
 </body>
