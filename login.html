@@ -102,17 +102,18 @@
       localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
     });
 
-    // Login via Auth e validação de e-mail institucional
+    // Login via Auth e validação de e-mail institucional (agora também aceita “admin”)
 document.getElementById('login-form').addEventListener('submit', async e => {
   e.preventDefault();
 
   const email = document.getElementById('email').value.trim().toLowerCase();
-  const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
+  const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
   if (!estacioRegex.test(email)) {
     return alert(
       'Use um e-mail institucional válido:\n' +
-      '- Aluno: @alunos.estacio.br\n' +
-      '- Professor: @professor.estacio.br'
+      '- Aluno:     @alunos.estacio.br\n' +
+      '- Professor: @professor.estacio.br\n' +
+      '- Admin:     @admin.estacio.br'
     );
   }
 
@@ -123,6 +124,7 @@ document.getElementById('login-form').addEventListener('submit', async e => {
     alert(err.message);
   }
 });
+
 
   </script>
 </body>
