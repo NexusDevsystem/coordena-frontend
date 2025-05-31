@@ -303,64 +303,68 @@ body {
   content: " 0" counter(nav-link);
 }
 
-/* —— Botões “Tema / Sair” repaginados —— */
+/* Container de botões */
 .offcanvas-menu .menu-footer-btns {
   margin-top: auto;
   margin-bottom: 2rem;
-  /* afasta dos itens abaixo */
   display: flex;
   justify-content: center;
   gap: 1.5rem;
 }
 
-/* estilo base dos botões circulares */
+/* Estilo base para botões retangulares */
 .offcanvas-menu .footer-btn {
-  width: 3.5rem;
-  height: 3.5rem;
-  padding: 0;
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background .2s, border-color .2s, transform .1s, box-shadow .2s;
+  padding: 0.5rem 1rem;               /* altura suficiente, largura flexível */
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;              /* cantos arredondados, mas retangular */
+  color: #fff;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
-/* Hover geral */
+/* Hover geral dos botões */
 .offcanvas-menu .footer-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.1);
+  transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Tema: borda e ícone em amarelo */
-#menu-theme-btn {
-  border-color: rgba(250, 204, 21, 0.6);
-  color: #facc15;
+/* Ícones dentro do botão */
+.offcanvas-menu .footer-btn .icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0;                           /* sem margem extra */
 }
 
+/* Botão Tema (retângulo amarelo) */
+#menu-theme-btn {
+  border-color: rgba(250, 204, 21, 0.6);
+  color: #facc15;                      /* ícone amarelo */
+}
 #menu-theme-btn:hover {
   border-color: rgba(250, 204, 21, 1);
   background: rgba(250, 204, 21, 0.1);
 }
 
-/* Logout: borda e fundo em vermelho */
+/* Logout (retângulo vermelho) */
 .offcanvas-menu .footer-btn.logout {
   border-color: rgba(220, 38, 38, 0.8);
-  background-color: transparent;
-  background-image: url("../img/icons/logout.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 1.6rem 1.6rem;
+  color: #dc2626;                     /* ícone vermelho */
 }
-
 .offcanvas-menu .footer-btn.logout:hover {
   border-color: rgba(239, 68, 68, 1);
-  background: rgba(239, 68, 68, 0.1) url("../img/icons/logout.png") no-repeat center;
+  background: rgba(239, 68, 68, 0.1);
 }
 
+/* Ajuste: remove fundo circular antigo */
+.offcanvas-menu .footer-btn.logout {
+  background-image: none;            /* caso fosse usado background-image */
+}
 /* Tamanho dos ícones FontAwesome */
 .footer-btn i {
   font-size: 1.6rem;
