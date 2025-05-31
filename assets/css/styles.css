@@ -2,22 +2,31 @@
    Background & Scroll Lock para Mobile/Desktop
    ================================================ */
 body {
-  background-image: url("../assets/img/background.png");
+  background-image: url("assets/img/background.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  font-family: "Lato", sans-serif;
+  color: var(--text, #3b4861);
+  background: var(--bg, #f7fafc);
+  overflow-x: hidden;
 }
 
 .dark body {
-  background-image: url("../assets/img/backgrounddark.png");
+  background-image: url("assets/img/backgrounddark.png");
 }
 
 @media (max-width: 768px) {
-
   html,
   body {
     height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto; /* Mantemos overflow-y para rolagem vertical */
+    background-image: url("assets/img/background.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: "Lato", sans-serif;
   }
 }
 
@@ -27,20 +36,60 @@ body {
   }
 }
 
-/* =================================================
-   Correções de Dark Mode para FullCalendar (fc)
-   ================================================= */
+/* ================================================
+   IMPORTS DE FONTES
+   ================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Monoton&display=swap");
+
+/* ================================================
+   RESET GLOBAL
+   ================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ================================================
+   VARIÁVEIS DE TEMA COORDENA+
+   ================================================ */
+:root {
+  --primary-color: #4e73df;      /* Azul principal */
+  --secondary-color: #2e59d9;    /* Azul escuro */
+  --accent-color: #1cc88a;       /* Verde claro */
+  --danger-color:  #e74a3b;      /* Vermelho */
+  --warning-color: #f6c23e;      /* Amarelo */
+  --background: #F7FAFC;         /* Cinza suave */
+  --card-bg: #FFFFFF;            /* Branco puro para cards */
+  --text-color: #2C3E50;         /* Azul escuro para textos */
+  --text-light: #7F8C8D;         /* Cinza médio */
+  --border-color: #E0E6ED;       /* Bordas sutis */
+  --shadow-light: rgba(0, 0, 0, 0.05);
+  --shadow-strong: rgba(0, 0, 0, 0.1);
+  --radius: 0.75rem;
+}
+
+/* ================================================
+   BODY CONFIG
+   ================================================ */
+body {
+  font-family: "Lato", sans-serif;
+  background: var(--bg, #f7fafc);
+  color: var(--text-color, #3b4861);
+  overflow-x: hidden;
+}
+
+/* ================================================
+   CORREÇÕES DE DARK MODE PARA FULLCALENDAR (fc)
+   ================================================ */
 .dark .fc .fc-col-header {
-  background-color: #1f2937;
-  /* gray-800 */
+  background-color: #1f2937; /* gray-800 */
 }
 
 .dark .fc .fc-col-header th,
 .dark .fc .fc-list-heading td {
-  border-color: #374151;
-  /* gray-700 */
-  color: #d1d5db;
-  /* gray-300 */
+  border-color: #374151; /* gray-700 */
+  color: #d1d5db; /* gray-300 */
 }
 
 .dark .fc .fc-col-header-cell-cushion {
@@ -51,9 +100,9 @@ body {
   background-color: #1f2937;
 }
 
-/* ==============================================
+/* ================================================
    Botão de Notificações / Toggle do Menu
-   ============================================== */
+   ================================================ */
 .notification-btn {
   width: 2.5rem;
   height: 2.5rem;
@@ -77,7 +126,7 @@ body {
 }
 
 /* ================================================
-   Menu Toggle (2 barras, sem fundo)
+   Menu Toggle (2 barras que viram X, sem fundo)
    ================================================ */
 #menu-toggle {
   position: fixed;
@@ -106,73 +155,25 @@ body {
 }
 
 /* animação de X */
-#side-menu.show~#menu-toggle span:first-child {
+#side-menu.show ~ #menu-toggle span:first-child {
   transform: rotate(45deg) translate(0.2rem, 0.2rem);
 }
 
-#side-menu.show~#menu-toggle span:last-child {
+#side-menu.show ~ #menu-toggle span:last-child {
   transform: rotate(-45deg) translate(0.2rem, -0.2rem);
 }
 
-/*Background styling for light/dark + mobile scroll lock*/
-
-body {
-  background-image: url("assets/img/background.png");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  font-family: Arial, sans-serif;
-  overflow-x: hidden;
+/* ================================================
+   OFFCANVAS MENU (ExPoNjm)
+   ================================================ */
+.offcanvas-menu {
+  position: relative;
 }
 
-.dark body {
-  background-image: url("assets/img/backgrounddark.png");
-}
-
-@media (max-width: 768px) {
-
-  html,
-  body {
-  background-image: url("assets/img/background.png");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  font-family: Arial, sans-serif;
-  overflow-x: hidden;
-  /* + Mantemos overflow-y: auto para que sempre role verticalmente */
-  overflow-y: auto;
-}
-}
-
-@media (min-width: 769px) {
-  body {
-    overflow-y: auto;
-  }
-}
-
-@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Monoton&display=swap");
-
-/* RESET */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* BODY CONFIG */
-body {
-  font-family: "Lato", sans-serif;
-  background: var(--bg, #f7fafc);
-  color: var(--text, #3b4861);
-  overflow-x: hidden;
-}
-
-/* OFFCANVAS MENU */
 .offcanvas-menu input[type="checkbox"] {
   display: none;
 }
 
-/* BOTÃO TOGGLE: 2 LINHAS QUE VIRAM X (SEM SPAN) */
 .offcanvas-menu label {
   position: fixed;
   top: 1.5rem;
@@ -186,7 +187,6 @@ body {
   justify-content: center;
 }
 
-/* cria as duas barras */
 .offcanvas-menu label::before,
 .offcanvas-menu label::after {
   content: "";
@@ -198,28 +198,24 @@ body {
   transition: transform 0.3s, top 0.3s;
 }
 
-/* barra de cima */
 .offcanvas-menu label::before {
   top: calc(50% - 0.6rem);
 }
 
-/* barra de baixo */
 .offcanvas-menu label::after {
   top: calc(50% + 0.6rem);
 }
 
-/* quando o checkbox estiver marcado, forma o X */
-.offcanvas-menu input[type="checkbox"]:checked~label::before {
+.offcanvas-menu input[type="checkbox"]:checked ~ label::before {
   top: 50%;
   transform: rotate(45deg);
 }
 
-.offcanvas-menu input[type="checkbox"]:checked~label::after {
+.offcanvas-menu input[type="checkbox"]:checked ~ label::after {
   top: 50%;
   transform: rotate(-45deg);
 }
 
-/* nav off-canvas */
 .offcanvas-menu nav {
   position: fixed;
   top: 0;
@@ -232,17 +228,25 @@ body {
   background: #0f172a;
   color: #cbd5e1;
   transition: left 0.3s ease;
-  z-index: 10000;        /* fica acima de todo conteúdo */
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5); /* sombra para destacar */
+  z-index: 10000; /* fica acima de todo conteúdo */
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
 }
 
+.offcanvas-menu input[type="checkbox"]:checked ~ nav {
+  left: 0;
+}
+
+.offcanvas-menu input[type="checkbox"]:checked ~ label.toggle-open {
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* bloco de usuário */
 .offcanvas-menu .menu-user-info {
-  text-align: left;          /* alinha texto à esquerda */
+  text-align: left;
   color: #cbd5e1;
   margin: 3rem 0 1.5rem;
-  margin-left: -0.5rem;       /* empurra um pouco para a esquerda */
+  margin-left: -0.5rem; /* empurra um pouco para a esquerda */
 }
 
 .offcanvas-menu .menu-user-info #menu-user-name {
@@ -255,7 +259,6 @@ body {
   opacity: 0.8;
 }
 
-
 /* marca */
 .offcanvas-menu .brand {
   display: flex;
@@ -267,7 +270,7 @@ body {
 .offcanvas-menu .brand a {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: 0.5rem;
   font-size: 2.4rem;
   color: #5c7cfa;
 }
@@ -299,6 +302,13 @@ body {
   line-height: 1.5;
   color: #cbd5e1;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.offcanvas-menu .menu-list li:hover {
+  animation: hover 0.5s;
 }
 
 .offcanvas-menu .menu-list li a:hover {
@@ -309,7 +319,6 @@ body {
   content: " 0" counter(nav-link);
 }
 
-/* Container de botões */
 .offcanvas-menu .menu-footer-btns {
   margin-top: auto;
   margin-bottom: 2rem;
@@ -318,21 +327,19 @@ body {
   gap: 1.5rem;
 }
 
-/* Estilo base para botões retangulares */
 .offcanvas-menu .footer-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;               /* altura suficiente, largura flexível */
+  padding: 0.5rem 1rem;
   background: transparent;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.5rem;              /* cantos arredondados, mas retangular */
+  border-radius: 0.5rem;
   color: #fff;
   transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
   cursor: pointer;
 }
 
-/* Hover geral dos botões */
 .offcanvas-menu .footer-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
@@ -340,17 +347,16 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Ícones dentro do botão */
 .offcanvas-menu .footer-btn .icon {
   width: 1.6rem;
   height: 1.6rem;
-  margin: 0;                           /* sem margem extra */
+  margin: 0;
 }
 
 /* Botão Tema (retângulo amarelo) */
 #menu-theme-btn {
   border-color: rgba(250, 204, 21, 0.6);
-  color: #facc15;                      /* ícone amarelo */
+  color: #facc15; /* ícone amarelo */
 }
 #menu-theme-btn:hover {
   border-color: rgba(250, 204, 21, 1);
@@ -360,358 +366,47 @@ body {
 /* Logout (retângulo vermelho) */
 .offcanvas-menu .footer-btn.logout {
   border-color: rgba(220, 38, 38, 0.8);
-  color: #dc2626;                     /* ícone vermelho */
+  color: #dc2626; /* ícone vermelho */
 }
 .offcanvas-menu .footer-btn.logout:hover {
   border-color: rgba(239, 68, 68, 1);
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Ajuste: remove fundo circular antigo */
-.offcanvas-menu .footer-btn.logout {
-  background-image: none;            /* caso fosse usado background-image */
-}
-/* Tamanho dos ícones FontAwesome */
-.footer-btn i {
-  font-size: 1.6rem;
-}
-
-/* abrir/fechar menu */
-.offcanvas-menu input[type="checkbox"]:checked~nav {
-  left: 0;
-}
-
-.offcanvas-menu input[type="checkbox"]:checked~label.toggle-open {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* animação itens */
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li {
   transform: translateX(0);
   opacity: 1;
 }
 
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(1) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(1) {
   transition-delay: 0.1s;
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(2) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(2) {
   transition-delay: 0.2s;
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(3) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(3) {
   transition-delay: 0.3s;
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(4) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(4) {
   transition-delay: 0.4s;
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(5) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(5) {
   transition-delay: 0.5s;
 }
-
-.offcanvas-menu input[type="checkbox"]:checked~nav .menu-list li:nth-child(6) {
+.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(6) {
   transition-delay: 0.6s;
 }
 
-/* hover link */
+/* hover link animação */
 @keyframes hover {
   50% {
     transform: translateX(1rem);
   }
 }
 
-.offcanvas-menu .menu-list li:hover {
-  animation: hover 0.5s;
-}
-
-
-
 /* ================================================
-   Grade de Ocupação Estilo “Mini-Calendário”
-   ================================================ */
-#occupancy-section .overflow-auto {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-#occupancy-table {
-  border-collapse: collapse;
-  table-layout: fixed;
-  width: max-content;
-  /* permite scroll horizontal */
-  min-width: 100%;
-  font-size: 0.875rem;
-}
-
-#occupancy-table th,
-#occupancy-table td {
-  width: 80px;
-  height: 50px;
-  padding: 0.25rem;
-  text-align: center;
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border: 1px solid #374151;
-  /* gray-700 */
-}
-
-/* cabeçalho sempre visível */
-#occupancy-table thead th {
-  position: sticky;
-  top: 0;
-  background: #1f2937;
-  /* gray-800 */
-  color: #f9fafb;
-  /* gray-50 */
-  z-index: 2;
-}
-
-/* primeira coluna fixa */
-#occupancy-table thead th:first-child,
-#occupancy-table tbody td:first-child {
-  position: sticky;
-  left: 0;
-  background: #111827;
-  /* gray-900 */
-  color: #f9fafb;
-  z-index: 3;
-}
-
-/* estados */
-#occupancy-table td.bg-red-600 {
-  background-color: #dc2626 !important;
-  color: #fff;
-}
-
-#occupancy-table td.bg-green-600 {
-  background-color: #16a34a !important;
-  color: #fff;
-}
-
-/* ================================================
-   Correções de Dark Mode para FullCalendar (fc)
-   ================================================ */
-.dark .fc .fc-col-header {
-  background-color: #1f2937;
-  /* gray-800 */
-}
-
-.dark .fc .fc-col-header th,
-.dark .fc .fc-list-heading td {
-  border-color: #374151;
-  /* gray-700 */
-  color: #d1d5db;
-  /* gray-300 */
-}
-
-.dark .fc .fc-col-header-cell-cushion {
-  color: #d1d5db;
-}
-
-.dark .fc .fc-list-head {
-  background-color: #1f2937;
-}
-
-/* ==============================
-   TEMA COORDENA+ – VERSÃO MODERNA
-   ============================== */
-:root {
-  --primary-color: #4e73df;      /* Azul principal */
-  --secondary-color: #2e59d9;    /* Azul escuro */
-  --accent-color: #1cc88a;       /* Verde claro */
-  --danger-color:  #e74a3b;      /* Vermelho */
-  --warning-color: #f6c23e;      /* Amarelo */
-  --background: #F7FAFC;         /* Cinza suave */
-  --card-bg: #FFFFFF;            /* Branco puro para cards */
-  --text-color: #2C3E50;         /* Azul escuro para textos */
-  --text-light: #7F8C8D;         /* Cinza médio */
-  --border-color: #E0E6ED;       /* Bordas sutis */
-  --shadow-light: rgba(0, 0, 0, 0.05);
-  --shadow-strong: rgba(0, 0, 0, 0.1);
-  --radius: 0.75rem;
-}
-
-body {
-  background-color: var(--background);
-  color: var(--text-color);
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  transition: background-color 0.5s, color 0.5s;
-}
-
-/* ==============================
-   OFFCANVAS MENU (ExPoNjm)
-   ============================== */
-.offcanvas-menu {
-  position: relative;
-}
-.offcanvas-menu input[type="checkbox"] {
-  display: none;
-}
-
-/* Ícone hambúrguer / X */
-.offcanvas-menu .toggle-open,
-.offcanvas-menu .toggle-close {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  width: 2rem;
-  height: 2rem;
-  cursor: pointer;
-  z-index: 2000;
-}
-.offcanvas-menu .toggle-open::before,
-.offcanvas-menu .toggle-open::after,
-.offcanvas-menu .toggle-open span {
-  content: '';
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 0.2rem;
-  background: var(--text-color);
-  transition: transform 0.3s;
-}
-.offcanvas-menu .toggle-open::before {
-  top: 0.4rem;
-}
-.offcanvas-menu .toggle-open::after {
-  bottom: 0.4rem;
-}
-.offcanvas-menu .toggle-open span {
-  top: 50%;
-  transform: translateY(-50%);
-}
-/* X icon */
-.offcanvas-menu .toggle-close::before,
-.offcanvas-menu .toggle-close::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.9rem;
-  width: 100%;
-  height: 0.2rem;
-  background: var(--text-color);
-  transition: transform 0.3s;
-}
-.offcanvas-menu .toggle-close::before {
-  transform: rotate(45deg);
-}
-.offcanvas-menu .toggle-close::after {
-  transform: rotate(-45deg);
-}
-
-/* Painel do nav */
-.offcanvas-menu nav {
-  position: fixed;
-  top: 0;
-  left: -280px;
-  width: 280px;
-  height: 100%;
-  background: #FFFFFF;
-  box-shadow: 4px 0 12px var(--shadow-light);
-  padding: 2.5rem 1.5rem;
-  overflow-y: auto;
-  transition: left 0.3s;
-  z-index: 1500;
-}
-.offcanvas-menu input#toggle-menu:checked ~ nav {
-  left: 0;
-}
-
-/* Usuário logado */
-.offcanvas-menu .menu-user-info {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-.offcanvas-menu #menu-user-name {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--text-color);
-}
-.offcanvas-menu #menu-user-email {
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-/* Lista de navegação */
-.offcanvas-menu .menu-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2.5rem;
-}
-.offcanvas-menu .menu-list li {
-  margin: 1rem 0;
-}
-.offcanvas-menu .menu-list a {
-  text-decoration: none;
-  font-size: 1rem;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  transition: color 0.2s;
-}
-.offcanvas-menu .menu-list a i {
-  margin-right: 0.75rem;
-  color: var(--primary-color);
-}
-.offcanvas-menu .menu-list a:hover {
-  color: var(--primary-color);
-}
-
-/* Botões rodapé */
-.offcanvas-menu .menu-footer-btns {
-  position: absolute;
-  bottom: 2rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.offcanvas-menu .footer-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-size: 1.25rem;
-  color: var(--text-color);
-  transition: color 0.2s, transform 0.2s;
-}
-.offcanvas-menu .footer-btn:hover {
-  color: var(--primary-color);
-  transform: translateY(-2px);
-}
-.offcanvas-menu .logout svg {
-  color: var(--danger-color);
-}
-
-/* Dark mode adjustments */
-body.dark {
-  background-color: #1F2937;
-  color: #F3F4F6;
-}
-body.dark .offcanvas-menu nav {
-  background: #374151;
-  color: #F3F4F6;
-}
-body.dark .offcanvas-menu .menu-list a {
-  color: #F3F4F6;
-}
-body.dark .offcanvas-menu .footer-btn {
-  color: #F3F4F6;
-}
-
-/* ==============================
    NAVBAR SUPERIOR (coordenaplus)
-   ============================== */
+   ================================================ */
 .navbar-coordena {
   background: var(--primary-color);
   padding: 0.75rem 1.5rem;
@@ -738,9 +433,9 @@ body.dark .offcanvas-menu .footer-btn {
   color: var(--background);
 }
 
-/* ==============================
-   CONTEÚDO PRINCIPAL – TABS E CARTÕES
-   ============================== */
+/* ================================================
+   CONTEÚDO PRINCIPAL – TABS E CARTÕES (Usuários + Reservas)
+   ================================================ */
 /* Container principal do painel */
 .container-admin {
   max-width: 1140px;
@@ -823,12 +518,12 @@ body.dark .offcanvas-menu .footer-btn {
   margin-bottom: 1.75rem;
   flex-wrap: wrap;
 }
-.search-box {
+.search-container .search-box {
   position: relative;
   flex: 1;
   min-width: 240px;
 }
-.search-box input {
+.search-container .search-box input {
   padding-left: 2.5rem;
   border-radius: var(--radius);
   border: 1px solid var(--border-color);
@@ -839,7 +534,7 @@ body.dark .offcanvas-menu .footer-btn {
   box-shadow: 0 2px 8px var(--shadow-light);
   width: 100%;
 }
-.search-box i {
+.search-container .search-box i {
   position: absolute;
   top: 50%;
   left: 1rem;
@@ -995,4 +690,63 @@ body.dark .offcanvas-menu .footer-btn {
   .card-coordena .btn-reject {
     width: 100%;
   }
+}
+
+/* ================================================
+   Grade de Ocupação Estilo “Mini-Calendário”
+   ================================================ */
+#occupancy-section .overflow-auto {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#occupancy-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: max-content; /* permite scroll horizontal */
+  min-width: 100%;
+  font-size: 0.875rem;
+}
+
+#occupancy-table th,
+#occupancy-table td {
+  width: 80px;
+  height: 50px;
+  padding: 0.25rem;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid #374151; /* gray-700 */
+}
+
+/* cabeçalho sempre visível */
+#occupancy-table thead th {
+  position: sticky;
+  top: 0;
+  background: #1f2937; /* gray-800 */
+  color: #f9fafb;      /* gray-50 */
+  z-index: 2;
+}
+
+/* primeira coluna fixa */
+#occupancy-table thead th:first-child,
+#occupancy-table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  background: #111827; /* gray-900 */
+  color: #f9fafb;      /* gray-50 */
+  z-index: 3;
+}
+
+/* estados */
+#occupancy-table td.bg-red-600 {
+  background-color: #dc2626 !important;
+  color: #fff;
+}
+
+#occupancy-table td.bg-green-600 {
+  background-color: #16a34a !important;
+  color: #fff;
 }
