@@ -56,7 +56,7 @@ const Auth = (() => {
       throw new Error(errText);
     }
 
-    // 5) Se chegou aqui, foi 200 OK (ou 201 etc). Vamos extrair o JSON de sucesso
+    // 5) Se chegou aqui, foi 200 OK. Vamos extrair o JSON de sucesso
     let data;
     try {
       data = await res.json();
@@ -71,13 +71,18 @@ const Auth = (() => {
     saveToken(data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // 7) Redireciona conforme o role que veio no data.user.role
+    // 7) Redireciona conforme o role que veio em data.user.role
     if (data.user.role === 'admin') {
-      // Se for administrador, vai para a página de administração
-      window.location.assign('/pages/admin.html');
+      // Caso 1: É administrador → usa CAMINHO RELATIVO para o admin.html
+      // Ajuste aqui conforme a estrutura do seu servidor:
+      // Se o admin.html estiver em /frontend/pages/admin.html,
+      // e se 'frontend' for diretamente acessível, use 'frontend/pages/admin.html'.
+      // Se o 'frontend' já for a raiz pública, basta 'pages/admin.html'.
+
+      window.location.assign('pages/admin.html');
     } else {
-      // Caso contrário, vai para a página padrão (index.html)
-      window.location.assign('/index.html');
+      // Caso 2: Qualquer outro papel → redireciona para a home (index.html)
+      window.location.assign('index.html');
     }
 
     return data.token;
@@ -104,14 +109,14 @@ const Auth = (() => {
     const result = await res.json();
     console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
 
-    window.location.assign('/login.html');
+    window.location.assign('login.html');
     return result;
   }
 
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.assign('/login.html');
+    window.location.assign('login.html');
   }
 
   function getCurrentUser() {
