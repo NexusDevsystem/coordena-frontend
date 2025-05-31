@@ -769,7 +769,7 @@ onReady(async () => {
         Auth.logout();
       }
       // Redireciona para a página de login
-      window.location.href = '../pages/login.html';
+      window.location.href = '/pages/login.html';
     });
   }
 
