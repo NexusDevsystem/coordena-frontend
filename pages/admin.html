@@ -19,7 +19,7 @@
       --primary-color: #4e73df;
       --success-color: #1cc88a;
       --danger-color:  #e74a3b;
-      --warning-color:#f6c23e;
+      --warning-color: #f6c23e;
     }
     body {
       background-color: #f8f9fc;
@@ -69,7 +69,7 @@
 <body class="bg-light">
 
   <!-- Toast do Bootstrap para notificações in‐app -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;">
     <div
       id="toastNovoCadastro"
       class="toast align-items-center text-bg-warning border-0"
@@ -128,6 +128,7 @@
           </h1>
           <p class="mb-0 text-white-50">Gerencie as solicitações de novos usuários</p>
         </div>
+        <!-- Botão "Atualizar" ainda existe, mas não é mais obrigatório usar -->
         <button class="btn btn-light" onclick="carregarPendentesComCount()">
           <i class="fas fa-sync-alt"></i> Atualizar
         </button>
@@ -165,7 +166,7 @@
     let pendentes    = [];
     let porPagina    = 6;
     let paginaAtual  = 1;
-    let ultimoCount  = 0; // Guarda quantos pendentes tínhamos na última checagem
+    let ultimoCount  = null; // null indica primeira vez carregando
 
     // 1) Carrega todos os usuários pendentes do backend e compara com count anterior
     async function carregarPendentesComCount() {
@@ -194,18 +195,24 @@
 
         const dados = await res.json();
 
-        // Se já havia pendentes e agora há mais, notificamos
-        if (ultimoCount > 0 && dados.length > ultimoCount) {
+        // Se for a primeira vez e já houver pendentes, mostramos toast dizendo quantos já existem
+        if (ultimoCount === null && dados.length > 0) {
+          mostrarNotificacaoInApp(dados.length);
+        }
+        // Se não for a primeira vez, e houve incremento no total, avisamos apenas a diferença
+        else if (ultimoCount !== null && dados.length > ultimoCount) {
           const diff = dados.length - ultimoCount;
           mostrarNotificacaoInApp(diff);
         }
+
+        // Atualiza ultimoCount para próximo ciclo
         ultimoCount = dados.length;
 
         pendentes = dados;
         renderizarPendentes();
       } catch (err) {
         console.error(err);
-        // Não exibir alert repetido para erros de polling
+        // Para não ficar mostrando alert repetido em cada erro de polling, não exibimos alert aqui
       }
     }
 
@@ -415,16 +422,16 @@
       toast.show();
     }
 
-    // 8) Chama a função inicial e seta polling a cada 20s
+    // 8) Configura polling automático (10s) e chamada inicial
     (async () => {
       await carregarPendentesComCount();
       setInterval(async () => {
         await carregarPendentesComCount();
-      }, 20000);
+      }, 10000); // 10000ms = 10 segundos
     })();
   </script>
 
-  <!-- SCRIPT PARA PUSH NOTIFICATIONS (pode permanecer, mesmo que sem efeito imediato) -->
+  <!-- SCRIPT PARA PUSH NOTIFICATIONS (opcional, pode manter mesmo sem uso imediato) -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
     (async () => {
@@ -474,7 +481,7 @@
         console.warn('Push API ou Service Worker não suportado neste navegador.');
       }
 
-      // Se você não usar Socket.IO, mantenha comentado
+      // Se não usar Socket.IO, manter comentado
       /*
       try {
         const token = localStorage.getItem('admin_token');
