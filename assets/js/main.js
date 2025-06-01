@@ -17,25 +17,25 @@ function onReady(fn) {
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-// 1) Variável global para saber se o usuário permitiu notificações
+// 1) VARIÁVEL GLOBAL que fica true se o usuário permitir notificações:
 let notificacoesAtivas = false;
 
-// 2) Função para solicitar permissão ao navegador (deve ser chamada via clique)
+// 2) Função a ser chamada quando o admin clica em “Ativar Notificações”
 function solicitarPermissaoNotificacao() {
-  // Verifica se o browser suporta a API de Notifications
+  // Se o navegador não suportar, sai:
   if (!("Notification" in window)) {
-    console.warn("Este navegador não suporta notificações nativas.");
+    console.warn("Este navegador não suporta notificações.");
     return;
   }
 
-  // Se já estiver “granted”, apenas marca como ativo e retorna
+  // Se já estiver “granted”, não precisa pedir de novo:
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
-    console.log("Permissão de Notificações já concedida anteriormente.");
+    console.log("Notificações já haviam sido permitidas.");
     return;
   }
 
-  // Se não estiver negado, pede permissão
+  // Se não estiver NEGADO, podemos pedir permissão:
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
@@ -43,20 +43,19 @@ function solicitarPermissaoNotificacao() {
         console.log("Permissão de Notificações concedida pelo usuário.");
       } else {
         notificacoesAtivas = false;
-        console.log("Permissão de Notificações negada ou pausada pelo usuário.");
+        console.log("Permissão de Notificações negada ou pausada.");
       }
     });
-  } else {
-    console.log("Permissão de notificações foi negada anteriormente; não será solicitada de novo.");
   }
 }
 
-// 3) Função para enviar a notificação nativa (se tiver permissão)
+// 3) Função para disparar a notificação nativa (através do Notification API):
 function enviarNotificacao(titulo, texto) {
+  // Só cria o Notification se tivermos permissão explícita “granted”
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
-      icon: "/assets/img/logo-notification.png" // ajuste o caminho do ícone conforme sua pasta
+      icon: "/assets/img/logo-notification.png" // ajuste o caminho conforme seu projeto
     });
   }
 }
@@ -198,10 +197,10 @@ const CalendarModule = (() => {
       events = approvedReservations;
       approvedReservations.forEach(ev => {
         calendar.addEvent({
-          id:    ev._id,
+          id: ev._id,
           title: `${ev.title} (${ev.time})`,
           start: `${ev.date}T${ev.start}`,
-          end:   `${ev.date}T${ev.end}`
+          end: `${ev.date}T${ev.end}`
         });
       });
     } catch (err) {
@@ -223,15 +222,15 @@ const CalendarModule = (() => {
       locale: 'pt-br',
       initialView: isMobile ? 'listWeek' : 'dayGridMonth',
       headerToolbar: {
-        left:   isMobile ? 'prev,next' : 'prev,next today',
+        left: isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       events: events.map(e => ({
-        id:    e._id,
+        id: e._id,
         title: `${e.title} (${e.time})`,
         start: `${e.date}T${e.start}`,
-        end:   `${e.date}T${e.end}`
+        end: `${e.date}T${e.end}`
       })),
       dateClick: onDateClick,
       eventClick: onEventClick,
@@ -265,9 +264,9 @@ const CalendarModule = (() => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
       calendar.setOption('headerToolbar', {
-        left:   nowMobile ? 'prev,next' : 'prev,next today',
+        left: nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       });
     });
   }
@@ -276,10 +275,10 @@ const CalendarModule = (() => {
   function add(ev) {
     events.push(ev);
     calendar.addEvent({
-      id:    ev._id,
+      id: ev._id,
       title: `${ev.title} (${ev.time})`,
       start: `${ev.date}T${ev.start}`,
-      end:   `${ev.date}T${ev.end}`
+      end: `${ev.date}T${ev.end}`
     });
   }
 
@@ -355,9 +354,9 @@ const FormModule = (() => {
     }
 
     if (evData) {
-      selectors.fields.data.value  = evData.date;
+      selectors.fields.data.value = evData.date;
       selectors.fields.start.value = evData.start;
-      selectors.fields.end.value   = evData.end;
+      selectors.fields.end.value = evData.end;
       selectors.fields.recurso.value = evData.resource;
       selectors.fields.recurso.dispatchEvent(new Event('change'));
       selectors.fields.sala.value = evData.sala || '';
@@ -366,9 +365,9 @@ const FormModule = (() => {
         selectors.fields.resp.value = evData.responsible;
         selectors.fields.resp.setAttribute('readonly', 'readonly');
       }
-      selectors.fields.dept.value      = evData.department;
-      selectors.fields.status.value    = evData.status;
-      selectors.fields.desc.value      = evData.description;
+      selectors.fields.dept.value = evData.department;
+      selectors.fields.status.value = evData.status;
+      selectors.fields.desc.value = evData.description;
       if (evData.materia) {
         selectors.fields.materia.innerHTML = `<option value="${evData.materia}">${evData.materia}</option>`;
         selectors.fields.materia.disabled = false;
@@ -410,12 +409,12 @@ const FormModule = (() => {
     // ————————————————————————————————
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
-    const dtEnd   = new Date(`${payload.date}T${payload.end}`);
+    const dtEnd = new Date(`${payload.date}T${payload.end}`);
     let conflict = allEvents.some(ev => {
       if (ev.date !== payload.date) return false;
       if ((ev.sala || ev.resource) !== (payload.sala || payload.resource)) return false;
       const evStart = new Date(`${ev.date}T${ev.start}`);
-      const evEnd   = new Date(`${ev.date}T${ev.end}`);
+      const evEnd = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
     // Também valida contra horários fixos
@@ -425,7 +424,7 @@ const FormModule = (() => {
         if (fs.lab !== payload.sala) return false;
         if (fs.dayOfWeek !== weekday) return false;
         const fsStart = new Date(`${payload.date}T${fs.startTime}`);
-        const fsEnd   = new Date(`${payload.date}T${fs.endTime}`);
+        const fsEnd = new Date(`${payload.date}T${fs.endTime}`);
         return dtStart < fsEnd && dtEnd > fsStart;
       });
     }
@@ -474,7 +473,7 @@ const FormModule = (() => {
     selectors.form?.addEventListener('submit', handleSubmit);
 
     const salaOpts = {
-      'Laboratório': ['Lab B401','Lab B402','Lab B403','Lab B404','Lab B405','Lab B406','Lab Imaginologia']
+      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -562,33 +561,33 @@ const DetailModule = (() => {
   const selectors = {};
 
   function cacheSelectors() {
-    selectors.modal   = document.getElementById('event-modal');
-    selectors.btnClose  = document.getElementById('modal-close');
-    selectors.btnEdit   = document.getElementById('modal-edit');
+    selectors.modal = document.getElementById('event-modal');
+    selectors.btnClose = document.getElementById('modal-close');
+    selectors.btnEdit = document.getElementById('modal-edit');
     selectors.btnDelete = document.getElementById('modal-cancel');
     selectors.fields = {
-      date:     document.getElementById('modal-date'),
+      date: document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
-      type:     document.getElementById('modal-type'),
-      resp:     document.getElementById('modal-resp'),
-      dept:     document.getElementById('modal-dept'),
-      materia:  document.getElementById('modal-materia'),
-      status:   document.getElementById('modal-status'),
-      desc:     document.getElementById('modal-desc')
+      type: document.getElementById('modal-type'),
+      resp: document.getElementById('modal-resp'),
+      dept: document.getElementById('modal-dept'),
+      materia: document.getElementById('modal-materia'),
+      status: document.getElementById('modal-status'),
+      desc: document.getElementById('modal-desc')
     };
   }
 
   function open(ev) {
     currentId = ev._id;
     const f = selectors.fields;
-    f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
+    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
     f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent     = `Evento: ${ev.type}`;
-    f.resp.textContent     = `Responsável: ${ev.responsible}`;
-    f.dept.textContent     = `Curso: ${ev.department}`;
-    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent   = `Status: ${ev.status}`;
-    f.desc.textContent     = ev.description || 'Sem descrição';
+    f.type.textContent = `Evento: ${ev.type}`;
+    f.resp.textContent = `Responsável: ${ev.responsible}`;
+    f.dept.textContent = `Curso: ${ev.department}`;
+    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
+    f.status.textContent = `Status: ${ev.status}`;
+    f.desc.textContent = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
   }
 
@@ -648,17 +647,17 @@ async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
   table.innerHTML = '';
 
-  const allEvents       = CalendarModule.getEvents();
-  const dateStr         = filterDate || new Date().toISOString().slice(0, 10);
-  const [Y, M, D]       = dateStr.split('-').map(Number);
-  const weekday         = new Date(Y, M - 1, D).getDay();
-  const now             = new Date();
-  const dayEvents       = allEvents.filter(e => e.date === dateStr);
+  const allEvents = CalendarModule.getEvents();
+  const dateStr = filterDate || new Date().toISOString().slice(0, 10);
+  const [Y, M, D] = dateStr.split('-').map(Number);
+  const weekday = new Date(Y, M - 1, D).getDay();
+  const now = new Date();
+  const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
   // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
   const slotStart = toDate(Y, M, D, '08:00');
-  const slotEnd   = toDate(Y, M, D, '22:00');
+  const slotEnd = toDate(Y, M, D, '22:00');
   const timeRanges = [];
   let cursor = new Date(slotStart);
   while (cursor < slotEnd) {
@@ -684,8 +683,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -696,13 +695,13 @@ async function buildOccupancyTable(filterDate) {
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
-      const cellStart    = toDate(Y, M, D, start);
-      const cellEnd      = toDate(Y, M, D, end);
+      const cellStart = toDate(Y, M, D, start);
+      const cellEnd = toDate(Y, M, D, end);
 
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
-        const evEnd   = toDate(Y, M, D, ev.end);
+        const evEnd = toDate(Y, M, D, ev.end);
         return evStart < cellEnd && evEnd > cellStart;
       });
 
@@ -777,9 +776,9 @@ onReady(async () => {
   // 1) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
   if (user) {
-    const nameEl  = document.getElementById('menu-user-name');
+    const nameEl = document.getElementById('menu-user-name');
     const emailEl = document.getElementById('menu-user-email');
-    if (nameEl) nameEl.textContent  = user.name  || '—';
+    if (nameEl) nameEl.textContent = user.name || '—';
     if (emailEl) emailEl.textContent = user.email || '—';
   }
 
@@ -824,11 +823,12 @@ onReady(async () => {
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
       solicitarPermissaoNotificacao();
-      // Desabilita o botão após solicitar
+      // Desabilita o botão para não ficar pedindo de novo
       btnNotifs.setAttribute('disabled', 'disabled');
       btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
     });
   }
+
 
   // 6) Busca reservas iniciais para o FullCalendar
   let data = [];
@@ -854,17 +854,17 @@ onReady(async () => {
 
       // Abre modal de criação de reserva com valores vazios
       FormModule.open(null, {
-        date:        info.dateStr,
-        start:       '00:00',
-        end:         '00:00',
-        resource:    '',
-        sala:        '',
-        type:        '',
+        date: info.dateStr,
+        start: '00:00',
+        end: '00:00',
+        resource: '',
+        sala: '',
+        type: '',
         responsible: '',
-        department:  '',
-        status:      '',
+        department: '',
+        status: '',
         description: '',
-        time:        ''
+        time: ''
       });
     },
     info => {
@@ -901,20 +901,20 @@ onReady(async () => {
 (function () {
   // Só executa se estivermos na página de admin (verifica também #lista-ativas)
   if (!document.getElementById('lista-pendentes-usuarios') &&
-      !document.getElementById('lista-pendentes-reservas') &&
-      !document.getElementById('lista-ativas')) {
+    !document.getElementById('lista-pendentes-reservas') &&
+    !document.getElementById('lista-ativas')) {
     return;
   }
 
   // ----------------------
   // VARIÁVEIS GLOBAIS DO ADMIN
   // ----------------------
-  let usuariosPendentes    = [];
-  let reservasPendentes    = [];
-  let paginaAtualUsuarios  = 1;
-  let paginaAtualReservas  = 1;
-  let ultimoCountUsuarios  = null;
-  let ultimoCountReservas  = null;
+  let usuariosPendentes = [];
+  let reservasPendentes = [];
+  let paginaAtualUsuarios = 1;
+  let paginaAtualReservas = 1;
+  let ultimoCountUsuarios = null;
+  let ultimoCountReservas = null;
 
   const BASE_API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000'
@@ -986,7 +986,7 @@ onReady(async () => {
       }
 
       ultimoCountUsuarios = dados.length;
-      usuariosPendentes   = dados;
+      usuariosPendentes = dados;
       renderizarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em carregarUsuariosPendentes():', err);
@@ -1137,8 +1137,8 @@ onReady(async () => {
     }
   }
 
-  window.aprovarUsuario    = aprovarUsuario;
-  window.rejeitarUsuario   = rejeitarUsuario;
+  window.aprovarUsuario = aprovarUsuario;
+  window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
 
   // --------------------------------------------------
@@ -1195,7 +1195,7 @@ onReady(async () => {
       }
 
       ultimoCountReservas = dados.length;
-      reservasPendentes   = dados;
+      reservasPendentes = dados;
       renderizarReservasPendentes();
     } catch (err) {
       console.error('Erro em carregarReservasPendentes():', err);
@@ -1358,8 +1358,8 @@ onReady(async () => {
     }
   }
 
-  window.aprovarReserva    = aprovarReserva;
-  window.rejeitarReserva   = rejeitarReserva;
+  window.aprovarReserva = aprovarReserva;
+  window.rejeitarReserva = rejeitarReserva;
   window.mudarPaginaReservas = mudarPaginaReservas;
 
   // --------------------------------------------------
@@ -1447,7 +1447,7 @@ onReady(async () => {
     const agora = new Date();
     reservas.forEach(r => {
       const inicio = new Date(`${r.date}T${r.start}:00`);
-      const fim    = new Date(`${r.date}T${r.end}:00`);
+      const fim = new Date(`${r.date}T${r.end}:00`);
       let porcentagem = 0;
       if (agora < inicio) porcentagem = 0;
       else if (agora > fim) porcentagem = 100;
