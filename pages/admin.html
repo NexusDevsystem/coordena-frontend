@@ -62,9 +62,8 @@
     </ul>
 
     <div class="tab-content" id="adminTabContent">
-      <!-- ABA: Usuarios Pendentes -->
+      <!-- ABA: Usuários Pendentes -->
       <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-        <!-- Aqui você já tinha algo como “<input> busca” e “<div id='lista-pendentes-usuarios'>” -->
         <div class="row mb-3">
           <div class="col-md-8">
             <div class="search-box position-relative">
@@ -82,8 +81,8 @@
             </select>
           </div>
         </div>
-        <!-- aqui nós exibiremos a lista de usuários pendentes -->
-        <div id="lista-pendentes-usuarios"></div>
+        <!-- Container ajustado para casar com o JavaScript -->
+        <div id="lista-usuarios-pendentes"></div>
       </div>
 
       <!-- ABA: Reservas Pendentes -->
@@ -98,11 +97,17 @@
             </div>
           </div>
           <div class="col-md-4">
-            <input type="date" id="filtro-data-reservas" class="form-control" placeholder="Data" />
+            <!-- Campo de filtro de data -->
+            <input type="date" id="filtro-data-reservas" class="form-control mb-2" placeholder="Data" />
+            <!-- Select de ordenação, para corresponder ao JS -->
+            <select id="ordenacao-reservas" class="form-select">
+              <option value="date">Data</option>
+              <option value="responsible">Requisitante (A-Z)</option>
+            </select>
           </div>
         </div>
-        <!-- aqui exibiremos a lista de reservas pendentes -->
-        <div id="lista-pendentes-reservas"></div>
+        <!-- Container ajustado para casar com o JavaScript -->
+        <div id="lista-reservas-pendentes"></div>
       </div>
     </div>
   </div>
