@@ -833,10 +833,11 @@ onReady(async () => {
 
 
 
-// ================================================
-  // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
-  // ================================================
-  // Só faz sentido rodar se estivermos na página de admin
+// ==================================================
+// A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
+// ==================================================
+(function () {
+  // Só executa se estivermos na página de admin
   if (!document.getElementById('lista-pendentes-usuarios') &&
       !document.getElementById('lista-pendentes-reservas')) {
     return;
@@ -852,13 +853,13 @@ onReady(async () => {
   let ultimoCountUsuarios  = null;
   let ultimoCountReservas  = null;
 
-  // Ajuste da URL‐base do backend
+  // Obtém a URL-base do backend
   const BASE_API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000'
     : 'https://coordena-backend.onrender.com';
 
   // ----------------------
-  // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast)
+  // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
   // ----------------------
   function mostrarToast(texto) {
     const body = document.getElementById('meuToastBody');
@@ -885,6 +886,7 @@ onReady(async () => {
       const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
       if (res.status === 401 || res.status === 403) {
         alert('Sem permissão ou token inválido. Faça login novamente.');
         localStorage.removeItem('admin_token');
@@ -899,9 +901,12 @@ onReady(async () => {
 
       const dados = await res.json();
 
+      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-      } else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+      }
+      // Se não for primeira vez e o total aumentou, notifica só a diferença
+      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
         const diff = dados.length - ultimoCountUsuarios;
         mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
       }
@@ -946,7 +951,8 @@ onReady(async () => {
           <i class="fas fa-user-clock fa-3x mb-3"></i>
           <h4>Nenhuma solicitação de usuário pendente</h4>
           <p>Não há novos usuários aguardando aprovação.</p>
-        </div>`;
+        </div>
+      `;
       return;
     }
 
@@ -1017,8 +1023,7 @@ onReady(async () => {
     if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
     try {
       const token = localStorage.getItem('admin_token');
-      // → Chama exatamente a rota que o backend expõe (verifique se no seu backend é /approve/:id ou /approve-user/:id)
-      const res = await fetch(`${BASE_API}/api/admin/approve/${id}`, {
+      const res = await fetch(`${BASE_API}/api/admin/approve-user/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1029,7 +1034,7 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
       }
-      // Após aprovação, recarrega a lista
+      // Recarrega a lista de usuários pendentes imediatamente
       carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em aprovarUsuario():', err);
@@ -1041,8 +1046,7 @@ onReady(async () => {
     if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
     try {
       const token = localStorage.getItem('admin_token');
-      // → Chama exatamente a rota de deleção que o backend expõe (verifique se é /reject/:id ou /reject-user/:id)
-      const res = await fetch(`${BASE_API}/api/admin/reject/${id}`, {
+      const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -1053,7 +1057,7 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
       }
-      // Após rejeição, recarrega a lista
+      // Recarrega a lista de usuários pendentes
       carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em rejeitarUsuario():', err);
@@ -1061,7 +1065,7 @@ onReady(async () => {
     }
   }
 
-  // Expondo as funções de usuário para o escopo global
+  // Expondo as funções para o escopo global (para que onclick="…" funcione)
   window.aprovarUsuario  = aprovarUsuario;
   window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
@@ -1095,9 +1099,12 @@ onReady(async () => {
 
       const dados = await res.json();
 
+      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountReservas === null && dados.length > 0) {
         mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-      } else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+      }
+      // Se não for primeira vez e o total aumentou, notifica só a diferença
+      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
         const diff = dados.length - ultimoCountReservas;
         mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
       }
@@ -1116,9 +1123,13 @@ onReady(async () => {
     const ordenacao  = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
+      // Filtra por texto livre (lab ou requisitante)
       const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
       if (!textoBusca.includes(busca)) return false;
+
+      // Se há filtro de data, só exibe se r.date === filtroData
       if (filtroData && r.date !== filtroData) return false;
+
       return true;
     });
 
@@ -1145,7 +1156,8 @@ onReady(async () => {
           <i class="fas fa-calendar-times fa-3x mb-3"></i>
           <h4>Nenhuma solicitação de reserva pendente</h4>
           <p>Não há novas solicitações de reserva.</p>
-        </div>`;
+        </div>
+      `;
       return;
     }
 
@@ -1224,8 +1236,7 @@ onReady(async () => {
     if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
     try {
       const token = localStorage.getItem('admin_token');
-      // → Altere aqui caso seu backend use /approve-user/:id em vez de /approve/:id
-      const res = await fetch(`${BASE_API}/api/admin/approve/${id}`, {
+      const res = await fetch(`${BASE_API}/api/admin/approve-reservation/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1236,6 +1247,7 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
       }
+      // Recarrega a lista de reservas pendentes imediatamente
       carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em aprovarReserva():', err);
@@ -1247,8 +1259,7 @@ onReady(async () => {
     if (!confirm('Tem certeza que deseja rejeitar esta reserva?')) return;
     try {
       const token = localStorage.getItem('admin_token');
-      // → Altere aqui caso seu backend use /reject-reservation/:id em vez de /reject/:id
-      const res = await fetch(`${BASE_API}/api/admin/reject/${id}`, {
+      const res = await fetch(`${BASE_API}/api/admin/reject-reservation/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -1259,6 +1270,7 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
       }
+      // Recarrega a lista de reservas pendentes
       carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em rejeitarReserva():', err);
@@ -1266,13 +1278,13 @@ onReady(async () => {
     }
   }
 
-  // Expondo as funções de reserva para o escopo global
+  // Expondo as funções para o escopo global (para que onclick="…" funcione)
   window.aprovarReserva    = aprovarReserva;
   window.rejeitarReserva   = rejeitarReserva;
   window.mudarPaginaReservas = mudarPaginaReservas;
 
   // ----------------------
-  // 3) BIND DOS EVENTOS DE BUSCA / FILTRO
+  // 3) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
   // ----------------------
   document.getElementById('busca-usuarios')?.addEventListener('input', () => {
     paginaAtualUsuarios = 1;
@@ -1305,10 +1317,12 @@ onReady(async () => {
   }, 10000);
 
   // ----------------------
-  // 5) CHAMADA INICIAL
+  // 5) CHAMADA INICIAL QUANDO A PÁGINA FOR CARREGADA
   // ----------------------
-  carregarUsuariosPendentes();
-  carregarReservasPendentes();
+  onReady(() => {
+    carregarUsuariosPendentes();
+    carregarReservasPendentes();
+  });
 
   // ----------------------
   // 6) LOGOUT DO ADMIN
@@ -1318,3 +1332,4 @@ onReady(async () => {
     localStorage.removeItem('admin_token');
     window.location.replace('/login.html');
   });
+})();
