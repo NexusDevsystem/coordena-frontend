@@ -1347,71 +1347,56 @@ onReady(async () => {
   window.rejeitarReserva     = rejeitarReserva;
   window.mudarPaginaReservas = mudarPaginaReservas;
 
-  // ----------------------
-// 3) MÓDULO “RESERVAS ATIVAS” (completo e ajustado)
+// ----------------------
+// 3) MÓDULO “RESERVAS ATIVAS”
 // ----------------------
 
-// Variável para armazenar o interval que atualiza as reservas a cada 30s
+// 3.0) Interval para atualizar as barras de progresso a cada 30 segundos
 let intervaloReservasAtivas = null;
 
 /**
- * 3.1) Função que busca TODAS as reservas aprovadas do back-end
- *     (ajuste a URL abaixo se sua rota for diferente)
+ * 3.1) Função que busca TODAS as reservas aprovadas do back-end,
+ *       aplica filtro de texto + filtro de data e chama a renderização.
  */
 async function carregarReservasAtivas() {
   try {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      // Se não há token de admin, não faz nada
-      return;
-    }
+    // A) Obtenha todas as reservas aprovadas via Api.fetchEvents()
+    const todasReservas = await Api.fetchEvents();
+    console.log("🔍[DEBUG] reservas aprovadas vindas de Api.fetchEvents():", todasReservas);
 
-    // ======= ATENÇÃO: ajuste esta URL se o endpoint for outro =======
-    // Exemplo genérico em português:
-    //   Garante que a rota /api/reservas?status=aprovada existe no seu back-end
-    const resp = await fetch(`${BASE_API}/api/reservas?status=aprovada`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    // ==================================================================
-
-    if (!resp.ok) {
-      // Se deu erro (404, 401, etc), lança exceção para cair no catch abaixo
-      throw new Error(`Falha ao buscar reservas aprovadas (status ${resp.status})`);
-    }
-
-    // Recebe o array de objetos de reserva aprovadas
-    const todasReservas = await resp.json();
-    console.log("🔍[DEBUG] reservas aprovadas vindas da API:", todasReservas);
-    // Se o array vier vazio: [], significa que ou não há reservas aprovadas, ou a rota está errada
-
-    // 3.2) Pega os termos de filtro (busca e data) da própria aba “Ativas”
+    // B) Termo de busca (lab ou requisitante)
     const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
+    // C) Data selecionada (YYYY-MM-DD)
     const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
 
-    // 3.2.1) Filtra pelo termo de busca (lab + requisitante) e/ou pelo filtro de data
+    // D) Filtra as reservas conforme termoBusca e filtroData
     let filtradas = todasReservas.filter(r => {
-      // (A) Filtro de texto: se digitou algo em busca-ativas, verifica se lab OU requisitante contêm esse termo
-      if (termoBusca) {
-        // ATENÇÃO: aqui usamos r.lab e r.requisitante. Se na sua API for 'laboratorio' / 'responsavel',
-        // troque r.lab → r.laboratorio, e r.requisitante → r.responsavel
-        const texto = ( (r.lab || '') + ' ' + (r.requisitante || '') ).toLowerCase();
-        if (!texto.includes(termoBusca)) return false;
-      }
-      // (B) Filtro de data: se selecionou uma data, só devolve se r.date === filtroData
+      // (1) Filtro de data: se houver data selecionada, só mantém r.date === filtroData
       if (filtroData && r.date !== filtroData) return false;
+
+      // (2) Filtro de texto: se houver termoBusca, verifica se nome do lab ou requisitante contém o termo
+      if (termoBusca) {
+        // Se a sua API retorna "sala" para o nome do laboratório:
+        const nomeLab = (r.sala || r.resource || '').toLowerCase();
+        // Se a sua API retorna "responsible" para o requisitante:
+        const nomeResp = (r.responsible || '').toLowerCase();
+        if (!(nomeLab.includes(termoBusca) || nomeResp.includes(termoBusca))) {
+          return false;
+        }
+      }
 
       return true;
     });
 
-    // 3.3) Ordena cronologicamente pelas propriedades date + start
-    // ATENÇÃO: se na sua API for 'r.startTime' ou 'r.horaInicio', ajuste aqui:
+    // E) Ordena cronologicamente por data + hora de início
     filtradas.sort((a, b) => {
+      // Se a sua API usar r.start em formato “HH:mm”:
       const da = new Date(`${a.date}T${a.start}:00`);
       const db = new Date(`${b.date}T${b.start}:00`);
       return da - db;
     });
 
-    // 3.4) Renderiza as reservas já filtradas e ordenadas
+    // F) Renderiza os cards para as reservas filtradas
     renderizarReservasAtivas(filtradas);
 
   } catch (err) {
@@ -1420,30 +1405,25 @@ async function carregarReservasAtivas() {
 }
 
 /**
- * 3.5) Função que cria dinamicamente os cards de reserva aprovada, cada um
- *      com uma barra de progresso indicando quantos % do horário já se passaram.
+ * 3.2) Função que cria dinamicamente um card para cada reserva aprovada,
+ *       mostrando um título, subtítulo, data/horário e uma barra de progresso.
  */
 function renderizarReservasAtivas(reservas) {
-  // Busca o container onde os cards serão inseridos
   const container = document.getElementById("lista-ativas");
   if (!container) return;
-  container.innerHTML = ""; // Limpa tudo antes de renderizar novamente
 
+  // Limpa tudo antes de renderizar novamente
+  container.innerHTML = "";
+
+  // Hora “agora” para cálculo do progresso
   const agora = new Date();
 
   reservas.forEach(r => {
-    // ATENÇÃO: aqui usamos r.date, r.start e r.end. Se na sua API a data de início/fim vier em UM único campo
-    // (por exemplo, r.dataInicio e r.dataFim), troque estas linhas:
+    // (A) Monte objetos Date para início e fim
     const inicio = new Date(`${r.date}T${r.start}:00`);
     const fim    = new Date(`${r.date}T${r.end}:00`);
-    // para algo como:
-    // const inicio = new Date(r.dataInicio);
-    // const fim    = new Date(r.dataFim);
 
-    // Calcula percentual de progresso:
-    //   - 0%: se ainda não começou (agora < inicio)
-    //   - 100%: se já passou do fim (agora > fim)
-    //   - caso contrário, (agora - inicio)/(fim - inicio)*100
+    // (B) Calcula percentual de progresso
     let porcentagem = 0;
     if (agora < inicio) {
       porcentagem = 0;
@@ -1453,23 +1433,27 @@ function renderizarReservasAtivas(reservas) {
       porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
     }
 
-    // Cria a coluna responsiva (Bootstrap grid)
+    // (C) Cria <div class="col-…"> para o grid
     const col = document.createElement("div");
     col.className = "col-12 col-md-6 col-lg-4";
 
-    // Cria o card
+    // (D) Cria o card
     const card = document.createElement("div");
     card.className = "card shadow-sm h-100";
 
     const cardBody = document.createElement("div");
     cardBody.className = "card-body";
 
-    // Monta o HTML interno do card:
+    // (E) Monta o HTML interno do card:
+    //     - Título: nome do laboratório (r.sala ou, se não houver, r.resource)
+    //     - Subtítulo: quem fez a reserva (r.responsible)
+    //     - Data e horário em pt-BR
+    //     - Barra de progresso (width = porcentagem + "%")
     cardBody.innerHTML = `
-      <h5 class="card-title mb-1">${r.lab}</h5>
-      <p class="card-text text-secondary mb-2">${r.requisitante}</p>
+      <h5 class="card-title mb-1">${r.sala || r.resource || ''}</h5>
+      <p class="card-text text-secondary mb-2">${r.responsible || ''}</p>
       <p class="card-text text-muted small">
-        ${new Date(r.date).toLocaleDateString("pt-BR")} &nbsp;|&nbsp;
+        ${inicio.toLocaleDateString("pt-BR")} &nbsp;|&nbsp;
         ${r.start} – ${r.end}
       </p>
       <div class="progress mt-3" style="height: 8px;">
@@ -1487,17 +1471,28 @@ function renderizarReservasAtivas(reservas) {
       </p>
     `;
 
-    // Monta a hierarquia final e injeta no container
+    // (F) Monta a hierarquia final
     card.appendChild(cardBody);
     col.appendChild(card);
     container.appendChild(col);
   });
+
+  // Caso não haja nenhuma reserva, exibe uma mensagem amigável
+  if (reservas.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5 text-light w-100">
+        <i class="fas fa-calendar-check fa-3x mb-3"></i>
+        <h4>Não há reservas aprovadas para exibir</h4>
+        <p>Ou ainda não existe reserva aprovada para o critério selecionado.</p>
+      </div>
+    `;
+  }
 }
 
 /**
- * 3.6) Listeners para os campos de filtro da aba “Reservas Ativas”
- *       - A cada tecla digitada em busca-ativas, recarrega lista
- *       - A cada mudança de data em filtro-data-ativas, recarrega lista
+ * 3.3) Listeners para os campos de filtro na aba “Reservas Ativas”:
+ *       - A cada tecla digitada em #busca-ativas, recarrega a lista
+ *       - A cada mudança de data em #filtro-data-ativas, recarrega a lista
  */
 document.getElementById('busca-ativas')?.addEventListener('input', () => {
   carregarReservasAtivas();
@@ -1507,20 +1502,19 @@ document.getElementById('filtro-data-ativas')?.addEventListener('change', () => 
 });
 
 /**
- * 3.7) Chamada inicial de carregamento + atualização periódica de 30 segundos
- *       - Assim que a página do admin terminar de carregar, dispara a primeira busca
- *       - Depois, recarrega a cada 30 segundos para atualizar as barras de progresso
+ * 3.4) Chamadas iniciais e atualizações periódicas:
+ *       - Assim que a página terminar de carregar, dispara a busca inicial
+ *       - A cada 30 segundos, recarrega para atualizar as barras de progresso
  */
 onReady(() => {
-  // Carrega ao abrir o painel
+  // Primeira carga
   carregarReservasAtivas();
 
-  // A cada 30s, recarrega novamente
+  // A cada 30 segundos, recarrega
   intervaloReservasAtivas = setInterval(() => {
     carregarReservasAtivas();
   }, 30_000);
 });
-
 
   // ----------------------
   // 4) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
