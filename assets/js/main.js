@@ -21,19 +21,47 @@ function onReady(fn) {
 }
 
 // ----------------------
-// FUNÇÃO: SOLICITA PERMISSÃO DE NOTIFICAÇÕES
+// VARIÁVEL GLOBAL PARA SABER SE TEM PERMISSÃO DE NOTIFICAÇÃO
+// ----------------------
+let notificacoesAtivas = false;
+
+// ----------------------
+// FUNÇÃO: SOLICITA PERMISSÃO DE NOTIFICAÇÕES (chamada no clique do botão)
 // ----------------------
 function solicitarPermissaoNotificacao() {
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta notificações.");
     return;
   }
+
+  // Se já aceitou, não pede de novo
   if (Notification.permission === "granted") {
+    notificacoesAtivas = true;
     return;
   }
+
+  // Se estiver negado, não adianta pedir de novo (ou pode tentar solicitar)
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
-      console.log("Permissão para Notificação:", permission);
+      if (permission === "granted") {
+        notificacoesAtivas = true;
+        console.log("Permissão de Notificações: concedida");
+      } else {
+        notificacoesAtivas = false;
+        console.log("Permissão de Notificações: negada ou pausada");
+      }
+    });
+  }
+}
+
+// ----------------------
+// FUNÇÃO: ENVIA NOTIFICAÇÃO (se tiver permissão)
+// ----------------------
+function enviarNotificacao(titulo, texto) {
+  if (notificacoesAtivas && Notification.permission === "granted") {
+    new Notification(titulo, {
+      body: texto,
+      icon: "/assets/img/logo-notification.png" // altere o caminho do ícone se necessário
     });
   }
 }
@@ -478,7 +506,7 @@ const FormModule = (() => {
         'ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.',
         'ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM',
         'ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO',
-        'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA',
+        'ARA0154 - PROCESSOS INDUSTRIAIS E ROBÔTICA',
         'ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP',
         'ARA2074 - SEGURANÇA CIBERNÉTICA'
       ]
@@ -718,8 +746,8 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // ----------------------
 onReady(async () => {
-  // 0) Solicita permissão de notificações
-  solicitarPermissaoNotificacao();
+  // 0) ** NÃO chamar solicitarPermissaoNotificacao() aqui **
+  //    pois muitos navegadores móveis bloqueiam se não houver "toque" do usuário.
 
   // 1) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
@@ -735,7 +763,7 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
-  // 3) Sincroniza o comportamento do botão de tema no menu
+  // 3) Sincroniza botão de tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -755,7 +783,7 @@ onReady(async () => {
     });
   }
 
-  // 4) Botão de logout — redireciona para "/login.html"
+  // 4) Botão de logout
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
@@ -766,7 +794,18 @@ onReady(async () => {
     });
   }
 
-  // 5) Busca reservas iniciais para o FullCalendar
+  // 5) NOVO: Botão para ativar notificações (precisa estar em algum lugar do HTML)
+  const btnNotifs = document.getElementById('btn-ativar-notificacoes');
+  if (btnNotifs) {
+    btnNotifs.addEventListener('click', () => {
+      solicitarPermissaoNotificacao();
+      // Desabilita após pedir permissão para não ficar pedindo de novo
+      btnNotifs.setAttribute('disabled', 'disabled');
+      btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
+    });
+  }
+
+  // 6) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -774,14 +813,14 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 6) Referência única ao date-picker
+  // 7) Referência única ao date-picker
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-date não encontrado!');
     return;
   }
 
-  // 7) Inicializa o FullCalendar
+  // 8) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
@@ -810,23 +849,23 @@ onReady(async () => {
     }
   );
 
-  // 8) Configura date-picker
+  // 9) Configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value);
   });
 
-  // 9) Inicia auto-refresh da tabela de ocupação
+  // 10) Inicia auto-refresh da tabela de ocupação
   initOccupancyUpdates();
 
-  // 10) Listener extra (importação desativada)
+  // 11) Listener extra (importação desativada)
   document
     .getElementById('import-schedule')
     ?.addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // 11) Chamada inicial para popular a tabela
+  // 12) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
 
@@ -898,27 +937,24 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-      const podeNotificar = Notification.permission === "granted";
+      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
 
-      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
         if (podeNotificar) {
-          new Notification("Novos usuários pendentes", {
-            body: `Existem ${dados.length} novo(s) usuário(s) aguardando aprovação.`,
-            icon: "/assets/img/logo-notification.png"
-          });
+          enviarNotificacao(
+            "Novos usuários pendentes",
+            `Existem ${dados.length} novo(s) usuário(s) aguardando aprovação.`
+          );
         }
-      }
-      // Se não for primeira vez e o total aumentou, notifica só a diferença
-      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+      } else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
         const diff = dados.length - ultimoCountUsuarios;
         mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
         if (podeNotificar) {
-          new Notification("Nova(s) solicitação(ões) de usuário", {
-            body: `${diff} novo(s) usuário(s) aguardando aprovação.`,
-            icon: "/assets/img/logo-notification.png"
-          });
+          enviarNotificacao(
+            "Nova(s) solicitação(ões) de usuário",
+            `${diff} novo(s) usuário(s) aguardando aprovação.`
+          );
         }
       }
 
@@ -1106,24 +1142,24 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-      const podeNotificar = Notification.permission === "granted";
+      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
 
       if (ultimoCountReservas === null && dados.length > 0) {
         mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
         if (podeNotificar) {
-          new Notification("Novas solicitações de reserva", {
-            body: `Existem ${dados.length} reserva(s) aguardando aprovação.`,
-            icon: "/assets/img/calendar-notification.png"
-          });
+          enviarNotificacao(
+            "Novas solicitações de reserva",
+            `Existem ${dados.length} reserva(s) aguardando aprovação.`
+          );
         }
       } else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
         const diff = dados.length - ultimoCountReservas;
         mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
         if (podeNotificar) {
-          new Notification("Nova(s) solicitação(ões) de reserva", {
-            body: `${diff} nova(s) reserva(s) aguardando aprovação.`,
-            icon: "/assets/img/calendar-notification.png"
-          });
+          enviarNotificacao(
+            "Nova(s) solicitação(ões) de reserva",
+            `${diff} nova(s) reserva(s) aguardando aprovação.`
+          );
         }
       }
 
@@ -1336,7 +1372,6 @@ onReady(async () => {
       console.log("🔍[DEBUG] reservas aprovadas vindas da API:", todasReservas);
 
       const agora = new Date();
-
       todasReservas.forEach(r => {
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) {
