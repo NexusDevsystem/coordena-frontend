@@ -695,8 +695,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -912,8 +912,8 @@ onReady(async () => {
 (function () {
   // Só executa se estivermos na página de admin (verifica também #lista-ativas)
   if (!document.getElementById('lista-pendentes-usuarios') &&
-      !document.getElementById('lista-pendentes-reservas') &&
-      !document.getElementById('lista-ativas')) {
+    !document.getElementById('lista-pendentes-reservas') &&
+    !document.getElementById('lista-ativas')) {
     return;
   }
 
@@ -1204,6 +1204,8 @@ onReady(async () => {
           );
         }
       }
+
+
 
       ultimoCountReservas = dados.length;
       reservasPendentes = dados;
