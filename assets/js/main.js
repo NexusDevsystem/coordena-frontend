@@ -31,7 +31,7 @@ function solicitarPermissaoNotificacao() {
   // Se já estiver GRANTED, marcamos a flag e não pedimos de novo
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
-    console.log("📢 Notificações já permitemidas anteriormente.");
+    console.log("📢 Notificações já permitidas anteriormente.");
     return;
   }
 
@@ -58,6 +58,15 @@ function enviarNotificacao(titulo, texto) {
     });
   }
 }
+
+// --------------------------------------------------
+// CORES PARA TURNOS FIXOS DE AULA (necessário para tabela de ocupação)
+// --------------------------------------------------
+const turnoColors = {
+  "Manhã": "rgba(75, 85, 99, 0.2)",   // azul claro
+  "Tarde": "rgba(249, 115, 22, 0.2)",  // laranja claro
+  "Noite": "rgba(107, 114, 128, 0.2)"  // cinza claro
+};
 
 // --------------------------------------------------
 // MÓDULO DE TEMA (Dark/Light)
@@ -98,7 +107,9 @@ const Api = (() => {
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
-    const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
+    // Protegemos Auth.getToken() caso Auth não exista
+    const token = (typeof Auth !== 'undefined' ? Auth.getToken() : '');
+    const headers = { 'Authorization': `Bearer ${token}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
   }
@@ -346,7 +357,8 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    const user = Auth.getCurrentUser();
+    // Protegemos Auth.getCurrentUser()
+    const user = (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
@@ -453,6 +465,7 @@ const FormModule = (() => {
   function init() {
     cacheSelectors();
 
+    // Protegemos Auth.getCurrentUser()
     const user = (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
     if (user?.name) {
       selectors.fields.resp.value = user.name;
@@ -624,7 +637,7 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];
+let fixedSlots = [];  // vai ser populado em initOccupancyUpdates()
 
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -682,8 +695,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-    `<th class="px-2 py-1 border text-center">${r}</th>`
-  ).join('')}
+        `<th class="px-2 py-1 border text-center">${r}</th>`
+      ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -818,7 +831,7 @@ onReady(async () => {
   }
 
   // 5) BOTÃO: Ativar Notificações
- const btnNotifs = document.getElementById('btn-ativar-notificacoes');
+  const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
       solicitarPermissaoNotificacao();
@@ -899,8 +912,8 @@ onReady(async () => {
 (function () {
   // Só executa se estivermos na página de admin (verifica também #lista-ativas)
   if (!document.getElementById('lista-pendentes-usuarios') &&
-    !document.getElementById('lista-pendentes-reservas') &&
-    !document.getElementById('lista-ativas')) {
+      !document.getElementById('lista-pendentes-reservas') &&
+      !document.getElementById('lista-ativas')) {
     return;
   }
 
@@ -1206,7 +1219,7 @@ onReady(async () => {
     const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
-      const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
+      const textoBusca = (r.resource + ' ' + r.reponsible).toLowerCase();
       if (!textoBusca.includes(busca)) return false;
       if (filtroData && r.date !== filtroData) return false;
       return true;
