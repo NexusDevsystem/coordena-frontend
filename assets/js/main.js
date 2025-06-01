@@ -1065,6 +1065,11 @@ onReady(async () => {
     }
   }
 
+  // Expondo as funções para o escopo global (para que onclick="…" funcione)
+  window.aprovarUsuario  = aprovarUsuario;
+  window.rejeitarUsuario = rejeitarUsuario;
+  window.mudarPaginaUsuarios = mudarPaginaUsuarios;
+
   // ----------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
   // ----------------------
@@ -1113,16 +1118,16 @@ onReady(async () => {
   }
 
   function renderizarReservasPendentes() {
-    const busca     = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
+    const busca      = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
     const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
-    const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
+    const ordenacao  = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
       // Filtra por texto livre (lab ou requisitante)
       const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
       if (!textoBusca.includes(busca)) return false;
 
-      // Se tem filtro de data selecionado, forçar que r.date === filtroData
+      // Se há filtro de data, só exibe se r.date === filtroData
       if (filtroData && r.date !== filtroData) return false;
 
       return true;
@@ -1272,6 +1277,11 @@ onReady(async () => {
       alert(err.message);
     }
   }
+
+  // Expondo as funções para o escopo global (para que onclick="…" funcione)
+  window.aprovarReserva    = aprovarReserva;
+  window.rejeitarReserva   = rejeitarReserva;
+  window.mudarPaginaReservas = mudarPaginaReservas;
 
   // ----------------------
   // 3) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
