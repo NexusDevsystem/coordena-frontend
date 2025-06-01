@@ -1113,65 +1113,66 @@ onReady(async () => {
   window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
 
-  // ----------------------
-  // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
-  // ----------------------
-  async function carregarReservasPendentes() {
-    try {
-      const token = localStorage.getItem('admin_token');
-      if (!token) {
-        alert('Sessão do Admin expirada. Faça login novamente.');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401 || res.status === 403) {
-        alert('Sem permissão ou token inválido. Faça login novamente.');
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-        window.location.replace('/login.html');
-        return;
-      }
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
-      }
-
-      const dados = await res.json();
-      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
-
-      // 1) Sempre exibe o Toast interno:
-      if (ultimoCountReservas === null && dados.length > 0) {
-        mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-        // 2) Se push estiver ativo, envia também a notificação do sistema:
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🆕 Reservas Pendentes",
-            `Existem ${dados.length} reserva(s) aguardando aprovação.`
-          );
-        }
-      }
-      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-        const diff = dados.length - ultimoCountReservas;
-        mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🔔 Nova(s) Solicitação(ões) de Reserva",
-            `${diff} nova(s) reserva(s) aguardando aprovação.`
-          );
-        }
-      }
-
-      ultimoCountReservas = dados.length;
-      reservasPendentes = dados;
-      renderizarReservasPendentes();
-    } catch (err) {
-      console.error('Erro em carregarReservasPendentes():', err);
+ // ----------------------
+// 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
+// ----------------------
+async function carregarReservasPendentes() {
+  try {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      alert('Sessão do Admin expirada. Faça login novamente.');
+      window.location.replace('/login.html');
+      return;
     }
+
+    const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401 || res.status === 403) {
+      alert('Sem permissão ou token inválido. Faça login novamente.');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.replace('/login.html');
+      return;
+    }
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
+    }
+
+    const dados = await res.json();
+    // Só envia notificação “push” se o usuário já tiver permitido
+    const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
+
+    // (1) Primeira vez que carrega e já tem pendentes → notifica todos
+    if (ultimoCountReservas === null && dados.length > 0) {
+      mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+      if (podeNotificar) {
+        enviarNotificacao(
+          "🆕 Reservas Pendentes",
+          `Existem ${dados.length} reserva(s) aguardando aprovação.`
+        );
+      }
+    }
+    // (2) Em recarregamentos subsequentes, se houver mais pendentes do que antes → notifica apenas a diferença
+    else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+      const diff = dados.length - ultimoCountReservas;
+      mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+      if (podeNotificar) {
+        enviarNotificacao(
+          "🔔 Nova(s) Solicitação(ões) de Reserva",
+          `${diff} nova(s) reserva(s) aguardando aprovação.`
+        );
+      }
+    }
+
+    ultimoCountReservas = dados.length;
+    reservasPendentes = dados;
+    renderizarReservasPendentes();
+  } catch (err) {
+    console.error('Erro em carregarReservasPendentes():', err);
   }
+}
 
   function renderizarReservasPendentes() {
     const busca = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
