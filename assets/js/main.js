@@ -1,12 +1,14 @@
+// ============================
 // assets/js/main.js
+// ============================
 
 // ======================================
 // CORES PARA TURNOS FIXOS DE AULA
 // ======================================
 const turnoColors = {
-  "Manhã": "rgba(75, 85, 99, 0.2)",   // azul claro
-  "Tarde": "rgba(75, 85, 99, 0.2)",    // laranja claro
-  "Noite": "rgba(75, 85, 99, 0.2)"      // cinza claro
+  "Manhã": "rgba(75, 85, 99, 0.2)",
+  "Tarde": "rgba(75, 85, 99, 0.2)",
+  "Noite": "rgba(75, 85, 99, 0.2)"
 };
 
 // ----------------------
@@ -17,6 +19,50 @@ function onReady(fn) {
     document.addEventListener('DOMContentLoaded', fn);
   } else {
     fn();
+  }
+}
+
+// --------------------------------------------------
+//  VARIÁVEL GLOBAL E FUNÇÕES PARA NATIVE NOTIFICATIONS
+// --------------------------------------------------
+
+// Indica se o usuário já concedeu permissão ao browser
+let notificacoesAtivas = false;
+
+// Chama Notification.requestPermission() para solicitar ao usuário
+// que aceite notificações. Deve ser chamado a partir de um clique
+// (ex.: botão “Ativar Notificações”)
+function solicitarPermissaoNotificacao() {
+  if (!("Notification" in window)) {
+    console.warn("Este navegador não suporta notificações nativas.");
+    return;
+  }
+
+  // Se já tiver concedido permissão, não pede de novo
+  if (Notification.permission === "granted") {
+    notificacoesAtivas = true;
+    console.log("Permissão de Notificações já estava concedida.");
+    return;
+  }
+
+  // Se estiver “denied”, não adianta pedir de novo (ou dá para tentar)
+  if (Notification.permission !== "denied") {
+    Notification.requestPermission().then(permission => {
+      notificacoesAtivas = (permission === "granted");
+      console.log("Permissão de Notificações:", permission);
+    });
+  } else {
+    console.log("Permissão de notificações foi negada anteriormente.");
+  }
+}
+
+// Envia a notificação nativa se o usuário tiver dado permissão
+function enviarNotificacao(titulo, texto) {
+  if (notificacoesAtivas && Notification.permission === "granted") {
+    new Notification(titulo, {
+      body: texto,
+      icon: "/assets/img/logo-notification.png"  // ajuste se precisar trocar o ícone
+    });
   }
 }
 
@@ -50,12 +96,9 @@ const ThemeToggle = (() => {
 // MÓDULO DE API
 // ----------------------
 const Api = (() => {
-  // rota base de reservas (coleção “reservations”)
   const BASE = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/reservations'
     : 'https://coordena-backend.onrender.com/api/reservations';
-
-  // rota derivada para horários fixos (este provavelmente continua correto)
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
@@ -64,21 +107,18 @@ const Api = (() => {
     return headers;
   }
 
-  // busca reservas DINÂMICAS (aprovadas) — agora vai consultar na rota certa
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
 
-  // busca horários fixos
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
-  // cria reserva
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -89,7 +129,6 @@ const Api = (() => {
     return res.json();
   }
 
-  // atualiza reserva
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -100,7 +139,6 @@ const Api = (() => {
     return res.json();
   }
 
-  // deleta reserva
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -123,14 +161,13 @@ const Api = (() => {
 // ----------------------
 const CalendarModule = (() => {
   let calendar;
-  let events = [];      // array interno com as reservas atualmente exibidas
-  let fixedSlots = [];  // usado pela tabela de ocupação, mantemos igual
+  let events = [];
+  let fixedSlots = [];
 
-  // 1) Carrega os horários fixos do back-end e injeta como “background events”
   async function loadFixedSchedules() {
     try {
       const fixed = await Api.fetchFixedSchedules();
-      fixedSlots = fixed; // para uso na tabela de ocupação
+      fixedSlots = fixed;
       const fixedEvents = fixed.map(slot => ({
         title: `${slot.lab} (${slot.turno})`,
         daysOfWeek: [slot.dayOfWeek],
@@ -139,35 +176,24 @@ const CalendarModule = (() => {
         display: 'background',
         color: '#66666680'
       }));
-      // Adiciona como fonte de eventos “de fundo”
       calendar.addEventSource(fixedEvents);
     } catch (err) {
       console.error('Falha ao carregar horários fixos:', err);
     }
   }
 
-  // 2) Recarrega TODAS as reservas aprovadas do back-end e atualiza o FullCalendar
   async function reloadEvents() {
     try {
-      // a) busca somente reservas com status === 'approved'
       const approvedReservations = await Api.fetchEvents();
-
-      // b) limpa todos os eventos “dinâmicos” atuais (não remove os fixedEvents)
-      //    Para isso, iteramos sobre calendar.getEvents(), mas filtramos apenas
-      //    aqueles que não sejam “background” (i.e. aqueles cujo rendering !== 'background')
       calendar.getEvents().forEach(fcEvent => {
         if (fcEvent.rendering !== 'background') {
           fcEvent.remove();
         }
       });
-
-      // c) atualiza nosso array interno
       events = approvedReservations;
-
-      // d) injeta todas as reservas aprovadas no FullCalendar
       approvedReservations.forEach(ev => {
         calendar.addEvent({
-          id: ev._id,
+          id:    ev._id,
           title: `${ev.title} (${ev.time})`,
           start: `${ev.date}T${ev.start}`,
           end:   `${ev.date}T${ev.end}`
@@ -178,17 +204,13 @@ const CalendarModule = (() => {
     }
   }
 
-  // 3) Inicializa o FullCalendar com uma lista inicial de “rawEvents”
   function init(rawEvents, onDateClick, onEventClick) {
-    // Já definimos “events” como o array inicial (que deve conter somente reservas aprovadas)
     events = rawEvents;
-
     const el = document.getElementById('calendar');
     if (!el) {
       console.error('#calendar não encontrado');
       return;
     }
-
     const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
@@ -198,7 +220,6 @@ const CalendarModule = (() => {
         center: 'title',
         right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      // Mapeamos o array “events” para o formato que o FullCalendar entende
       events: events.map(e => ({
         id:    e._id,
         title: `${e.title} (${e.time})`,
@@ -211,7 +232,6 @@ const CalendarModule = (() => {
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
-        // bloqueia seleção se já existir algum “background event” nesse intervalo
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -221,20 +241,14 @@ const CalendarModule = (() => {
     });
 
     calendar.render();
-
-    // 3.1) Carrega e mostra os horários fixos (“background events”)
     loadFixedSchedules();
-
-    // 3.2) A cada 30 segundos, recarrega as reservas aprovadas (se houver novas aprovações)
     setInterval(() => {
       reloadEvents();
-      // Também atualiza a tabela de ocupação, se for o caso
       if (typeof buildOccupancyTable === 'function') {
         buildOccupancyTable(document.getElementById('occupancy-date')?.value);
       }
     }, 30 * 1000);
 
-    // 3.3) Ajusta o calendário em caso de resize da tela
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -246,11 +260,8 @@ const CalendarModule = (() => {
     });
   }
 
-  // 4) Insere um novo evento dinamicamente (chamado após o usuário criar uma reserva)
   function add(ev) {
-    // 1) adiciona no array interno
     events.push(ev);
-    // 2) injeta no FullCalendar
     calendar.addEvent({
       id:    ev._id,
       title: `${ev.title} (${ev.time})`,
@@ -259,13 +270,9 @@ const CalendarModule = (() => {
     });
   }
 
-  // 5) Atualiza um evento existente (por exemplo, se o usuário editar a própria reserva)
   function update(id, ev) {
-    // 1) atualiza array
     const idx = events.findIndex(x => x._id === id);
     if (idx !== -1) events[idx] = ev;
-
-    // 2) localiza e atualiza no FullCalendar
     const fcEvent = calendar.getEventById(id);
     if (fcEvent) {
       fcEvent.setProp('title', `${ev.title} (${ev.time})`);
@@ -274,12 +281,8 @@ const CalendarModule = (() => {
     }
   }
 
-  // 6) Remove um evento (por exemplo, o usuário cancelou)
   function remove(id) {
-    // 1) remove do array interno
     events = events.filter(x => x._id !== id);
-
-    // 2) remove do FullCalendar
     const fcEvent = calendar.getEventById(id);
     if (fcEvent) fcEvent.remove();
   }
@@ -907,9 +910,9 @@ onReady(async () => {
     return;
   }
 
-  // ----------------------
+  // =======================
   // VARIÁVEIS GLOBAIS DO ADMIN
-  // ----------------------
+  // =======================
   let usuariosPendentes = [];
   let reservasPendentes = [];
   let paginaAtualUsuarios = 1;
@@ -921,9 +924,9 @@ onReady(async () => {
     ? 'http://localhost:10000'
     : 'https://coordena-backend.onrender.com';
 
-  // ----------------------
+  // =======================
   // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
-  // ----------------------
+  // =======================
   function mostrarToast(texto) {
     const body = document.getElementById('meuToastBody');
     if (body) body.innerText = texto;
@@ -934,11 +937,10 @@ onReady(async () => {
     }
   }
 
-  // ----------------------
+  // =======================
   // 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
-  // ----------------------
+  // =======================
   async function carregarUsuariosPendentes() {
-    console.log("📢 carregarUsuariosPendentes() invocada");
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -964,6 +966,9 @@ onReady(async () => {
       }
 
       const dados = await res.json();
+      console.log("🔍 Pending-users:", dados);
+
+      // Se já tiver permitido notificações, envia native notification
       const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
@@ -988,21 +993,16 @@ onReady(async () => {
 
       ultimoCountUsuarios = dados.length;
       usuariosPendentes = dados;
-      renderizarUsuariosPendentes();
+      renderizarUsuariosPendentes();  // sua função já existente que monta a lista de cards
     } catch (err) {
       console.error('Erro em carregarUsuariosPendentes():', err);
     }
   }
 
-  function renderizarUsuariosPendentes() {
-    // ... (seu HTML para renderizar usuários) ...
-  }
-
-  // ----------------------
+  // =====================================
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
-  // ----------------------
+  // =====================================
   async function carregarReservasPendentes() {
-    console.log("📢 carregarReservasPendentes() invocada");
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -1053,24 +1053,15 @@ onReady(async () => {
 
       ultimoCountReservas = dados.length;
       reservasPendentes = dados;
-      renderizarReservasPendentes();
+      renderizarReservasPendentes();  // sua função que monta os cards de reserva pendente
     } catch (err) {
       console.error('Erro em carregarReservasPendentes():', err);
     }
   }
 
-  function renderizarReservasPendentes() {
-    // ... (seu HTML para renderizar reservas pendentes) ...
-  }
-
-  // Expondo globalmente para os botões “Aprovar” e “Rejeitar” chamarem
-  window.aprovarReserva = async function (id) { /* … */ };
-  window.rejeitarReserva = async function (id) { /* … */ };
-  window.mudarPaginaReservas = function (p) { /* … */ };
-
-  // ----------------------
-  // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO CHEGAR EM 100%)
-  // ----------------------
+  // ------------------------------------------
+  // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO 100%)
+  // ------------------------------------------
   let intervaloReservasAtivas = null;
 
   async function deleteReservation(id) {
@@ -1109,7 +1100,6 @@ onReady(async () => {
       console.log("🔍 Reservas aprovadas:", todasReservas);
 
       const agora = new Date();
-      // Deleta automaticamente as que já passaram
       todasReservas.forEach(r => {
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) {
@@ -1117,7 +1107,6 @@ onReady(async () => {
         }
       });
 
-      // Filtra somente as que ainda não passaram
       const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
       const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
 
@@ -1207,6 +1196,7 @@ onReady(async () => {
     carregarReservasAtivas();
   });
 
+  // Quando a página de admin estiver carregada (DOM pronto), dispara todos os carregamentos e polling:
   onReady(() => {
     console.log("🟢 onReady/admin: iniciando pendentes e ativas");
     carregarUsuariosPendentes();
@@ -1243,7 +1233,7 @@ onReady(async () => {
   });
 
   // ----------------------
-  // 5) POLLING AUTOMÁTICO (Usuários + Reservas)
+  // 5) POLLING AUTOMÁTICO (Usuários + Reservas Pendentes)
   // ----------------------
   setInterval(async () => {
     await carregarUsuariosPendentes();
@@ -1258,4 +1248,4 @@ onReady(async () => {
     localStorage.removeItem('admin_token');
     window.location.replace('/login.html');
   });
-  })();
+})();
