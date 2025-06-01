@@ -780,6 +780,107 @@ async function initOccupancyUpdates() {
   }, 2 * 60 * 1000);
 }
 
+// ======================================
+// ↓↓↓ Aqui começamos a parte NOVA ↓↓↓
+// ======================================
+const ActiveReservationsModule = (() => {
+  const UPDATE_INTERVAL = 60 * 1000; // a cada 60s
+  const sectionEl = document.getElementById('active-reservations-section');
+  const containerEl = document.getElementById('active-reservations-container');
+  
+  if (!sectionEl || !containerEl) {
+    // Se não existir a seção no DOM, aborta
+    return { init: () => {} };
+  }
+
+  function parseTimeToToday(hhmm) {
+    const parts = hhmm.split(':');
+    if (parts.length !== 2) return null;
+    const [h, m] = parts.map(n => parseInt(n, 10));
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+  }
+
+  function isReservationActive(reserva) {
+    const hoje = new Date().toISOString().slice(0, 10); // “YYYY-MM-DD”
+    if (reserva.date !== hoje) return false;
+    const inicio = parseTimeToToday(reserva.start);
+    const fim    = parseTimeToToday(reserva.end);
+    if (!inicio || !fim) return false;
+    const agora = new Date();
+    return agora >= inicio && agora <= fim;
+  }
+
+  function createReservationCard(reserva) {
+    const inicio = parseTimeToToday(reserva.start);
+    const fim    = parseTimeToToday(reserva.end);
+    const agora  = new Date();
+
+    const totalMs  = fim.getTime() - inicio.getTime();
+    const passedMs = agora.getTime() - inicio.getTime();
+    let percent = Math.round((passedMs / totalMs) * 100);
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+
+    const nomeLab = reserva.sala
+      ? `${reserva.resource} – ${reserva.sala}`
+      : reserva.resource;
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('card', 'mb-3');
+    wrapper.innerHTML = `
+      <div class="card-body">
+        <h6 class="card-title">${nomeLab} (${reserva.type})</h6>
+        <p class="card-text mb-1"><small>${reserva.start} – ${reserva.end}</small></p>
+        <div class="progress">
+          <div 
+            class="progress-bar bg-success" 
+            role="progressbar" 
+            style="width: ${percent}%;" 
+            aria-valuenow="${percent}" 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+          >${percent}%</div>
+        </div>
+      </div>
+    `;
+    return wrapper;
+  }
+
+  async function fetchAndRenderActive() {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/reservas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const todas = await res.json(); // somente approved
+      const ativas = todas.filter(isReservationActive);
+
+      containerEl.innerHTML = '';
+      if (ativas.length === 0) {
+        sectionEl.style.display = 'none';
+        return;
+      }
+
+      sectionEl.style.display = 'block';
+      ativas.forEach(reserva => {
+        const card = createReservationCard(reserva);
+        containerEl.appendChild(card);
+      });
+    } catch (err) {
+      console.error('Erro em fetchAndRenderActive():', err);
+    }
+  }
+
+  function init() {
+    fetchAndRenderActive();
+    setInterval(fetchAndRenderActive, UPDATE_INTERVAL);
+  }
+
+  return { init };
+})();
+
 // ----------------------
 // INICIALIZAÇÃO PRINCIPAL
 // ----------------------
@@ -891,6 +992,8 @@ onReady(async () => {
 
   // 10) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
+
+   ActiveReservationsModule.init();
 });
 
 
