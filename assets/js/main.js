@@ -17,25 +17,25 @@ function onReady(fn) {
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-// 1) VARIÁVEL GLOBAL que fica true se o usuário permitir notificações:
+// Variável que indica se já temos permissão para notificar
 let notificacoesAtivas = false;
 
-// 2) Função a ser chamada quando o admin clica em “Ativar Notificações”
+// Função que pede permissão para mostrar notificações
 function solicitarPermissaoNotificacao() {
-  // Se o navegador não oferecer suporte, só volta
+  // Se o navegador não suportar, apenas logamos e retornamos
   if (!("Notification" in window)) {
-    console.warn("Este navegador não suporta Notifications API.");
+    console.warn("Este navegador não suporta API de Notificações.");
     return;
   }
 
-  // Se já estiver em “granted”, marcamos a flag e não pedimos de novo:
+  // Se já estiver GRANTED, marcamos a flag e não pedimos de novo
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
-    console.log("📢 Notificações já permitidas anteriormente.");
+    console.log("📢 Notificações já permitemidas anteriormente.");
     return;
   }
 
-  // Caso contrário, se não estiver “denied”, solicitamos
+  // Caso contrário, se não estiver explicitamente 'denied', solicitamos
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
@@ -43,17 +43,14 @@ function solicitarPermissaoNotificacao() {
         console.log("✅ Permissão de Notificações: GRANTED");
       } else {
         notificacoesAtivas = false;
-        console.log("❌ Permissão de Notificações: NEGADA ou SUSPENSA");
+        console.log("❌ Permissão de Notificações: NEGADA ou DEFAULT");
       }
     });
   }
 }
 
-// --------------
-// 2) Função que dispara a notificação nativa (caso tenhamos permissão)
-// --------------
+// Função para disparar uma notificação do sistema (se autorizados)
 function enviarNotificacao(titulo, texto) {
-  // Só cria new Notification() se estivermos com notificacoesAtivas === true
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
@@ -821,11 +818,11 @@ onReady(async () => {
   }
 
   // 5) BOTÃO: Ativar Notificações
-  const btnNotifs = document.getElementById('btn-ativar-notificacoes');
+ const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
       solicitarPermissaoNotificacao();
-      // desabilitar para não pedir de novo
+      // Desabilita o botão para não pedir permissão de novo
       btnNotifs.setAttribute('disabled', 'disabled');
       btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
     });
