@@ -14,28 +14,30 @@ function onReady(fn) {
 }
 
 // --------------------------------------------------
+// Objeto de cores para cada “turno” de horário fixo
+// --------------------------------------------------
+const turnoColors = {
+  'Matutino': 'rgba(59, 130, 246, 0.8)',   // azul
+  'Vespertino': 'rgba(234, 179, 8, 0.8)', // amarelo
+  'Noturno': 'rgba(220, 38, 38, 0.8)'     // vermelho
+};
+
+// --------------------------------------------------
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-// Variável que indica se já temos permissão para notificar
 let notificacoesAtivas = false;
 
-// Função que pede permissão para mostrar notificações
 function solicitarPermissaoNotificacao() {
-  // Se o navegador não suportar, apenas logamos e retornamos
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta API de Notificações.");
     return;
   }
-
-  // Se já estiver GRANTED, marcamos a flag e não pedimos de novo
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
     console.log("📢 Notificações já permitidas anteriormente.");
     return;
   }
-
-  // Caso contrário, se não estiver explicitamente 'denied', solicitamos
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
@@ -49,7 +51,6 @@ function solicitarPermissaoNotificacao() {
   }
 }
 
-// Função para disparar uma notificação do sistema (se autorizados)
 function enviarNotificacao(titulo, texto) {
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
@@ -65,12 +66,10 @@ function enviarNotificacao(titulo, texto) {
 const ThemeToggle = (() => {
   const themeKey = 'theme';
   const root = document.documentElement;
-
   function applyTheme(mode) {
     root.classList.toggle('dark', mode === 'dark');
     localStorage.setItem(themeKey, mode);
   }
-
   function init() {
     const saved = localStorage.getItem(themeKey) || 'light';
     applyTheme(saved);
@@ -81,15 +80,12 @@ const ThemeToggle = (() => {
       });
     }
   }
-
   return { init };
 })();
 
 // --------------------------------------------------
 // MÓDULO DE API (…)
 // --------------------------------------------------
-// (mantém exatamente o seu código existente aqui)
-
 const Api = (() => {
   const BASE = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/reservations'
@@ -148,14 +144,12 @@ const Api = (() => {
 })();
 
 // --------------------------------------------------
-// MÓDULO CALENDÁRIO (…)
+// MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
 // --------------------------------------------------
-// (mantém exatamente o seu código existente aqui)
-
 const CalendarModule = (() => {
   let calendar;
-  let events = [];
-  let fixedSlots = [];
+  let events = [];      // array interno com as reservas aprovadas
+  let fixedSlots = [];  // array interno com os horários fixos (para uso na tabela)
 
   async function loadFixedSchedules() {
     try {
@@ -294,8 +288,6 @@ const CalendarModule = (() => {
 // --------------------------------------------------
 // MÓDULO FORMULÁRIO (…)
 // --------------------------------------------------
-// (mantém exatamente o seu código existente aqui)
-
 const FormModule = (() => {
   let currentId = null;
   const selectors = {};
@@ -387,7 +379,7 @@ const FormModule = (() => {
         : `${f.type.value} - ${f.sala.value}`
     };
 
-    // … (lógica de conflito permanece a mesma)
+    // … (sua verificação de conflito permanece igual)
 
     try {
       if (currentId) {
@@ -510,8 +502,6 @@ const FormModule = (() => {
 // --------------------------------------------------
 // MÓDULO MODAL DETALHES (…)
 // --------------------------------------------------
-// (mantém exatamente o seu código existente aqui)
-
 const DetailModule = (() => {
   let currentId = null;
   const selectors = {};
@@ -578,9 +568,8 @@ const DetailModule = (() => {
 })();
 
 // ────────────────────────────────────
-// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA (…)
+// MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
-// (mantém exatamente o seu código existente aqui)
 
 let fixedSlots = [];
 
@@ -612,6 +601,7 @@ async function buildOccupancyTable(filterDate) {
   const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
+  // 2) Gera grade uniforme de 50 min do dia (08:00–22:00)
   const slotStart = toDate(Y, M, D, '08:00');
   const slotEnd = toDate(Y, M, D, '22:00');
   const timeRanges = [];
@@ -623,6 +613,7 @@ async function buildOccupancyTable(filterDate) {
     cursor = next;
   }
 
+  // 3) Lista de salas (fixos + reservas)
   const labs = Array.from(new Set([
     ...fixedTodaySlots.map(s => s.lab),
     ...dayEvents.map(e => e.sala || e.resource)
@@ -633,6 +624,7 @@ async function buildOccupancyTable(filterDate) {
     return;
   }
 
+  // Monta o <thead>
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -643,6 +635,7 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
+  // Monta o <tbody>
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -668,13 +661,17 @@ async function buildOccupancyTable(filterDate) {
 
       let style = '', label = '';
       if (hasReservation) {
-        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
+        // Quando já existe reserva aprovada: vermelho
+        style = 'background-color: rgba(220,38,38,0.8);';
         label = 'ocupado';
       } else if (fixed) {
-        style = `background-color: ${turnoColors[fixed.turno]};`;
+        // Horário fixo: usa turnoColors ou fallback se não existir
+        const corDoTurno = turnoColors[fixed.turno] || 'rgba(107,114,128,0.5)';
+        style = `background-color: ${corDoTurno};`;
         label = fixed.turno;
       } else {
-        style = 'background-color: rgba(16,185,129,0.8);'; // verde
+        // Se não há nada, pinta de verde (livre)
+        style = 'background-color: rgba(16,185,129,0.8);';
         label = 'livre';
       }
 
@@ -690,9 +687,8 @@ async function buildOccupancyTable(filterDate) {
 }
 
 // ────────────────────────────────────
-// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA (…)
+// SINCRONIZAÇÃO & ATUALIZAÇÃO AUTOMÁTICA
 // ────────────────────────────────────
-
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
@@ -727,10 +723,9 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // --------------------------------------------------
 onReady(async () => {
-  // 0) **Verifica logo de cara se já há permissão de Notificações**
+  // ****** VERIFICA PERMISSÃO DE NOTIFICAÇÃO ****** //
   if (("Notification" in window) && Notification.permission === "granted") {
     notificacoesAtivas = true;
-    // Se existir botão “btn-ativar-notificacoes”, escondemos
     const btnNotifs = document.getElementById('btn-ativar-notificacoes');
     if (btnNotifs) {
       btnNotifs.setAttribute('disabled', 'disabled');
@@ -752,7 +747,7 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
-  // 3) Sincroniza o comportamento do botão de tema no menu
+  // 3) Botão de alternar tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -783,7 +778,7 @@ onReady(async () => {
     });
   }
 
-  // 5) BOTÃO: Ativar Notificações
+  // 5) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
@@ -804,7 +799,7 @@ onReady(async () => {
   // 7) Referência ao date-picker de ocupação
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
-    console.error('Elemento #occupancy-date não encontrado!');
+    console.error('Elemento #occupancy-table não encontrado! Verifique o HTML.');
     return;
   }
 
@@ -844,11 +839,9 @@ onReady(async () => {
   initOccupancyUpdates();
 
   // 11) Listener extra (importação desativada)
-  document
-    .getElementById('import-schedule')
-    ?.addEventListener('click', () => {
-      alert('Importação de horários fixos desativada nesta versão.');
-    });
+  document.getElementById('import-schedule')?.addEventListener('click', () => {
+    alert('Importação de horários fixos desativada nesta versão.');
+  });
 
   // 12) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
