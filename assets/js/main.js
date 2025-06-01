@@ -1133,70 +1133,55 @@ onReady(async () => {
   window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
 
-  // ==============================================================
-//  MÓDULO “RESERVAS ATIVAS”
+// ==============================================================
+//  MÓDULO “RESERVAS ATIVAS” (AJUSTADO PARA JSON COM `start` e `end`)
 // ==============================================================
 
-// mantém referência ao intervalo para liberar quando necessário (poderíamos limpar se quiséssemos)
 let intervaloReservasAtivas = null;
 
-async function carregarReservasAtivas() {
-  try {
-    // 1) Buscar no backend TODAS as reservas aprovadas
-    //    Ajuste essa rota se o seu endpoint for diferente.
-    const resp = await fetch(`${BASE_API}/reservas?status=aprovada`);
-    if (!resp.ok) throw new Error("Falha ao buscar reservas aprovadas");
-    const todasReservas = await resp.json(); // array de objetos
+function carregarReservasAtivas() {
+  return fetch(`${BASE_API}/reservas?status=aprovada`)
+    .then((resp) => {
+      if (!resp.ok) throw new Error("Erro ao buscar reservas");
+      return resp.json();
+    })
+    .then((todasReservas) => {
+      console.log("🔍 Todas as reservas do back-end:", todasReservas);
 
-    // 2) Filtrar somente as reservas QUE ESTÃO EM CURSO AGORA:
-    const agora = new Date();
-    const hojeStr = agora.toISOString().slice(0, 10); // "YYYY-MM-DD"
+      const agora = new Date();
+      // Filtra só as reservas cujo horário atual está entre start e end:
+      const reservasEmCurso = todasReservas.filter((r) => {
+        // Ajuste aqui se o nome for diferente
+        // Exemplo se vierem com chaves “start” e “end” em ISO
+        const inicio = new Date(r.start);
+        const fim = new Date(r.end);
 
-    // Exemplo de formato esperado do objeto reserva:
-    // {
-    //   id: "...",
-    //   lab: "B401",
-    //   requisitante: "João Silva",
-    //   date: "2025-06-02",         // data no formato YYYY-MM-DD
-    //   horaInicio: "08:00",       // hora no formato HH:mm
-    //   horaFim: "10:00",          // hora no formato HH:mm
-    //   status: "aprovada"
-    // }
-    const reservasEmCurso = todasReservas.filter((r) => {
-      if (r.date !== hojeStr) return false;
+        return agora >= inicio && agora <= fim;
+      });
 
-      const inicio = new Date(`${r.date}T${r.horaInicio}:00`);
-      const fim = new Date(`${r.date}T${r.horaFim}:00`);
-      return agora >= inicio && agora <= fim;
-    });
-
-    // 3) Exibir ou ocultar a seção “Reservas Ativas” conforme encontrar algo
-    const section = document.getElementById("active-reservations-section");
-    if (reservasEmCurso.length === 0) {
-      section.style.display = "none";
-      return;
-    } else {
+      const section = document.getElementById("active-reservations-section");
+      if (reservasEmCurso.length === 0) {
+        section.style.display = "none";
+        return;
+      }
       section.style.display = "block";
-    }
 
-    // 4) Renderizar os cards de cada reserva em curso
-    renderizarReservasAtivas(reservasEmCurso, agora);
-  } catch (err) {
-    console.error("Erro no módulo de Reservas Ativas:", err);
-  }
+      renderizarReservasAtivas(reservasEmCurso, agora);
+    })
+    .catch((err) => {
+      console.error("Erro no módulo de Reservas Ativas:", err);
+    });
 }
 
 function renderizarReservasAtivas(reservas, agora) {
   const container = document.getElementById("active-reservations-container");
-  container.innerHTML = ""; // limpa tudo antes de desenhar de novo
+  container.innerHTML = "";
 
   reservas.forEach((r) => {
-    // Calcula percentual de progresso:
-    // Se o período for de 08:00 às 10:00, e agora for 09:00 → 50%
-    const inicio = new Date(`${r.date}T${r.horaInicio}:00`);
-    const fim = new Date(`${r.date}T${r.horaFim}:00`);
-    let porcentagem = 0;
+    const inicio = new Date(r.start);
+    const fim = new Date(r.end);
 
+    let porcentagem = 0;
     if (agora < inicio) {
       porcentagem = 0;
     } else if (agora > fim) {
@@ -1205,15 +1190,12 @@ function renderizarReservasAtivas(reservas, agora) {
       porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
     }
 
-    // Criar o card Bootstrap
-    // Usamos classes de grid para ficarem responsivos (col-md-6, col-lg-4, etc).
     const col = document.createElement("div");
     col.className = "col-12 col-md-6 col-lg-4";
 
     const card = document.createElement("div");
     card.className = "card shadow-sm h-100";
 
-    // Card Header: Lab e Requisitante
     const cardBody = document.createElement("div");
     cardBody.className = "card-body";
 
@@ -1221,7 +1203,9 @@ function renderizarReservasAtivas(reservas, agora) {
       <h5 class="card-title mb-1">${r.lab}</h5>
       <p class="card-text text-secondary mb-2">${r.requisitante}</p>
       <p class="card-text text-muted small">
-        ${r.date} &nbsp;|&nbsp; ${r.horaInicio} – ${r.horaFim}
+        ${inicio.toLocaleDateString("pt-BR")} &nbsp;|&nbsp;
+        ${inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} – 
+        ${fim.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
       </p>
       <div class="progress mt-3" style="height: 8px;">
         <div
@@ -1244,16 +1228,15 @@ function renderizarReservasAtivas(reservas, agora) {
   });
 }
 
-// 5) Acionamento automático ao abrir a página e atualização periódica
 document.addEventListener("DOMContentLoaded", () => {
-  // Carrega pela primeira vez
   carregarReservasAtivas();
 
-  // Atualiza a cada 30 segundos
+  // Reexecuta a cada 30 segundos para atualizar a barra de progresso
   intervaloReservasAtivas = setInterval(() => {
     carregarReservasAtivas();
   }, 30000);
 });
+
 
 
   // ----------------------
