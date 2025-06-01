@@ -1128,116 +1128,10 @@ onReady(async () => {
     }
   }
 
-  // Expondo as funções para o escopo global (para que onclick="…" funcione)
-  window.aprovarUsuario  = aprovarUsuario;
-  window.rejeitarUsuario = rejeitarUsuario;
-  window.mudarPaginaUsuarios = mudarPaginaUsuarios;
-
-// ==============================================================
-//  MÓDULO “RESERVAS ATIVAS” (AJUSTADO PARA JSON COM `start` e `end`)
-// ==============================================================
-
-let intervaloReservasAtivas = null;
-
-function carregarReservasAtivas() {
-  return fetch(`${BASE_API}/reservas?status=aprovada`)
-    .then((resp) => {
-      if (!resp.ok) throw new Error("Erro ao buscar reservas");
-      return resp.json();
-    })
-    .then((todasReservas) => {
-      console.log("🔍 Todas as reservas do back-end:", todasReservas);
-
-      const agora = new Date();
-      // Filtra só as reservas cujo horário atual está entre start e end:
-      const reservasEmCurso = todasReservas.filter((r) => {
-        // Ajuste aqui se o nome for diferente
-        // Exemplo se vierem com chaves “start” e “end” em ISO
-        const inicio = new Date(r.start);
-        const fim = new Date(r.end);
-
-        return agora >= inicio && agora <= fim;
-      });
-
-      const section = document.getElementById("active-reservations-section");
-      if (reservasEmCurso.length === 0) {
-        section.style.display = "none";
-        return;
-      }
-      section.style.display = "block";
-
-      renderizarReservasAtivas(reservasEmCurso, agora);
-    })
-    .catch((err) => {
-      console.error("Erro no módulo de Reservas Ativas:", err);
-    });
-}
-
-function renderizarReservasAtivas(reservas, agora) {
-  const container = document.getElementById("active-reservations-container");
-  container.innerHTML = "";
-
-  reservas.forEach((r) => {
-    const inicio = new Date(r.start);
-    const fim = new Date(r.end);
-
-    let porcentagem = 0;
-    if (agora < inicio) {
-      porcentagem = 0;
-    } else if (agora > fim) {
-      porcentagem = 100;
-    } else {
-      porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
-    }
-
-    const col = document.createElement("div");
-    col.className = "col-12 col-md-6 col-lg-4";
-
-    const card = document.createElement("div");
-    card.className = "card shadow-sm h-100";
-
-    const cardBody = document.createElement("div");
-    cardBody.className = "card-body";
-
-    cardBody.innerHTML = `
-      <h5 class="card-title mb-1">${r.lab}</h5>
-      <p class="card-text text-secondary mb-2">${r.requisitante}</p>
-      <p class="card-text text-muted small">
-        ${inicio.toLocaleDateString("pt-BR")} &nbsp;|&nbsp;
-        ${inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} – 
-        ${fim.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-      </p>
-      <div class="progress mt-3" style="height: 8px;">
-        <div
-          class="progress-bar bg-primary"
-          role="progressbar"
-          style="width: ${porcentagem}%;"
-          aria-valuenow="${porcentagem.toFixed(2)}"
-          aria-valuemin="0"
-          aria-valuemax="100"
-        ></div>
-      </div>
-      <p class="text-end text-sm mt-1">
-        <small>${porcentagem.toFixed(0)}%</small>
-      </p>
-    `;
-
-    card.appendChild(cardBody);
-    col.appendChild(card);
-    container.appendChild(col);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  carregarReservasAtivas();
-
-  // Reexecuta a cada 30 segundos para atualizar a barra de progresso
-  intervaloReservasAtivas = setInterval(() => {
-    carregarReservasAtivas();
-  }, 30000);
-});
-
-
+  // Expondo as funções para o escopo global (para que onclick="…()" funcione)
+  window.aprovarUsuario       = aprovarUsuario;
+  window.rejeitarUsuario      = rejeitarUsuario;
+  window.mudarPaginaUsuarios  = mudarPaginaUsuarios;
 
   // ----------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
@@ -1416,8 +1310,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
       }
-      // Recarrega a lista de reservas pendentes imediatamente
+      // Recarrega a lista de reservas pendentes e também as ativas
       carregarReservasPendentes();
+      carregarReservasAtivas(); // <<<<<<<<<<<<<<<< INSERE AQUI
     } catch (err) {
       console.error('Erro em aprovarReserva():', err);
       alert(err.message);
@@ -1447,13 +1342,146 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Expondo as funções para o escopo global (para que onclick="…" funcione)
-  window.aprovarReserva    = aprovarReserva;
-  window.rejeitarReserva   = rejeitarReserva;
+  // Expondo as funções para o escopo global (para que onclick="…()" funcione)
+  window.aprovarReserva      = aprovarReserva;
+  window.rejeitarReserva     = rejeitarReserva;
   window.mudarPaginaReservas = mudarPaginaReservas;
 
   // ----------------------
-  // 3) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
+  // 3) MÓDULO “RESERVAS ATIVAS”
+  // ----------------------
+  let intervaloReservasAtivas = null;
+
+  // 3.1) Função que busca TODAS as reservas aprovadas do back-end
+  async function carregarReservasAtivas() {
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        // Se não há token, não carrega nada
+        return;
+      }
+
+      // Ajuste esta rota se o seu endpoint for diferente:
+      const resp = await fetch(`${BASE_API}/api/admin/approved-reservations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!resp.ok) throw new Error("Falha ao buscar reservas aprovadas");
+
+      const todasReservas = await resp.json();
+
+      // 3.2) Pega os termos de filtro (busca e data) da própria aba “Ativas”
+      const termoBusca   = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
+      const filtroData   = document.getElementById('filtro-data-ativas')?.value || '';
+
+      let filtradas = todasReservas.filter(r => {
+        // Se o usuário digitou algo no termoBusca, verifica se o LAB ou o REQUISITANTE contêm esse termo
+        if (termoBusca) {
+          const texto = (r.lab + ' ' + r.requisitante).toLowerCase();
+          if (!texto.includes(termoBusca)) return false;
+        }
+        // Se o usuário selecionou uma data, filtra somente r.date === filtroData
+        if (filtroData && r.date !== filtroData) return false;
+        return true;
+      });
+
+      // 3.3) Ordena cronologicamente pela data + hora de início
+      filtradas.sort((a, b) => {
+        const da = new Date(`${a.date}T${a.start}:00`);
+        const db = new Date(`${b.date}T${b.start}:00`);
+        return da - db;
+      });
+
+      // 3.4) Renderiza
+      renderizarReservasAtivas(filtradas);
+
+    } catch (err) {
+      console.error("Erro no módulo de Reservas Ativas:", err);
+    }
+  }
+
+  // 3.5) Função que cria dinamicamente os cards com barra de progresso
+  function renderizarReservasAtivas(reservas) {
+    const container = document.getElementById("lista-ativas");
+    if (!container) return;
+    container.innerHTML = ""; // limpa antes de renderizar
+
+    const agora = new Date();
+
+    reservas.forEach(r => {
+      // Constrói os objetos Date de início e fim a partir de r.date, r.start e r.end
+      const inicio = new Date(`${r.date}T${r.start}:00`);
+      const fim    = new Date(`${r.date}T${r.end}:00`);
+
+      // Calcula percentual de progresso
+      let porcentagem = 0;
+      if (agora < inicio) {
+        porcentagem = 0;
+      } else if (agora > fim) {
+        porcentagem = 100;
+      } else {
+        porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
+      }
+
+      // Cria o <div class="col-..."> para o grid responsivo
+      const col = document.createElement("div");
+      col.className = "col-12 col-md-6 col-lg-4";
+
+      // Cria o card
+      const card = document.createElement("div");
+      card.className = "card shadow-sm h-100";
+
+      const cardBody = document.createElement("div");
+      cardBody.className = "card-body";
+
+      cardBody.innerHTML = `
+        <h5 class="card-title mb-1">${r.lab}</h5>
+        <p class="card-text text-secondary mb-2">${r.requisitante}</p>
+        <p class="card-text text-muted small">
+          ${new Date(r.date).toLocaleDateString("pt-BR")} &nbsp;|&nbsp;
+          ${r.start} – ${r.end}
+        </p>
+        <div class="progress mt-3" style="height: 8px;">
+          <div
+            class="progress-bar bg-success"
+            role="progressbar"
+            style="width: ${porcentagem}%;"
+            aria-valuenow="${porcentagem.toFixed(2)}"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          ></div>
+        </div>
+        <p class="text-end text-sm mt-1">
+          <small>${porcentagem.toFixed(0)}%</small>
+        </p>
+      `;
+
+      card.appendChild(cardBody);
+      col.appendChild(card);
+      container.appendChild(col);
+    });
+  }
+
+  // 3.6) Listeners para os campos de filtro da aba “Reservas Ativas”
+  document.getElementById('busca-ativas')?.addEventListener('input', () => {
+    carregarReservasAtivas();
+  });
+  document.getElementById('filtro-data-ativas')?.addEventListener('change', () => {
+    carregarReservasAtivas();
+  });
+
+  // 3.7) Chamada inicial de carregamento + atualização periódica de 30s
+  onReady(() => {
+    // Carrega assim que o painel de admin for aberto
+    carregarReservasAtivas();
+
+    // Atualiza a cada 30 segundos para “andar” a barra de progresso em tempo real
+    intervaloReservasAtivas = setInterval(() => {
+      carregarReservasAtivas();
+    }, 30_000);
+  });
+
+  // ----------------------
+  // 4) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
   // ----------------------
   document.getElementById('busca-usuarios')?.addEventListener('input', () => {
     paginaAtualUsuarios = 1;
@@ -1478,7 +1506,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ----------------------
-  // 4) POLLING AUTOMÁTICO (Usuários + Reservas)
+  // 5) POLLING AUTOMÁTICO (Usuários + Reservas)
   // ----------------------
   setInterval(async () => {
     await carregarUsuariosPendentes();
@@ -1486,7 +1514,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 10000);
 
   // ----------------------
-  // 5) CHAMADA INICIAL QUANDO A PÁGINA FOR CARREGADA
+  // 6) CHAMADA INICIAL QUANDO A PÁGINA FOR CARREGADA
   // ----------------------
   onReady(() => {
     carregarUsuariosPendentes();
@@ -1494,7 +1522,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ----------------------
-  // 6) LOGOUT DO ADMIN
+  // 7) LOGOUT DO ADMIN
   // ----------------------
   document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
     localStorage.removeItem('admin_user');
