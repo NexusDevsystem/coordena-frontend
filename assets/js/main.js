@@ -1133,6 +1133,129 @@ onReady(async () => {
   window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
 
+  // ==============================================================
+//  MÓDULO “RESERVAS ATIVAS”
+// ==============================================================
+
+// mantém referência ao intervalo para liberar quando necessário (poderíamos limpar se quiséssemos)
+let intervaloReservasAtivas = null;
+
+async function carregarReservasAtivas() {
+  try {
+    // 1) Buscar no backend TODAS as reservas aprovadas
+    //    Ajuste essa rota se o seu endpoint for diferente.
+    const resp = await fetch(`${BASE_API}/reservas?status=aprovada`);
+    if (!resp.ok) throw new Error("Falha ao buscar reservas aprovadas");
+    const todasReservas = await resp.json(); // array de objetos
+
+    // 2) Filtrar somente as reservas QUE ESTÃO EM CURSO AGORA:
+    const agora = new Date();
+    const hojeStr = agora.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    // Exemplo de formato esperado do objeto reserva:
+    // {
+    //   id: "...",
+    //   lab: "B401",
+    //   requisitante: "João Silva",
+    //   date: "2025-06-02",         // data no formato YYYY-MM-DD
+    //   horaInicio: "08:00",       // hora no formato HH:mm
+    //   horaFim: "10:00",          // hora no formato HH:mm
+    //   status: "aprovada"
+    // }
+    const reservasEmCurso = todasReservas.filter((r) => {
+      if (r.date !== hojeStr) return false;
+
+      const inicio = new Date(`${r.date}T${r.horaInicio}:00`);
+      const fim = new Date(`${r.date}T${r.horaFim}:00`);
+      return agora >= inicio && agora <= fim;
+    });
+
+    // 3) Exibir ou ocultar a seção “Reservas Ativas” conforme encontrar algo
+    const section = document.getElementById("active-reservations-section");
+    if (reservasEmCurso.length === 0) {
+      section.style.display = "none";
+      return;
+    } else {
+      section.style.display = "block";
+    }
+
+    // 4) Renderizar os cards de cada reserva em curso
+    renderizarReservasAtivas(reservasEmCurso, agora);
+  } catch (err) {
+    console.error("Erro no módulo de Reservas Ativas:", err);
+  }
+}
+
+function renderizarReservasAtivas(reservas, agora) {
+  const container = document.getElementById("active-reservations-container");
+  container.innerHTML = ""; // limpa tudo antes de desenhar de novo
+
+  reservas.forEach((r) => {
+    // Calcula percentual de progresso:
+    // Se o período for de 08:00 às 10:00, e agora for 09:00 → 50%
+    const inicio = new Date(`${r.date}T${r.horaInicio}:00`);
+    const fim = new Date(`${r.date}T${r.horaFim}:00`);
+    let porcentagem = 0;
+
+    if (agora < inicio) {
+      porcentagem = 0;
+    } else if (agora > fim) {
+      porcentagem = 100;
+    } else {
+      porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
+    }
+
+    // Criar o card Bootstrap
+    // Usamos classes de grid para ficarem responsivos (col-md-6, col-lg-4, etc).
+    const col = document.createElement("div");
+    col.className = "col-12 col-md-6 col-lg-4";
+
+    const card = document.createElement("div");
+    card.className = "card shadow-sm h-100";
+
+    // Card Header: Lab e Requisitante
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body";
+
+    cardBody.innerHTML = `
+      <h5 class="card-title mb-1">${r.lab}</h5>
+      <p class="card-text text-secondary mb-2">${r.requisitante}</p>
+      <p class="card-text text-muted small">
+        ${r.date} &nbsp;|&nbsp; ${r.horaInicio} – ${r.horaFim}
+      </p>
+      <div class="progress mt-3" style="height: 8px;">
+        <div
+          class="progress-bar bg-primary"
+          role="progressbar"
+          style="width: ${porcentagem}%;"
+          aria-valuenow="${porcentagem.toFixed(2)}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+      </div>
+      <p class="text-end text-sm mt-1">
+        <small>${porcentagem.toFixed(0)}%</small>
+      </p>
+    `;
+
+    card.appendChild(cardBody);
+    col.appendChild(card);
+    container.appendChild(col);
+  });
+}
+
+// 5) Acionamento automático ao abrir a página e atualização periódica
+document.addEventListener("DOMContentLoaded", () => {
+  // Carrega pela primeira vez
+  carregarReservasAtivas();
+
+  // Atualiza a cada 30 segundos
+  intervaloReservasAtivas = setInterval(() => {
+    carregarReservasAtivas();
+  }, 30000);
+});
+
+
   // ----------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
   // ----------------------
