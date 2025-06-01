@@ -909,67 +909,212 @@ onReady(async () => {
   }
 
   // ----------------------
-// 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
-// ----------------------
-async function carregarUsuariosPendentes() {
-  try {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      alert('Sessão do Admin expirada. Faça login novamente.');
-      window.location.replace('/login.html');
-      return;
-    }
+  // 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
+  // ----------------------
+  async function carregarUsuariosPendentes() {
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        alert('Sessão do Admin expirada. Faça login novamente.');
+        window.location.replace('/login.html');
+        return;
+      }
 
-    const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert('Sem permissão ou token inválido. Faça login novamente.');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        window.location.replace('/login.html');
+        return;
+      }
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
+      }
+
+      const dados = await res.json();
+      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
+
+      if (ultimoCountUsuarios === null && dados.length > 0) {
+        mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "Novos usuários pendentes",
+            `Existem ${dados.length} novo(s) usuário(s) aguardando aprovação.`
+          );
+        }
+      } else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+        const diff = dados.length - ultimoCountUsuarios;
+        mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "Nova(s) solicitação(ões) de usuário",
+            `${diff} novo(s) usuário(s) aguardando aprovação.`
+          );
+        }
+      }
+
+      ultimoCountUsuarios = dados.length;
+      usuariosPendentes = dados;
+      renderizarUsuariosPendentes();
+    } catch (err) {
+      console.error('Erro em carregarUsuariosPendentes():', err);
+    }
+  }
+
+  function renderizarUsuariosPendentes() {
+    const busca = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
+    const ordenacao = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
+
+    let filtrados = usuariosPendentes.filter(u =>
+      u.name.toLowerCase().includes(busca) ||
+      u.email.toLowerCase().includes(busca)
+    );
+
+    filtrados.sort((a, b) => {
+      if (ordenacao === 'createdAt') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
+      return a[ordenacao].localeCompare(b[ordenacao]);
     });
 
-    if (res.status === 401 || res.status === 403) {
-      alert('Sem permissão ou token inválido. Faça login novamente.');
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      window.location.replace('/login.html');
+    const totalPaginas = Math.ceil(filtrados.length / 6);
+    if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
+      paginaAtualUsuarios = totalPaginas;
+    }
+    const inicio = (paginaAtualUsuarios - 1) * 6;
+    const exibidos = filtrados.slice(inicio, inicio + 6);
+
+    const container = document.getElementById('lista-pendentes-usuarios');
+    if (!container) return;
+
+    if (filtrados.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-5 text-light">
+          <i class="fas fa-user-clock fa-3x mb-3"></i>
+          <h4>Nenhuma solicitação de usuário pendente</h4>
+          <p>Não há novos usuários aguardando aprovação.</p>
+        </div>
+      `;
       return;
     }
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
-    }
 
-    const dados = await res.json();
-    const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
+    let html = '<div class="row gx-3 gy-4">';
+    exibidos.forEach(u => {
+      html += `
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-coordena shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h5 class="card-title mb-1">${u.name}</h5>
+                  <h6 class="card-subtitle mb-1">${u.email}</h6>
+                </div>
+                <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+              </div>
+              <p class="mb-1">
+                <i class="fas fa-user-tag me-1"></i>
+                <strong>Tipo:</strong> ${u.role}
+              </p>
+              <p class="mb-3">
+                <i class="fas fa-calendar-alt me-1"></i>
+                <strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString('pt-BR')}
+              </p>
+              <div class="d-flex gap-2">
+                <button class="btn btn-success flex-grow-1" onclick="aprovarUsuario('${u._id}')">
+                  <i class="fas fa-check me-1"></i> Aprovar
+                </button>
+                <button class="btn btn-danger flex-grow-1" onclick="rejeitarUsuario('${u._id}')">
+                  <i class="fas fa-times me-1"></i> Rejeitar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
 
-    // ---------- notificação INTERNA (Toast) SEMPRE ----------
-    if (ultimoCountUsuarios === null && dados.length > 0) {
-      mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-      // se tiver push habilitado, envia push também
-      if (podeNotificar) {
-        enviarNotificacao(
-          "🆕 Usuários Pendentes",
-          `Existem ${dados.length} usuário(s) aguardando aprovação.`
-        );
+    if (totalPaginas > 1) {
+      html += `<nav aria-label="Paginação de Usuários" class="mt-4"><ul class="pagination justify-content-center">`;
+      html += `
+        <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
+        </li>`;
+      for (let p = 1; p <= totalPaginas; p++) {
+        html += `
+          <li class="page-item ${paginaAtualUsuarios === p ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a>
+          </li>`;
       }
-    }
-    else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
-      const diff = dados.length - ultimoCountUsuarios;
-      mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
-      if (podeNotificar) {
-        enviarNotificacao(
-          "🔔 Nova(s) Solicitação(ões) de Usuário",
-          `${diff} novo(s) usuário(s) aguardando aprovação.`
-        );
-      }
+      html += `
+        <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
+        </li>
+      </ul></nav>`;
     }
 
-    ultimoCountUsuarios = dados.length;
-    usuariosPendentes = dados;
-    renderizarUsuariosPendentes();
-  } catch (err) {
-    console.error('Erro em carregarUsuariosPendentes():', err);
+    container.innerHTML = html;
   }
-}
 
-// ----------------------
+  function mudarPaginaUsuarios(p) {
+    paginaAtualUsuarios = p;
+    renderizarUsuariosPendentes();
+    document.getElementById('lista-pendentes-usuarios')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function aprovarUsuario(id) {
+    if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/approve-user/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
+      }
+      carregarUsuariosPendentes();
+    } catch (err) {
+      console.error('Erro em aprovarUsuario():', err);
+      alert(err.message);
+    }
+  }
+
+  async function rejeitarUsuario(id) {
+    if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
+      }
+      carregarUsuariosPendentes();
+    } catch (err) {
+      console.error('Erro em rejeitarUsuario():', err);
+      alert(err.message);
+    }
+  }
+
+  window.aprovarUsuario = aprovarUsuario;
+  window.rejeitarUsuario = rejeitarUsuario;
+  window.mudarPaginaUsuarios = mudarPaginaUsuarios;
+
+  // ----------------------
 // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
 // ----------------------
 async function carregarReservasPendentes() {
@@ -999,9 +1144,10 @@ async function carregarReservasPendentes() {
     const dados = await res.json();
     const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
 
-    // ---------- notificação INTERNA (Toast) SEMPRE ----------
+    // 1) Sempre exibe o Toast interno:
     if (ultimoCountReservas === null && dados.length > 0) {
       mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+      // 2) Se push estiver ativo, envia também a notificação do sistema:
       if (podeNotificar) {
         enviarNotificacao(
           "🆕 Reservas Pendentes",
@@ -1027,7 +1173,6 @@ async function carregarReservasPendentes() {
     console.error('Erro em carregarReservasPendentes():', err);
   }
 }
-
 
   // ----------------------
   // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO CHEGAR EM 100%)
