@@ -22,40 +22,42 @@ let notificacoesAtivas = false;
 
 // 2) Função a ser chamada quando o admin clica em “Ativar Notificações”
 function solicitarPermissaoNotificacao() {
-  // Se o navegador não suportar, sai:
+  // Se o navegador não oferecer suporte, só volta
   if (!("Notification" in window)) {
-    console.warn("Este navegador não suporta notificações.");
+    console.warn("Este navegador não suporta Notifications API.");
     return;
   }
 
-  // Se já estiver “granted”, não precisa pedir de novo:
+  // Se já estiver em “granted”, marcamos a flag e não pedimos de novo:
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
-    console.log("Notificações já haviam sido permitidas.");
+    console.log("📢 Notificações já permitidas anteriormente.");
     return;
   }
 
-  // Se não estiver NEGADO, podemos pedir permissão:
+  // Caso contrário, se não estiver “denied”, solicitamos
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
         notificacoesAtivas = true;
-        console.log("Permissão de Notificações concedida pelo usuário.");
+        console.log("✅ Permissão de Notificações: GRANTED");
       } else {
         notificacoesAtivas = false;
-        console.log("Permissão de Notificações negada ou pausada.");
+        console.log("❌ Permissão de Notificações: NEGADA ou SUSPENSA");
       }
     });
   }
 }
 
-// 3) Função para disparar a notificação nativa (através do Notification API):
+// --------------
+// 2) Função que dispara a notificação nativa (caso tenhamos permissão)
+// --------------
 function enviarNotificacao(titulo, texto) {
-  // Só cria o Notification se tivermos permissão explícita “granted”
+  // Só cria new Notification() se estivermos com notificacoesAtivas === true
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
-      icon: "/assets/img/logo-notification.png" // ajuste o caminho conforme seu projeto
+      icon: "/assets/img/logo-notification.png"
     });
   }
 }
@@ -818,17 +820,16 @@ onReady(async () => {
     });
   }
 
-  // 5) Botão “Ativar Notificações” — solicita permissão ao navegador
+  // 5) BOTÃO: Ativar Notificações
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
       solicitarPermissaoNotificacao();
-      // Desabilita o botão para não ficar pedindo de novo
+      // desabilitar para não pedir de novo
       btnNotifs.setAttribute('disabled', 'disabled');
       btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
     });
   }
-
 
   // 6) Busca reservas iniciais para o FullCalendar
   let data = [];
