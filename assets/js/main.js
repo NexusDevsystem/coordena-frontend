@@ -836,483 +836,490 @@ onReady(async () => {
 // ==================================================
 // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
 // ==================================================
-(function () {
-  // Só executa se estivermos na página de admin
-  if (!document.getElementById('lista-usuarios-pendentes') &&
-      !document.getElementById('lista-reservas-pendentes')) {
+
+// ----------------------
+// VARIÁVEIS GLOBAIS DO ADMIN
+// ----------------------
+let usuariosPendentes    = [];
+let reservasPendentes    = [];
+let paginaAtualUsuarios  = 1;
+let paginaAtualReservas  = 1;
+let ultimoCountUsuarios  = null;
+let ultimoCountReservas  = null;
+
+// Obtém a URL-base do backend (ajusta dependendo se é localhost ou não)
+const BASE_API = window.location.hostname.includes('localhost')
+  ? 'http://localhost:10000'
+  : 'https://coordena-backend.onrender.com';
+
+// ----------------------
+// FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
+// ----------------------
+function mostrarToast(texto) {
+  const body = document.getElementById('meuToastBody');
+  if (body) body.innerText = texto;
+  const toastEl = document.getElementById('toastNovoCadastro');
+  if (toastEl) {
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  }
+}
+
+// ----------------------
+// 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
+// ----------------------
+async function carregarUsuariosPendentes() {
+  try {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      alert('Sessão do Admin expirada. Faça login novamente.');
+      window.location.replace('/login.html');
+      return;
+    }
+
+    const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
+      headers: { 
+        'Authorization': `Bearer ${token}` 
+      }
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      alert('Sem permissão ou token inválido. Faça login novamente.');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.replace('/login.html');
+      return;
+    }
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
+    }
+
+    const dados = await res.json();
+
+    // Se for primeira vez (ultimoCountUsuarios === null) e já houver pendentes, notifica todos
+    if (ultimoCountUsuarios === null && dados.length > 0) {
+      mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+    }
+    // Se não for primeira vez e o total aumentou, notifica apenas a diferença
+    else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+      const diff = dados.length - ultimoCountUsuarios;
+      mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
+    }
+
+    ultimoCountUsuarios = dados.length;
+    usuariosPendentes = dados;
+    renderizarUsuariosPendentes();
+  } catch (err) {
+    console.error('Erro em carregarUsuariosPendentes():', err);
+  }
+}
+
+function renderizarUsuariosPendentes() {
+  const busca      = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
+  const ordenacao  = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
+
+  let filtrados = usuariosPendentes.filter(u =>
+    u.name.toLowerCase().includes(busca) ||
+    u.email.toLowerCase().includes(busca)
+  );
+
+  filtrados.sort((a, b) => {
+    if (ordenacao === 'createdAt') {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    return a[ordenacao].localeCompare(b[ordenacao]);
+  });
+
+  const totalPaginas = Math.ceil(filtrados.length / 6);
+  if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
+    paginaAtualUsuarios = totalPaginas;
+  }
+  const inicio   = (paginaAtualUsuarios - 1) * 6;
+  const exibidos = filtrados.slice(inicio, inicio + 6);
+
+  const container = document.getElementById('lista-usuarios-pendentes');
+  if (!container) return;
+
+  if (filtrados.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="fas fa-user-clock fa-3x mb-3"></i>
+        <h4>Nenhuma solicitação de usuário pendente</h4>
+        <p>Não há novos usuários aguardando aprovação.</p>
+      </div>
+    `;
     return;
   }
 
-  // ----------------------
-  // VARIÁVEIS GLOBAIS DO ADMIN
-  // ----------------------
-  let usuariosPendentes    = [];
-  let reservasPendentes    = [];
-  let paginaAtualUsuarios  = 1;
-  let paginaAtualReservas  = 1;
-  let ultimoCountUsuarios  = null;
-  let ultimoCountReservas  = null;
-
-  // Obtém a URL-base do backend (ajusta dependendo se é localhost ou não)
-  const BASE_API = window.location.hostname.includes('localhost')
-    ? 'http://localhost:10000'
-    : 'https://coordena-backend.onrender.com';
-
-  // ----------------------
-  // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
-  // ----------------------
-  function mostrarToast(texto) {
-    const body = document.getElementById('meuToastBody');
-    if (body) body.innerText = texto;
-    const toastEl = document.getElementById('toastNovoCadastro');
-    if (toastEl) {
-      const toast = new bootstrap.Toast(toastEl);
-      toast.show();
-    }
-  }
-
-  // ----------------------
-  // 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
-  // ----------------------
-  async function carregarUsuariosPendentes() {
-    try {
-      const token = localStorage.getItem('admin_token');
-      if (!token) {
-        alert('Sessão do Admin expirada. Faça login novamente.');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      const res = await fetch(`${BASE_API}/api/admin/pending-users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (res.status === 401 || res.status === 403) {
-        alert('Sem permissão ou token inválido. Faça login novamente.');
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-        window.location.replace('/login.html');
-        return;
-      }
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
-      }
-
-      const dados = await res.json();
-
-      // Se for primeira vez (ultimoCountUsuarios === null) e já houver pendentes, notifica todos
-      if (ultimoCountUsuarios === null && dados.length > 0) {
-        mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-      }
-      // Se não for primeira vez e o total aumentou, notifica apenas a diferença
-      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
-        const diff = dados.length - ultimoCountUsuarios;
-        mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
-      }
-
-      ultimoCountUsuarios = dados.length;
-      usuariosPendentes = dados;
-      renderizarUsuariosPendentes();
-    } catch (err) {
-      console.error('Erro em carregarUsuariosPendentes():', err);
-    }
-  }
-
-  function renderizarUsuariosPendentes() {
-    const busca    = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
-    const ordenacao = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
-
-    let filtrados = usuariosPendentes.filter(u =>
-      u.name.toLowerCase().includes(busca) ||
-      u.email.toLowerCase().includes(busca)
-    );
-
-    filtrados.sort((a, b) => {
-      if (ordenacao === 'createdAt') {
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      }
-      return a[ordenacao].localeCompare(b[ordenacao]);
-    });
-
-    const totalPaginas = Math.ceil(filtrados.length / 6);
-    if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
-      paginaAtualUsuarios = totalPaginas;
-    }
-    const inicio = (paginaAtualUsuarios - 1) * 6;
-    const exibidos = filtrados.slice(inicio, inicio + 6);
-
-    const container = document.getElementById('lista-usuarios-pendentes');
-    if (!container) return;
-
-    if (filtrados.length === 0) {
-      container.innerHTML = `
-        <div class="text-center py-5 text-light">
-          <i class="fas fa-user-clock fa-3x mb-3"></i>
-          <h4>Nenhuma solicitação de usuário pendente</h4>
-          <p>Não há novos usuários aguardando aprovação.</p>
+  let html = '<div class="row gx-3 gy-4">';
+  exibidos.forEach(u => {
+    html += `
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 class="card-title mb-1">${u.name}</h5>
+                <h6 class="card-subtitle text-muted mb-1">${u.email}</h6>
+              </div>
+              <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+            </div>
+            <p class="mb-1">
+              <i class="fas fa-user-tag me-1"></i>
+              <strong>Tipo:</strong> ${u.role}
+            </p>
+            <p class="mb-3">
+              <i class="fas fa-calendar-alt me-1"></i>
+              <strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString('pt-BR')}
+            </p>
+            <div class="d-flex gap-2">
+              <button class="btn btn-success flex-grow-1" onclick="aprovarUsuario('${u._id}')">
+                <i class="fas fa-check me-1"></i> Aprovar
+              </button>
+              <button class="btn btn-danger flex-grow-1" onclick="rejeitarUsuario('${u._id}')">
+                <i class="fas fa-times me-1"></i> Rejeitar
+              </button>
+            </div>
+          </div>
         </div>
-      `;
+      </div>`;
+  });
+  html += '</div>';
+
+  // Paginação
+  if (totalPaginas > 1) {
+    html += `<nav aria-label="Paginação de Usuários" class="mt-4">`;
+    html += `<ul class="pagination justify-content-center">`;
+    html += `
+      <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
+      </li>`;
+    for (let p = 1; p <= totalPaginas; p++) {
+      html += `
+        <li class="page-item ${paginaAtualUsuarios === p ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a>
+        </li>`;
+    }
+    html += `
+      <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
+      </li>`;
+    html += `</ul></nav>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function mudarPaginaUsuarios(p) {
+  paginaAtualUsuarios = p;
+  renderizarUsuariosPendentes();
+  document.getElementById('lista-usuarios-pendentes')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function aprovarUsuario(id) {
+  if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BASE_API}/api/admin/approve-user/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
+    }
+    // Recarrega a lista após aprovação
+    await carregarUsuariosPendentes();
+  } catch (err) {
+    console.error('Erro em aprovarUsuario():', err);
+    alert(err.message);
+  }
+}
+
+async function rejeitarUsuario(id) {
+  if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
+    }
+    // Recarrega a lista após rejeição
+    await carregarUsuariosPendentes();
+  } catch (err) {
+    console.error('Erro em rejeitarUsuario():', err);
+    alert(err.message);
+  }
+}
+
+// ----------------------
+// 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
+// ----------------------
+async function carregarReservasPendentes() {
+  try {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      alert('Sessão do Admin expirada. Faça login novamente.');
+      window.location.replace('/login.html');
       return;
     }
 
-    let html = '<div class="row gx-3 gy-4">';
-    exibidos.forEach(u => {
-      html += `
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-coordena shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <h5 class="card-title mb-1">${u.name}</h5>
-                  <h6 class="card-subtitle mb-1">${u.email}</h6>
-                </div>
-                <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
-              </div>
-              <p class="mb-1">
-                <i class="fas fa-user-tag me-1"></i>
-                <strong>Tipo:</strong> ${u.role}
-              </p>
-              <p class="mb-3">
-                <i class="fas fa-calendar-alt me-1"></i>
-                <strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString('pt-BR')}
-              </p>
-              <div class="d-flex gap-2">
-                <button class="btn btn-success flex-grow-1" onclick="aprovarUsuario('${u._id}')">
-                  <i class="fas fa-check me-1"></i> Aprovar
-                </button>
-                <button class="btn btn-danger flex-grow-1" onclick="rejeitarUsuario('${u._id}')">
-                  <i class="fas fa-times me-1"></i> Rejeitar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>`;
+    const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    html += '</div>';
-
-    // Se houver mais de uma página, monta a paginação
-    if (totalPaginas > 1) {
-      html += `<nav aria-label="Paginação de Usuários" class="mt-4">`;
-      html += `<ul class="pagination justify-content-center">`;
-      html += `
-        <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
-        </li>`;
-      for (let p = 1; p <= totalPaginas; p++) {
-        html += `
-          <li class="page-item ${paginaAtualUsuarios === p ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a>
-          </li>`;
-      }
-      html += `
-        <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
-        </li>`;
-      html += `</ul></nav>`;
+    if (res.status === 401 || res.status === 403) {
+      alert('Sem permissão ou token inválido. Faça login novamente.');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.replace('/login.html');
+      return;
+    }
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
     }
 
-    container.innerHTML = html;
-  }
+    const dados = await res.json();
 
-  function mudarPaginaUsuarios(p) {
-    paginaAtualUsuarios = p;
-    renderizarUsuariosPendentes();
-    document.getElementById('lista-usuarios-pendentes')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  async function aprovarUsuario(id) {
-    if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${BASE_API}/api/admin/approve-user/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
-      }
-      // Recarrega a lista
-      carregarUsuariosPendentes();
-    } catch (err) {
-      console.error('Erro em aprovarUsuario():', err);
-      alert(err.message);
+    // Se for primeira vez e já houver pendentes, notifica todos
+    if (ultimoCountReservas === null && dados.length > 0) {
+      mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
     }
-  }
-
-  async function rejeitarUsuario(id) {
-    if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
-      }
-      // Recarrega a lista
-      carregarUsuariosPendentes();
-    } catch (err) {
-      console.error('Erro em rejeitarUsuario():', err);
-      alert(err.message);
+    // Se não for primeira vez e o total aumentou, notifica apenas a diferença
+    else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+      const diff = dados.length - ultimoCountReservas;
+      mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
     }
+
+    ultimoCountReservas = dados.length;
+    reservasPendentes = dados;
+    renderizarReservasPendentes();
+  } catch (err) {
+    console.error('Erro em carregarReservasPendentes():', err);
   }
+}
 
-  // ----------------------
-  // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
-  // ----------------------
-  async function carregarReservasPendentes() {
-    try {
-      const token = localStorage.getItem('admin_token');
-      if (!token) {
-        alert('Sessão do Admin expirada. Faça login novamente.');
-        window.location.replace('/login.html');
-        return;
-      }
+function renderizarReservasPendentes() {
+  const busca      = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
+  const ordenacao  = document.getElementById('ordenacao-reservas')?.value || 'date';
+  const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
 
-      const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401 || res.status === 403) {
-        alert('Sem permissão ou token inválido. Faça login novamente.');
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-        window.location.replace('/login.html');
-        return;
-      }
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
-      }
-
-      const dados = await res.json();
-
-      // Se for primeira vez e já houver pendentes, notifica todos
-      if (ultimoCountReservas === null && dados.length > 0) {
-        mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-      }
-      // Se não for primeira vez e o total aumentou, notifica apenas a diferença
-      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-        const diff = dados.length - ultimoCountReservas;
-        mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-      }
-
-      ultimoCountReservas = dados.length;
-      reservasPendentes = dados;
-      renderizarReservasPendentes();
-    } catch (err) {
-      console.error('Erro em carregarReservasPendentes():', err);
-    }
-  }
-
-  function renderizarReservasPendentes() {
-    const busca    = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
-    const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
-
-    let filtrados = reservasPendentes.filter(r =>
+  let filtrados = reservasPendentes.filter(r => {
+    const bateBusca = (
       r.resource.toLowerCase().includes(busca) ||
       r.responsible.toLowerCase().includes(busca)
     );
+    const bateData = filtroData ? (r.date === filtroData) : true;
+    return bateBusca && bateData;
+  });
 
-    filtrados.sort((a, b) => {
-      if (ordenacao === 'date') {
-        return new Date(a.date) - new Date(b.date);
-      }
-      return a[ordenacao].localeCompare(b[ordenacao]);
-    });
-
-    const totalPaginas = Math.ceil(filtrados.length / 6);
-    if (paginaAtualReservas > totalPaginas && totalPaginas > 0) {
-      paginaAtualReservas = totalPaginas;
+  filtrados.sort((a, b) => {
+    if (ordenacao === 'date') {
+      return new Date(a.date) - new Date(b.date);
     }
-    const inicio = (paginaAtualReservas - 1) * 6;
-    const exibidos = filtrados.slice(inicio, inicio + 6);
+    return a[ordenacao].localeCompare(b[ordenacao]);
+  });
 
-    const container = document.getElementById('lista-reservas-pendentes');
-    if (!container) return;
+  const totalPaginas = Math.ceil(filtrados.length / 6);
+  if (paginaAtualReservas > totalPaginas && totalPaginas > 0) {
+    paginaAtualReservas = totalPaginas;
+  }
+  const inicio   = (paginaAtualReservas - 1) * 6;
+  const exibidos = filtrados.slice(inicio, inicio + 6);
 
-    if (filtrados.length === 0) {
-      container.innerHTML = `
-        <div class="text-center py-5 text-light">
-          <i class="fas fa-calendar-times fa-3x mb-3"></i>
-          <h4>Nenhuma solicitação de reserva pendente</h4>
-          <p>Não há novas solicitações de reserva.</p>
-        </div>
-      `;
-      return;
-    }
+  const container = document.getElementById('lista-reservas-pendentes');
+  if (!container) return;
 
-    let html = '<div class="row gx-3 gy-4">';
-    exibidos.forEach(r => {
-      html += `
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-coordena shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <h5 class="card-title mb-1">${r.resource}${r.sala ? ' – ' + r.sala : ''}</h5>
-                  <h6 class="card-subtitle mb-1">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
-                </div>
-                <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+  if (filtrados.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+        <h4>Nenhuma solicitação de reserva pendente</h4>
+        <p>Não há novas solicitações de reserva.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '<div class="row gx-3 gy-4">';
+  exibidos.forEach(r => {
+    html += `
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 class="card-title mb-1">${r.resource}${r.sala ? ' – ' + r.sala : ''}</h5>
+                <h6 class="card-subtitle text-muted mb-1">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
               </div>
-              <p class="mb-1">
-                <i class="fas fa-clock me-1"></i>
-                <strong>Horário:</strong> ${r.start} – ${r.end}
-              </p>
-              <p class="mb-1">
-                <i class="fas fa-user me-1"></i>
-                <strong>Requisitante:</strong> ${r.responsible}
-              </p>
-              <p class="mb-1">
-                <i class="fas fa-building me-1"></i>
-                <strong>Depto.:</strong> ${r.department}
-              </p>
-              <p class="mb-1">
-                <i class="fas fa-info-circle me-1"></i>
-                <strong>Tipo:</strong> ${r.type}
-              </p>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-success flex-grow-1" onclick="aprovarReserva('${r._id}')">
-                  <i class="fas fa-check me-1"></i> Aprovar
-                </button>
-                <button class="btn btn-danger flex-grow-1" onclick="rejeitarReserva('${r._id}')">
-                  <i class="fas fa-times me-1"></i> Rejeitar
-                </button>
-              </div>
+              <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+            </div>
+            <p class="mb-1">
+              <i class="fas fa-clock me-1"></i>
+              <strong>Horário:</strong> ${r.start} – ${r.end}
+            </p>
+            <p class="mb-1">
+              <i class="fas fa-user me-1"></i>
+              <strong>Requisitante:</strong> ${r.responsible}
+            </p>
+            <p class="mb-1">
+              <i class="fas fa-building me-1"></i>
+              <strong>Depto.:</strong> ${r.department}
+            </p>
+            <p class="mb-3">
+              <i class="fas fa-info-circle me-1"></i>
+              <strong>Tipo:</strong> ${r.type}
+            </p>
+            <div class="d-flex gap-2">
+              <button class="btn btn-success flex-grow-1" onclick="aprovarReserva('${r._id}')">
+                <i class="fas fa-check me-1"></i> Aprovar
+              </button>
+              <button class="btn btn-danger flex-grow-1" onclick="rejeitarReserva('${r._id}')">
+                <i class="fas fa-times me-1"></i> Rejeitar
+              </button>
             </div>
           </div>
-        </div>`;
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // Paginação
+  if (totalPaginas > 1) {
+    html += `<nav aria-label="Paginação de Reservas" class="mt-4">`;
+    html += `<ul class="pagination justify-content-center">`;
+    html += `
+      <li class="page-item ${paginaAtualReservas === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a>
+      </li>`;
+    for (let p = 1; p <= totalPaginas; p++) {
+      html += `
+        <li class="page-item ${paginaAtualReservas === p ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaReservas(${p})">${p}</a>
+        </li>`;
+    }
+    html += `
+      <li class="page-item ${paginaAtualReservas === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a>
+      </li>`;
+    html += `</ul></nav>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function mudarPaginaReservas(p) {
+  paginaAtualReservas = p;
+  renderizarReservasPendentes();
+  document.getElementById('lista-reservas-pendentes')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function aprovarReserva(id) {
+  if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BASE_API}/api/admin/approve-reservation/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     });
-    html += '</div>';
-
-    // Paginação
-    if (totalPaginas > 1) {
-      html += `<nav aria-label="Paginação de Reservas" class="mt-4">`;
-      html += `<ul class="pagination justify-content-center">`;
-      html += `
-        <li class="page-item ${paginaAtualReservas === 1 ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a>
-        </li>`;
-      for (let p = 1; p <= totalPaginas; p++) {
-        html += `
-          <li class="page-item ${paginaAtualReservas === p ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="mudarPaginaReservas(${p})">${p}</a>
-          </li>`;
-      }
-      html += `
-        <li class="page-item ${paginaAtualReservas === totalPaginas ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a>
-        </li>`;
-      html += `</ul></nav>`;
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
     }
-
-    container.innerHTML = html;
-  }
-
-  function mudarPaginaReservas(p) {
-    paginaAtualReservas = p;
-    renderizarReservasPendentes();
-    document.getElementById('lista-reservas-pendentes')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  async function aprovarReserva(id) {
-    if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${BASE_API}/api/admin/approve-reservation/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
-      }
-      // Recarrega a lista
-      carregarReservasPendentes();
-    } catch (err) {
-      console.error('Erro em aprovarReserva():', err);
-      alert(err.message);
-    }
-  }
-
-  async function rejeitarReserva(id) {
-    if (!confirm('Tem certeza que deseja rejeitar esta reserva?')) return;
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${BASE_API}/api/admin/reject-reservation/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
-      }
-      // Recarrega a lista
-      carregarReservasPendentes();
-    } catch (err) {
-      console.error('Erro em rejeitarReserva():', err);
-      alert(err.message);
-    }
-  }
-
-  // ----------------------
-  // 3) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
-  // ----------------------
-  document.getElementById('busca-usuarios')?.addEventListener('input', () => {
-    paginaAtualUsuarios = 1;
-    renderizarUsuariosPendentes();
-  });
-  document.getElementById('ordenacao-usuarios')?.addEventListener('change', () => {
-    paginaAtualUsuarios = 1;
-    renderizarUsuariosPendentes();
-  });
-
-  document.getElementById('busca-reservas')?.addEventListener('input', () => {
-    paginaAtualReservas = 1;
-    renderizarReservasPendentes();
-  });
-  document.getElementById('ordenacao-reservas')?.addEventListener('change', () => {
-    paginaAtualReservas = 1;
-    renderizarReservasPendentes();
-  });
-
-  // ----------------------
-  // 4) POLLING AUTOMÁTICO (Usuários + Reservas)
-  // ----------------------
-  setInterval(async () => {
-    await carregarUsuariosPendentes();
+    // Recarrega a lista após aprovação
     await carregarReservasPendentes();
-  }, 10000);
+  } catch (err) {
+    console.error('Erro em aprovarReserva():', err);
+    alert(err.message);
+  }
+}
 
-  // ----------------------
-  // 5) CHAMADA INICIAL QUANDO A PÁGINA FOR CARREGADA
-  // ----------------------
-  onReady(() => {
-    carregarUsuariosPendentes();
-    carregarReservasPendentes();
-  });
+async function rejeitarReserva(id) {
+  if (!confirm('Tem certeza que deseja rejeitar esta reserva?')) return;
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BASE_API}/api/admin/reject-reservation/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
+    }
+    // Recarrega a lista após rejeição
+    await carregarReservasPendentes();
+  } catch (err) {
+    console.error('Erro em rejeitarReserva():', err);
+    alert(err.message);
+  }
+}
 
-  // ----------------------
-  // 6) LOGOUT DO ADMIN
-  // ----------------------
-  document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_token');
-    window.location.replace('/login.html');
-  });
-})();
+// ----------------------
+// 3) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
+// ----------------------
+
+// Usuários
+document.getElementById('busca-usuarios')?.addEventListener('input', () => {
+  paginaAtualUsuarios = 1;
+  renderizarUsuariosPendentes();
+});
+document.getElementById('ordenacao-usuarios')?.addEventListener('change', () => {
+  paginaAtualUsuarios = 1;
+  renderizarUsuariosPendentes();
+});
+
+// Reservas
+document.getElementById('busca-reservas')?.addEventListener('input', () => {
+  paginaAtualReservas = 1;
+  renderizarReservasPendentes();
+});
+document.getElementById('ordenacao-reservas')?.addEventListener('change', () => {
+  paginaAtualReservas = 1;
+  renderizarReservasPendentes();
+});
+document.getElementById('filtro-data-reservas')?.addEventListener('change', () => {
+  paginaAtualReservas = 1;
+  renderizarReservasPendentes();
+});
+
+// ----------------------
+// 4) POLLING AUTOMÁTICO (Usuários + Reservas)
+// ----------------------
+setInterval(async () => {
+  await carregarUsuariosPendentes();
+  await carregarReservasPendentes();
+}, 10000);
+
+// ----------------------
+// 5) CHAMADA INICIAL QUANDO A PÁGINA FOR CARREGADA
+// ----------------------
+onReady(() => {
+  carregarUsuariosPendentes();
+  carregarReservasPendentes();
+});
+
+// ----------------------
+// 6) LOGOUT DO ADMIN
+// ----------------------
+document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
+  localStorage.removeItem('admin_user');
+  localStorage.removeItem('admin_token');
+  window.location.replace('/login.html');
+});
