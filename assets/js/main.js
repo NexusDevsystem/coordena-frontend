@@ -50,13 +50,13 @@ const ThemeToggle = (() => {
 // MÓDULO DE API
 // ----------------------
 const Api = (() => {
-  // rota base de reservas
+  // rota base de reservas (coleção “reservations”)
   const BASE = window.location.hostname.includes('localhost')
-    ? 'http://localhost:10000/api/reservas'
-    : 'https://coordena-backend.onrender.com/api/reservas';
+    ? 'http://localhost:10000/api/reservations'
+    : 'https://coordena-backend.onrender.com/api/reservations';
 
-  // rota derivada para horários fixos
-  const FIXED = BASE.replace('/reservas', '/fixedSchedules');
+  // rota derivada para horários fixos (este provavelmente continua correto)
+  const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
     const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
@@ -64,23 +64,21 @@ const Api = (() => {
     return headers;
   }
 
-  // busca apenas as reservas com status === 'approved'
+  // busca reservas DINÂMICAS (aprovadas) — agora vai consultar na rota certa
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
-    const todasAsReservas = await res.json();
-    // filtra para retornar somente as reservas aprovadas
-    return todasAsReservas.filter(r => r.status === 'approved');
+    return res.json();
   }
 
-  // busca horários fixos (permanece inalterado)
+  // busca horários fixos
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
-  // cria reserva (sem mudança)
+  // cria reserva
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -91,7 +89,7 @@ const Api = (() => {
     return res.json();
   }
 
-  // atualiza reserva (sem mudança)
+  // atualiza reserva
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -102,7 +100,7 @@ const Api = (() => {
     return res.json();
   }
 
-  // deleta reserva (sem mudança)
+  // deleta reserva
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -113,7 +111,7 @@ const Api = (() => {
 
   return {
     fetchEvents,
-    fetchFixedSchedules,  // ← exporta função de fixedSchedules
+    fetchFixedSchedules,
     createEvent,
     updateEvent,
     deleteEvent
