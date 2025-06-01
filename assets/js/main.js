@@ -853,7 +853,7 @@ onReady(async () => {
   let ultimoCountUsuarios  = null;
   let ultimoCountReservas  = null;
 
-  // Obtém a URL-base do backend (ajusta dependendo se é localhost ou não)
+  // Obtém a URL-base do backend
   const BASE_API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000'
     : 'https://coordena-backend.onrender.com';
@@ -901,11 +901,11 @@ onReady(async () => {
 
       const dados = await res.json();
 
-      // Se for primeira vez (ultimoCountUsuarios === null) e já houver pendentes, notifica todos
+      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
       }
-      // Se não for primeira vez e o total aumentou, notifica apenas a diferença
+      // Se não for primeira vez e o total aumentou, notifica só a diferença
       else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
         const diff = dados.length - ultimoCountUsuarios;
         mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
@@ -939,7 +939,7 @@ onReady(async () => {
     if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
       paginaAtualUsuarios = totalPaginas;
     }
-    const inicio   = (paginaAtualUsuarios - 1) * 6;
+    const inicio = (paginaAtualUsuarios - 1) * 6;
     const exibidos = filtrados.slice(inicio, inicio + 6);
 
     const container = document.getElementById('lista-pendentes-usuarios');
@@ -947,7 +947,7 @@ onReady(async () => {
 
     if (filtrados.length === 0) {
       container.innerHTML = `
-        <div class="text-center py-5 text-muted">
+        <div class="text-center py-5 text-light">
           <i class="fas fa-user-clock fa-3x mb-3"></i>
           <h4>Nenhuma solicitação de usuário pendente</h4>
           <p>Não há novos usuários aguardando aprovação.</p>
@@ -960,12 +960,12 @@ onReady(async () => {
     exibidos.forEach(u => {
       html += `
         <div class="col-md-6 col-lg-4">
-          <div class="card shadow-sm">
+          <div class="card card-coordena shadow-sm">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <h5 class="card-title mb-1">${u.name}</h5>
-                  <h6 class="card-subtitle text-muted mb-1">${u.email}</h6>
+                  <h6 class="card-subtitle mb-1">${u.email}</h6>
                 </div>
                 <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
               </div>
@@ -991,10 +991,8 @@ onReady(async () => {
     });
     html += '</div>';
 
-    // Paginação
     if (totalPaginas > 1) {
-      html += `<nav aria-label="Paginação de Usuários" class="mt-4">`;
-      html += `<ul class="pagination justify-content-center">`;
+      html += `<nav aria-label="Paginação de Usuários" class="mt-4"><ul class="pagination justify-content-center">`;
       html += `
         <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
           <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
@@ -1008,8 +1006,8 @@ onReady(async () => {
       html += `
         <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
           <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
-        </li>`;
-      html += `</ul></nav>`;
+        </li>
+      </ul></nav>`;
     }
 
     container.innerHTML = html;
@@ -1036,8 +1034,8 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
       }
-      // Recarrega a lista após aprovação
-      await carregarUsuariosPendentes();
+      // Recarrega a lista de usuários pendentes imediatamente
+      carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em aprovarUsuario():', err);
       alert(err.message);
@@ -1059,8 +1057,8 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
       }
-      // Recarrega a lista após rejeição
-      await carregarUsuariosPendentes();
+      // Recarrega a lista de usuários pendentes
+      carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em rejeitarUsuario():', err);
       alert(err.message);
@@ -1096,11 +1094,11 @@ onReady(async () => {
 
       const dados = await res.json();
 
-      // Se for primeira vez (ultimoCountReservas === null) e já houver pendentes, notifica todos
+      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountReservas === null && dados.length > 0) {
         mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
       }
-      // Se não for primeira vez e o total aumentou, notifica apenas a diferença
+      // Se não for primeira vez e o total aumentou, notifica só a diferença
       else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
         const diff = dados.length - ultimoCountReservas;
         mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
@@ -1117,24 +1115,31 @@ onReady(async () => {
   function renderizarReservasPendentes() {
     const busca     = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
     const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
+    const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
-      const bateBusca = (
-        r.resource.toLowerCase().includes(busca) ||
-        r.responsible.toLowerCase().includes(busca)
-      );
-      const bateData = filtroData ? (r.date === filtroData) : true;
-      return bateBusca && bateData;
+      // Filtra por texto livre (lab ou requisitante)
+      const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
+      if (!textoBusca.includes(busca)) return false;
+
+      // Se tem filtro de data selecionado, forçar que r.date === filtroData
+      if (filtroData && r.date !== filtroData) return false;
+
+      return true;
     });
 
-    // Ordena sempre por data (antes do slice e paginação)
-    filtrados.sort((a, b) => new Date(a.date) - new Date(b.date));
+    filtrados.sort((a, b) => {
+      if (ordenacao === 'date') {
+        return new Date(a.date) - new Date(b.date);
+      }
+      return a[ordenacao].localeCompare(b[ordenacao]);
+    });
 
     const totalPaginas = Math.ceil(filtrados.length / 6);
     if (paginaAtualReservas > totalPaginas && totalPaginas > 0) {
       paginaAtualReservas = totalPaginas;
     }
-    const inicio   = (paginaAtualReservas - 1) * 6;
+    const inicio = (paginaAtualReservas - 1) * 6;
     const exibidos = filtrados.slice(inicio, inicio + 6);
 
     const container = document.getElementById('lista-pendentes-reservas');
@@ -1142,7 +1147,7 @@ onReady(async () => {
 
     if (filtrados.length === 0) {
       container.innerHTML = `
-        <div class="text-center py-5 text-muted">
+        <div class="text-center py-5 text-light">
           <i class="fas fa-calendar-times fa-3x mb-3"></i>
           <h4>Nenhuma solicitação de reserva pendente</h4>
           <p>Não há novas solicitações de reserva.</p>
@@ -1155,12 +1160,12 @@ onReady(async () => {
     exibidos.forEach(r => {
       html += `
         <div class="col-md-6 col-lg-4">
-          <div class="card shadow-sm">
+          <div class="card card-coordena shadow-sm">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <h5 class="card-title mb-1">${r.resource}${r.sala ? ' – ' + r.sala : ''}</h5>
-                  <h6 class="card-subtitle text-muted mb-1">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
+                  <h6 class="card-subtitle mb-1">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
                 </div>
                 <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
               </div>
@@ -1176,11 +1181,11 @@ onReady(async () => {
                 <i class="fas fa-building me-1"></i>
                 <strong>Depto.:</strong> ${r.department}
               </p>
-              <p class="mb-3">
+              <p class="mb-1">
                 <i class="fas fa-info-circle me-1"></i>
                 <strong>Tipo:</strong> ${r.type}
               </p>
-              <div class="d-flex gap-2">
+              <div class="d-flex gap-2 mt-3">
                 <button class="btn btn-success flex-grow-1" onclick="aprovarReserva('${r._id}')">
                   <i class="fas fa-check me-1"></i> Aprovar
                 </button>
@@ -1194,10 +1199,8 @@ onReady(async () => {
     });
     html += '</div>';
 
-    // Paginação
     if (totalPaginas > 1) {
-      html += `<nav aria-label="Paginação de Reservas" class="mt-4">`;
-      html += `<ul class="pagination justify-content-center">`;
+      html += `<nav aria-label="Paginação de Reservas" class="mt-4"><ul class="pagination justify-content-center">`;
       html += `
         <li class="page-item ${paginaAtualReservas === 1 ? 'disabled' : ''}">
           <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a>
@@ -1211,8 +1214,8 @@ onReady(async () => {
       html += `
         <li class="page-item ${paginaAtualReservas === totalPaginas ? 'disabled' : ''}">
           <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a>
-        </li>`;
-      html += `</ul></nav>`;
+        </li>
+      </ul></nav>`;
     }
 
     container.innerHTML = html;
@@ -1239,8 +1242,8 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
       }
-      // Recarrega a lista após aprovação
-      await carregarReservasPendentes();
+      // Recarrega a lista de reservas pendentes imediatamente
+      carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em aprovarReserva():', err);
       alert(err.message);
@@ -1262,8 +1265,8 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
       }
-      // Recarrega a lista após rejeição
-      await carregarReservasPendentes();
+      // Recarrega a lista de reservas pendentes
+      carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em rejeitarReserva():', err);
       alert(err.message);
@@ -1283,6 +1286,10 @@ onReady(async () => {
   });
 
   document.getElementById('busca-reservas')?.addEventListener('input', () => {
+    paginaAtualReservas = 1;
+    renderizarReservasPendentes();
+  });
+  document.getElementById('ordenacao-reservas')?.addEventListener('change', () => {
     paginaAtualReservas = 1;
     renderizarReservasPendentes();
   });
