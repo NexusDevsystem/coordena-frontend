@@ -277,7 +277,7 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    // pré-preenche sempre com o usuário logado
+    // pré‐preenche sempre com o usuário logado
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
@@ -285,7 +285,7 @@ const FormModule = (() => {
     }
 
     if (evData) {
-      // pré-preencher para edição (somente sobrescreve resp se evData.responsible existir)
+      // pré‐preencher para edição caso exista evData
       selectors.fields.data.value = evData.date;
       selectors.fields.start.value = evData.start;
       selectors.fields.end.value = evData.end;
@@ -328,7 +328,7 @@ const FormModule = (() => {
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
-      status: f.status.value,
+      status: 'pending',                // força “pending”
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains('hidden')
@@ -337,27 +337,26 @@ const FormModule = (() => {
     };
 
     // ————————————————————————————————
-    // valida conflito (dinâmico + fixos)
+    // valida conflito (dinâmico + fixos) 
     // ————————————————————————————————
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
-    const dtEnd = new Date(`${payload.date}T${payload.end}`);
-    // checa eventos do backend
+    const dtEnd   = new Date(`${payload.date}T${payload.end}`);
     let conflict = allEvents.some(ev => {
       if (ev.date !== payload.date) return false;
       if ((ev.sala || ev.resource) !== (payload.sala || payload.resource)) return false;
       const evStart = new Date(`${ev.date}T${ev.start}`);
-      const evEnd = new Date(`${ev.date}T${ev.end}`);
+      const evEnd   = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
-    // checa conflitos contra slots fixos (se quiser)
+    // checa conflitos contra slots fixos
     if (!conflict && typeof fixedSlots !== 'undefined') {
       const weekday = new Date(payload.date).getDay();
       conflict = fixedSlots.some(fs => {
         if (fs.lab !== payload.sala) return false;
         if (fs.dayOfWeek !== weekday) return false;
         const fsStart = new Date(`${payload.date}T${fs.startTime}`);
-        const fsEnd = new Date(`${payload.date}T${fs.endTime}`);
+        const fsEnd   = new Date(`${payload.date}T${fs.endTime}`);
         return dtStart < fsEnd && dtEnd > fsStart;
       });
     }
@@ -366,19 +365,29 @@ const FormModule = (() => {
     }
 
     // ————————————————————————————————
-    // cria/atualiza no backend e no calendário
+    // cria/atualiza no backend
     // ————————————————————————————————
     try {
-      let saved;
       if (currentId) {
-        saved = await Api.updateEvent(currentId, payload);
+        // edição de reserva já aprovada (ou em fluxo de edição)
+        const saved = await Api.updateEvent(currentId, payload);
         CalendarModule.update(currentId, saved);
       } else {
-        saved = await Api.createEvent(payload);
-        CalendarModule.add(saved);
+        // criando nova reserva → status “pending”
+        await Api.createEvent(payload);
+
+        // NÃO adicionamos no calendário agora, pois é “pending”
+        alert('Reserva criada! Aguardando aprovação do administrador.');
+
+        // O polling periódico ou recarga da página irá buscar somente reservas com status “approved”,
+        // então, por enquanto, não damos .add() no FullCalendar.
       }
-      // atualiza tabela
-      safeBuildOccupancyTable(f.data.value);
+
+      // atualiza a tabela de ocupação (mesmo que não entre no calendário, 
+      // a tabela pode exibir algo ou atualizar)
+      const dateValue = f.data.value;
+      safeBuildOccupancyTable(dateValue);
+
       close();
     } catch (err) {
       alert('Erro: ' + err.message);
@@ -394,10 +403,11 @@ const FormModule = (() => {
       selectors.fields.resp.setAttribute('readonly', 'readonly');
     }
 
-    // pré-calcula término +50min
+    // pré‐calcula término +50min
     selectors.fields.start.addEventListener('change', () => {
       const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
-      const d = new Date(); d.setHours(hh, mm + 50);
+      const d = new Date();
+      d.setHours(hh, mm + 50);
       selectors.fields.end.value =
         `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
@@ -407,9 +417,9 @@ const FormModule = (() => {
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
-    // mapa de salas
+    // mapa de salas (igual antes)
     const salaOpts = {
-      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab imaginologia']
+      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -474,7 +484,7 @@ const FormModule = (() => {
 
     selectors.fields.dept?.addEventListener('change', () => {
       const lista = courseMap[selectors.fields.dept.value] || [];
-      const sel = selectors.fields.materia; // é o <select id="curso">
+      const sel = selectors.fields.materia;
       if (lista.length) {
         sel.innerHTML =
           '<option value="">Selecione a matéria...</option>' +
@@ -489,7 +499,6 @@ const FormModule = (() => {
 
   return { init, open };
 })();
-
 // ----------------------
 // MÓDULO MODAL DETALHES
 // ----------------------
