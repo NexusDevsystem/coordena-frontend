@@ -1,15 +1,6 @@
-// ============================
+// ======================================
 // assets/js/main.js
-// ============================
-
 // ======================================
-// CORES PARA TURNOS FIXOS DE AULA
-// ======================================
-const turnoColors = {
-  "Manhã": "rgba(75, 85, 99, 0.2)",
-  "Tarde": "rgba(75, 85, 99, 0.2)",
-  "Noite": "rgba(75, 85, 99, 0.2)"
-};
 
 // ----------------------
 // UTILIDADES
@@ -23,52 +14,56 @@ function onReady(fn) {
 }
 
 // --------------------------------------------------
-//  VARIÁVEL GLOBAL E FUNÇÕES PARA NATIVE NOTIFICATIONS
+// VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-// Indica se o usuário já concedeu permissão ao browser
+// 1) Variável global para saber se o usuário permitiu notificações
 let notificacoesAtivas = false;
 
-// Chama Notification.requestPermission() para solicitar ao usuário
-// que aceite notificações. Deve ser chamado a partir de um clique
-// (ex.: botão “Ativar Notificações”)
+// 2) Função para solicitar permissão ao navegador (deve ser chamada via clique)
 function solicitarPermissaoNotificacao() {
+  // Verifica se o browser suporta a API de Notifications
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta notificações nativas.");
     return;
   }
 
-  // Se já tiver concedido permissão, não pede de novo
+  // Se já estiver “granted”, apenas marca como ativo e retorna
   if (Notification.permission === "granted") {
     notificacoesAtivas = true;
-    console.log("Permissão de Notificações já estava concedida.");
+    console.log("Permissão de Notificações já concedida anteriormente.");
     return;
   }
 
-  // Se estiver “denied”, não adianta pedir de novo (ou dá para tentar)
+  // Se não estiver negado, pede permissão
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
-      notificacoesAtivas = (permission === "granted");
-      console.log("Permissão de Notificações:", permission);
+      if (permission === "granted") {
+        notificacoesAtivas = true;
+        console.log("Permissão de Notificações concedida pelo usuário.");
+      } else {
+        notificacoesAtivas = false;
+        console.log("Permissão de Notificações negada ou pausada pelo usuário.");
+      }
     });
   } else {
-    console.log("Permissão de notificações foi negada anteriormente.");
+    console.log("Permissão de notificações foi negada anteriormente; não será solicitada de novo.");
   }
 }
 
-// Envia a notificação nativa se o usuário tiver dado permissão
+// 3) Função para enviar a notificação nativa (se tiver permissão)
 function enviarNotificacao(titulo, texto) {
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
-      icon: "/assets/img/logo-notification.png"  // ajuste se precisar trocar o ícone
+      icon: "/assets/img/logo-notification.png" // ajuste o caminho do ícone conforme sua pasta
     });
   }
 }
 
-// ----------------------
+// --------------------------------------------------
 // MÓDULO DE TEMA (Dark/Light)
-// ----------------------
+// --------------------------------------------------
 const ThemeToggle = (() => {
   const themeKey = 'theme';
   const root = document.documentElement;
@@ -92,13 +87,16 @@ const ThemeToggle = (() => {
   return { init };
 })();
 
-// ----------------------
+// --------------------------------------------------
 // MÓDULO DE API
-// ----------------------
+// --------------------------------------------------
 const Api = (() => {
+  // Rota base de reservas (coleção “reservations”)
   const BASE = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000/api/reservations'
     : 'https://coordena-backend.onrender.com/api/reservations';
+
+  // Rota derivada para horários fixos
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
@@ -107,18 +105,21 @@ const Api = (() => {
     return headers;
   }
 
+  // Busca reservas DINÂMICAS (aprovadas)
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
 
+  // Busca horários fixos
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
+  // Cria reserva
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -129,6 +130,7 @@ const Api = (() => {
     return res.json();
   }
 
+  // Atualiza reserva
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -139,6 +141,7 @@ const Api = (() => {
     return res.json();
   }
 
+  // Deleta reserva
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -156,18 +159,19 @@ const Api = (() => {
   };
 })();
 
-// ----------------------
+// --------------------------------------------------
 // MÓDULO CALENDÁRIO (SUPORTE MOBILE + FIXED)
-// ----------------------
+// --------------------------------------------------
 const CalendarModule = (() => {
   let calendar;
-  let events = [];
-  let fixedSlots = [];
+  let events = [];      // array interno com as reservas atualmente exibidas
+  let fixedSlots = [];  // usado pela tabela de ocupação
 
+  // 1) Carrega os horários fixos do back-end e injeta como “background events”
   async function loadFixedSchedules() {
     try {
       const fixed = await Api.fetchFixedSchedules();
-      fixedSlots = fixed;
+      fixedSlots = fixed; // para uso na tabela de ocupação
       const fixedEvents = fixed.map(slot => ({
         title: `${slot.lab} (${slot.turno})`,
         daysOfWeek: [slot.dayOfWeek],
@@ -182,6 +186,7 @@ const CalendarModule = (() => {
     }
   }
 
+  // 2) Recarrega TODAS as reservas aprovadas do back-end e atualiza o FullCalendar
   async function reloadEvents() {
     try {
       const approvedReservations = await Api.fetchEvents();
@@ -204,6 +209,7 @@ const CalendarModule = (() => {
     }
   }
 
+  // 3) Inicializa o FullCalendar com eventos iniciais
   function init(rawEvents, onDateClick, onEventClick) {
     events = rawEvents;
     const el = document.getElementById('calendar');
@@ -211,6 +217,7 @@ const CalendarModule = (() => {
       console.error('#calendar não encontrado');
       return;
     }
+
     const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
@@ -241,7 +248,11 @@ const CalendarModule = (() => {
     });
 
     calendar.render();
+
+    // 3.1) Carrega horários fixos (background)
     loadFixedSchedules();
+
+    // 3.2) A cada 30 segundos, recarrega eventos aprovados
     setInterval(() => {
       reloadEvents();
       if (typeof buildOccupancyTable === 'function') {
@@ -249,6 +260,7 @@ const CalendarModule = (() => {
       }
     }, 30 * 1000);
 
+    // 3.3) Ajusta view em resize
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -260,6 +272,7 @@ const CalendarModule = (() => {
     });
   }
 
+  // 4) Insere um novo evento dinamicamente
   function add(ev) {
     events.push(ev);
     calendar.addEvent({
@@ -270,6 +283,7 @@ const CalendarModule = (() => {
     });
   }
 
+  // 5) Atualiza um evento existente
   function update(id, ev) {
     const idx = events.findIndex(x => x._id === id);
     if (idx !== -1) events[idx] = ev;
@@ -281,6 +295,7 @@ const CalendarModule = (() => {
     }
   }
 
+  // 6) Remove um evento
   function remove(id) {
     events = events.filter(x => x._id !== id);
     const fcEvent = calendar.getEventById(id);
@@ -296,9 +311,9 @@ const CalendarModule = (() => {
   };
 })();
 
-// ----------------------
+// --------------------------------------------------
 // MÓDULO FORMULÁRIO (CRIAÇÃO E EDIÇÃO DE RESERVA)
-// ----------------------
+// --------------------------------------------------
 const FormModule = (() => {
   let currentId = null;
   const selectors = {};
@@ -333,7 +348,6 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    // Pré-preenche “responsável” com o nome do usuário logado, se existir
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
@@ -341,7 +355,6 @@ const FormModule = (() => {
     }
 
     if (evData) {
-      // Se for edição (nunca usado para professor, mas mantemos aqui)
       selectors.fields.data.value  = evData.date;
       selectors.fields.start.value = evData.start;
       selectors.fields.end.value   = evData.end;
@@ -425,24 +438,14 @@ const FormModule = (() => {
     // ————————————————————————————————
     try {
       if (currentId) {
-        // Se estivesse editando uma reserva já aprovada (fluxo de edição)
         const updated = await Api.updateEvent(currentId, payload);
         CalendarModule.update(currentId, updated);
       } else {
-        // Criação de nova reserva → status “pending”
         await Api.createEvent(payload);
-
-        // NÃO adicionamos ao calendário ainda (porque está PENDENTE)
         alert('✅ Reserva criada! Aguardando aprovação do administrador.');
-
-        // O polling periódico do calendário irá buscar a rota GET /api/reservas
-        // e só trará a reserva depois que o admin mudar status → "approved".
       }
-
-      // Atualiza tabela de ocupação (caso esteja aberta no modal)
       const dateValue = f.data.value;
       safeBuildOccupancyTable(dateValue);
-
       close();
     } catch (err) {
       alert('Erro ao criar/atualizar reserva: ' + err.message);
@@ -452,14 +455,12 @@ const FormModule = (() => {
   function init() {
     cacheSelectors();
 
-    // Se houver um usuário logado, deixa “responsável” preenchido e readonly
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
     }
 
-    // Pré‐calcula término em +50 minutos automaticamente
     selectors.fields.start.addEventListener('change', () => {
       const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
       const d = new Date();
@@ -468,12 +469,10 @@ const FormModule = (() => {
         `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
 
-    // Botões de abrir/fechar modal
     selectors.btnOpen?.addEventListener('click', () => open());
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
-    // … configuração de mapa de salas e lista de matérias (iguais ao que você já tinha) …
     const salaOpts = {
       'Laboratório': ['Lab B401','Lab B402','Lab B403','Lab B404','Lab B405','Lab B406','Lab Imaginologia']
     };
@@ -489,7 +488,6 @@ const FormModule = (() => {
       }
     });
 
-    // mapa de cursos × matérias (completo)
     const courseMap = {
       'Engenharia de Computação': [
         'ARA0003 - PRINCÍPIOS DE GESTÃO',
@@ -555,41 +553,42 @@ const FormModule = (() => {
 
   return { init, open };
 })();
-// ----------------------
+
+// --------------------------------------------------
 // MÓDULO MODAL DETALHES
-// ----------------------
+// --------------------------------------------------
 const DetailModule = (() => {
   let currentId = null;
   const selectors = {};
 
   function cacheSelectors() {
-    selectors.modal = document.getElementById('event-modal');
-    selectors.btnClose = document.getElementById('modal-close');
-    selectors.btnEdit = document.getElementById('modal-edit');
+    selectors.modal   = document.getElementById('event-modal');
+    selectors.btnClose  = document.getElementById('modal-close');
+    selectors.btnEdit   = document.getElementById('modal-edit');
     selectors.btnDelete = document.getElementById('modal-cancel');
     selectors.fields = {
-      date: document.getElementById('modal-date'),
+      date:     document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
-      type: document.getElementById('modal-type'),
-      resp: document.getElementById('modal-resp'),
-      dept: document.getElementById('modal-dept'),
-      materia: document.getElementById('modal-materia'),
-      status: document.getElementById('modal-status'),
-      desc: document.getElementById('modal-desc')
+      type:     document.getElementById('modal-type'),
+      resp:     document.getElementById('modal-resp'),
+      dept:     document.getElementById('modal-dept'),
+      materia:  document.getElementById('modal-materia'),
+      status:   document.getElementById('modal-status'),
+      desc:     document.getElementById('modal-desc')
     };
   }
 
   function open(ev) {
     currentId = ev._id;
     const f = selectors.fields;
-    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
+    f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
     f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent = `Evento: ${ev.type}`;
-    f.resp.textContent = `Responsável: ${ev.responsible}`;
-    f.dept.textContent = `Curso: ${ev.department}`;
-    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent = `Status: ${ev.status}`;
-    f.desc.textContent = ev.description || 'Sem descrição';
+    f.type.textContent     = `Evento: ${ev.type}`;
+    f.resp.textContent     = `Responsável: ${ev.responsible}`;
+    f.dept.textContent     = `Curso: ${ev.department}`;
+    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
+    f.status.textContent   = `Status: ${ev.status}`;
+    f.desc.textContent     = ev.description || 'Sem descrição';
     selectors.modal.classList.remove('hidden');
   }
 
@@ -627,7 +626,7 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // vai ser populado em initOccupancyUpdates()
+let fixedSlots = [];
 
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -637,25 +636,22 @@ function toDate(Y, M, D, hm) {
   return new Date(Y, M - 1, D, h, m);
 }
 
-// **wrapper** que protege contra crashes
 async function safeBuildOccupancyTable(filterDate) {
   try {
     await buildOccupancyTable(filterDate);
   } catch (err) {
     console.error('Erro na tabela de ocupação:', err);
-    // aqui podemos até mostrar uma mensagem de fallback, mas não re-throw
   }
 }
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';  // limpa antes de tudo
+  table.innerHTML = '';
 
-  // 1) dados de reservas e slots fixos do dia
   const allEvents       = CalendarModule.getEvents();
-  const dateStr         = filterDate || new Date().toISOString().slice(0,10);
+  const dateStr         = filterDate || new Date().toISOString().slice(0, 10);
   const [Y, M, D]       = dateStr.split('-').map(Number);
-  const weekday         = new Date(Y, M-1, D).getDay();
+  const weekday         = new Date(Y, M - 1, D).getDay();
   const now             = new Date();
   const dayEvents       = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
@@ -678,13 +674,11 @@ async function buildOccupancyTable(filterDate) {
     ...dayEvents.map(e => e.sala || e.resource)
   ]));
 
-  // 4) se não há dados
   if (!timeRanges.length || !labs.length) {
     table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
     return;
   }
 
-  // 5) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
@@ -695,7 +689,6 @@ async function buildOccupancyTable(filterDate) {
     </tr>`;
   table.appendChild(thead);
 
-  // 6) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -706,7 +699,6 @@ async function buildOccupancyTable(filterDate) {
       const cellStart    = toDate(Y, M, D, start);
       const cellEnd      = toDate(Y, M, D, end);
 
-      // reserva?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
@@ -714,14 +706,12 @@ async function buildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // aula fixa?
       const fixed = fixedTodaySlots.find(fs =>
         fs.lab === lab &&
         toDate(Y, M, D, fs.startTime) < cellEnd &&
         toDate(Y, M, D, fs.endTime) > cellStart
       );
 
-      // cor/texto
       let style = '', label = '';
       if (hasReservation) {
         style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
@@ -751,9 +741,7 @@ async function buildOccupancyTable(filterDate) {
 async function refreshEvents() {
   try {
     const updated = await Api.fetchEvents();
-    // limpa todos
     CalendarModule.getEvents().slice().forEach(e => CalendarModule.remove(e._id));
-    // adiciona novamente
     updated.forEach(e => CalendarModule.add(e));
   } catch (err) {
     console.error('Erro ao buscar eventos:', err);
@@ -761,7 +749,6 @@ async function refreshEvents() {
 }
 
 async function initOccupancyUpdates() {
-  // carrega fixedSlots
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
@@ -771,10 +758,8 @@ async function initOccupancyUpdates() {
   const dateInput = document.getElementById('occupancy-date');
   dateInput.value = new Date().toISOString().slice(0, 10);
 
-  // listener de data
   dateInput.addEventListener('change', () => safeBuildOccupancyTable(dateInput.value));
 
-  // ciclos de atualização
   safeBuildOccupancyTable(dateInput.value);
   setInterval(() => safeBuildOccupancyTable(dateInput.value), 5 * 1000);
   setInterval(async () => {
@@ -783,26 +768,27 @@ async function initOccupancyUpdates() {
   }, 2 * 60 * 1000);
 }
 
-
-// ----------------------
+// --------------------------------------------------
 // INICIALIZAÇÃO PRINCIPAL
-// ----------------------
+// --------------------------------------------------
 onReady(async () => {
-  // 0) Preenche nome e e-mail do usuário no menu
+  // 0) Não chamar solicitarPermissaoNotificacao() aqui (precisa de clique do usuário)
+
+  // 1) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
   if (user) {
     const nameEl  = document.getElementById('menu-user-name');
     const emailEl = document.getElementById('menu-user-email');
-    if (nameEl)  nameEl.textContent  = user.name  || '—';
+    if (nameEl) nameEl.textContent  = user.name  || '—';
     if (emailEl) emailEl.textContent = user.email || '—';
   }
 
-  // 1) Inicializa tema, formulários e detalhes
+  // 2) Inicializa tema, formulários e detalhes
   ThemeToggle.init();
   FormModule.init();
   DetailModule.init();
 
-  // 2) Sincroniza o comportamento do botão de tema no menu
+  // 3) Sincroniza o comportamento do botão de tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -822,7 +808,7 @@ onReady(async () => {
     });
   }
 
-  // 3) Botão de logout — redireciona para "/login.html"
+  // 4) Botão de Logout — redireciona para "/login.html"
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
@@ -833,7 +819,18 @@ onReady(async () => {
     });
   }
 
-  // 4) Busca reservas iniciais para o FullCalendar
+  // 5) Botão “Ativar Notificações” — solicita permissão ao navegador
+  const btnNotifs = document.getElementById('btn-ativar-notificacoes');
+  if (btnNotifs) {
+    btnNotifs.addEventListener('click', () => {
+      solicitarPermissaoNotificacao();
+      // Desabilita o botão após solicitar
+      btnNotifs.setAttribute('disabled', 'disabled');
+      btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
+    });
+  }
+
+  // 6) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -841,32 +838,33 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 5) Referência única ao date-picker
+  // 7) Referência ao date-picker de ocupação
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-date não encontrado!');
     return;
   }
 
-  // 6) Inicializa o FullCalendar
+  // 8) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
       dateInput.value = info.dateStr;
       buildOccupancyTable(info.dateStr);
 
+      // Abre modal de criação de reserva com valores vazios
       FormModule.open(null, {
-        date: info.dateStr,
-        start: '00:00',
-        end: '00:00',
-        resource: '',
-        sala: '',
-        type: '',
+        date:        info.dateStr,
+        start:       '00:00',
+        end:         '00:00',
+        resource:    '',
+        sala:        '',
+        type:        '',
         responsible: '',
-        department: '',
-        status: '',
+        department:  '',
+        status:      '',
         description: '',
-        time: ''
+        time:        ''
       });
     },
     info => {
@@ -877,27 +875,25 @@ onReady(async () => {
     }
   );
 
-  // 7) Configura date-picker
+  // 9) Configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value);
   });
 
-  // 8) Inicia auto-refresh da tabela de ocupação
+  // 10) Inicia auto-refresh da tabela de ocupação
   initOccupancyUpdates();
 
-  // 9) Listener extra (importação desativada)
+  // 11) Listener extra (importação desativada)
   document
     .getElementById('import-schedule')
     ?.addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-  // 10) Chamada inicial para popular a tabela
+  // 12) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
-
-
 
 // ==================================================
 // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
@@ -910,23 +906,23 @@ onReady(async () => {
     return;
   }
 
-  // =======================
+  // ----------------------
   // VARIÁVEIS GLOBAIS DO ADMIN
-  // =======================
-  let usuariosPendentes = [];
-  let reservasPendentes = [];
-  let paginaAtualUsuarios = 1;
-  let paginaAtualReservas = 1;
-  let ultimoCountUsuarios = null;
-  let ultimoCountReservas = null;
+  // ----------------------
+  let usuariosPendentes    = [];
+  let reservasPendentes    = [];
+  let paginaAtualUsuarios  = 1;
+  let paginaAtualReservas  = 1;
+  let ultimoCountUsuarios  = null;
+  let ultimoCountReservas  = null;
 
   const BASE_API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000'
     : 'https://coordena-backend.onrender.com';
 
-  // =======================
+  // ----------------------
   // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
-  // =======================
+  // ----------------------
   function mostrarToast(texto) {
     const body = document.getElementById('meuToastBody');
     if (body) body.innerText = texto;
@@ -937,10 +933,11 @@ onReady(async () => {
     }
   }
 
-  // =======================
+  // --------------------------------------------------
   // 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
-  // =======================
+  // --------------------------------------------------
   async function carregarUsuariosPendentes() {
+    console.log("📢 carregarUsuariosPendentes() invocada");
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -966,9 +963,6 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-      console.log("🔍 Pending-users:", dados);
-
-      // Se já tiver permitido notificações, envia native notification
       const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
@@ -992,17 +986,166 @@ onReady(async () => {
       }
 
       ultimoCountUsuarios = dados.length;
-      usuariosPendentes = dados;
-      renderizarUsuariosPendentes();  // sua função já existente que monta a lista de cards
+      usuariosPendentes   = dados;
+      renderizarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em carregarUsuariosPendentes():', err);
     }
   }
 
-  // =====================================
+  function renderizarUsuariosPendentes() {
+    const busca = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
+    const ordenacao = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
+
+    let filtrados = usuariosPendentes.filter(u =>
+      u.name.toLowerCase().includes(busca) ||
+      u.email.toLowerCase().includes(busca)
+    );
+
+    filtrados.sort((a, b) => {
+      if (ordenacao === 'createdAt') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
+      return a[ordenacao].localeCompare(b[ordenacao]);
+    });
+
+    const totalPaginas = Math.ceil(filtrados.length / 6);
+    if (paginaAtualUsuarios > totalPaginas && totalPaginas > 0) {
+      paginaAtualUsuarios = totalPaginas;
+    }
+    const inicio = (paginaAtualUsuarios - 1) * 6;
+    const exibidos = filtrados.slice(inicio, inicio + 6);
+
+    const container = document.getElementById('lista-pendentes-usuarios');
+    if (!container) return;
+
+    if (filtrados.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-5 text-light">
+          <i class="fas fa-user-clock fa-3x mb-3"></i>
+          <h4>Nenhuma solicitação de usuário pendente</h4>
+          <p>Não há novos usuários aguardando aprovação.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '<div class="row gx-3 gy-4">';
+    exibidos.forEach(u => {
+      html += `
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-coordena shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h5 class="card-title mb-1">${u.name}</h5>
+                  <h6 class="card-subtitle mb-1">${u.email}</h6>
+                </div>
+                <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+              </div>
+              <p class="mb-1">
+                <i class="fas fa-user-tag me-1"></i>
+                <strong>Tipo:</strong> ${u.role}
+              </p>
+              <p class="mb-3">
+                <i class="fas fa-calendar-alt me-1"></i>
+                <strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString('pt-BR')}
+              </p>
+              <div class="d-flex gap-2">
+                <button class="btn btn-success flex-grow-1" onclick="aprovarUsuario('${u._id}')">
+                  <i class="fas fa-check me-1"></i> Aprovar
+                </button>
+                <button class="btn btn-danger flex-grow-1" onclick="rejeitarUsuario('${u._id}')">
+                  <i class="fas fa-times me-1"></i> Rejeitar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+
+    if (totalPaginas > 1) {
+      html += `<nav aria-label="Paginação de Usuários" class="mt-4"><ul class="pagination justify-content-center">`;
+      html += `
+        <li class="page-item ${paginaAtualUsuarios === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a>
+        </li>`;
+      for (let p = 1; p <= totalPaginas; p++) {
+        html += `
+          <li class="page-item ${paginaAtualUsuarios === p ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a>
+          </li>`;
+      }
+      html += `
+        <li class="page-item ${paginaAtualUsuarios === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a>
+        </li>
+      </ul></nav>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function mudarPaginaUsuarios(p) {
+    paginaAtualUsuarios = p;
+    renderizarUsuariosPendentes();
+    document.getElementById('lista-pendentes-usuarios')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function aprovarUsuario(id) {
+    if (!confirm('Tem certeza que deseja aprovar este usuário?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/approve-user/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
+      }
+      carregarUsuariosPendentes();
+    } catch (err) {
+      console.error('Erro em aprovarUsuario():', err);
+      alert(err.message);
+    }
+  }
+
+  async function rejeitarUsuario(id) {
+    if (!confirm('Tem certeza que deseja rejeitar e excluir este usuário?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
+      }
+      carregarUsuariosPendentes();
+    } catch (err) {
+      console.error('Erro em rejeitarUsuario():', err);
+      alert(err.message);
+    }
+  }
+
+  window.aprovarUsuario    = aprovarUsuario;
+  window.rejeitarUsuario   = rejeitarUsuario;
+  window.mudarPaginaUsuarios = mudarPaginaUsuarios;
+
+  // --------------------------------------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
-  // =====================================
+  // --------------------------------------------------
   async function carregarReservasPendentes() {
+    console.log("📢 carregarReservasPendentes() invocada");
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -1052,16 +1195,176 @@ onReady(async () => {
       }
 
       ultimoCountReservas = dados.length;
-      reservasPendentes = dados;
-      renderizarReservasPendentes();  // sua função que monta os cards de reserva pendente
+      reservasPendentes   = dados;
+      renderizarReservasPendentes();
     } catch (err) {
       console.error('Erro em carregarReservasPendentes():', err);
     }
   }
 
-  // ------------------------------------------
-  // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO 100%)
-  // ------------------------------------------
+  function renderizarReservasPendentes() {
+    const busca = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
+    const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
+    const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
+
+    let filtrados = reservasPendentes.filter(r => {
+      const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
+      if (!textoBusca.includes(busca)) return false;
+      if (filtroData && r.date !== filtroData) return false;
+      return true;
+    });
+
+    filtrados.sort((a, b) => {
+      if (ordenacao === 'date') {
+        return new Date(a.date) - new Date(b.date);
+      }
+      return a[ordenacao].localeCompare(b[ordenacao]);
+    });
+
+    const totalPaginas = Math.ceil(filtrados.length / 6);
+    if (paginaAtualReservas > totalPaginas && totalPaginas > 0) {
+      paginaAtualReservas = totalPaginas;
+    }
+    const inicio = (paginaAtualReservas - 1) * 6;
+    const exibidos = filtrados.slice(inicio, inicio + 6);
+
+    const container = document.getElementById('lista-pendentes-reservas');
+    if (!container) return;
+
+    if (filtrados.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-5 text-light">
+          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+          <h4>Nenhuma solicitação de reserva pendente</h4>
+          <p>Não há novas solicitações de reserva.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '<div class="row gx-3 gy-4">';
+    exibidos.forEach(r => {
+      html += `
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-coordena shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h5 class="card-title mb-1">${r.resource}${r.sala ? ' – ' + r.sala : ''}</h5>
+                  <h6 class="card-subtitle mb-1">${new Date(r.date).toLocaleDateString('pt-BR')}</h6>
+                </div>
+                <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+              </div>
+              <p class="mb-1">
+                <i class="fas fa-clock me-1"></i>
+                <strong>Horário:</strong> ${r.start} – ${r.end}
+              </p>
+              <p class="mb-1">
+                <i class="fas fa-user me-1"></i>
+                <strong>Requisitante:</strong> ${r.responsible}
+              </p>
+              <p class="mb-1">
+                <i class="fas fa-building me-1"></i>
+                <strong>Depto.:</strong> ${r.department}
+              </p>
+              <p class="mb-1">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Tipo:</strong> ${r.type}
+              </p>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-success flex-grow-1" onclick="aprovarReserva('${r._id}')">
+                  <i class="fas fa-check me-1"></i> Aprovar
+                </button>
+                <button class="btn btn-danger flex-grow-1" onclick="rejeitarReserva('${r._id}')">
+                  <i class="fas fa-times me-1"></i> Rejeitar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+
+    if (totalPaginas > 1) {
+      html += `<nav aria-label="Paginação de Reservas" class="mt-4"><ul class="pagination justify-content-center">`;
+      html += `
+        <li class="page-item ${paginaAtualReservas === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a>
+        </li>`;
+      for (let p = 1; p <= totalPaginas; p++) {
+        html += `
+          <li class="page-item ${paginaAtualReservas === p ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="mudarPaginaReservas(${p})">${p}</a>
+          </li>`;
+      }
+      html += `
+        <li class="page-item ${paginaAtualReservas === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a>
+        </li>
+      </ul></nav>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function mudarPaginaReservas(p) {
+    paginaAtualReservas = p;
+    renderizarReservasPendentes();
+    document.getElementById('lista-pendentes-reservas')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function aprovarReserva(id) {
+    if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/approve-reservation/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
+      }
+      carregarReservasPendentes();
+      carregarReservasAtivas();
+    } catch (err) {
+      console.error('Erro em aprovarReserva():', err);
+      alert(err.message);
+    }
+  }
+
+  async function rejeitarReserva(id) {
+    if (!confirm('Tem certeza que deseja rejeitar esta reserva?')) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/reject-reservation/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
+      }
+      carregarReservasPendentes();
+    } catch (err) {
+      console.error('Erro em rejeitarReserva():', err);
+      alert(err.message);
+    }
+  }
+
+  window.aprovarReserva    = aprovarReserva;
+  window.rejeitarReserva   = rejeitarReserva;
+  window.mudarPaginaReservas = mudarPaginaReservas;
+
+  // --------------------------------------------------
+  // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO CHEGAR EM 100%)
+  // --------------------------------------------------
   let intervaloReservasAtivas = null;
 
   async function deleteReservation(id) {
@@ -1100,6 +1403,7 @@ onReady(async () => {
       console.log("🔍 Reservas aprovadas:", todasReservas);
 
       const agora = new Date();
+      // Deleta automaticamente as que já passaram
       todasReservas.forEach(r => {
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) {
@@ -1107,6 +1411,7 @@ onReady(async () => {
         }
       });
 
+      // Filtra somente as que ainda não passaram
       const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
       const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
 
@@ -1196,7 +1501,6 @@ onReady(async () => {
     carregarReservasAtivas();
   });
 
-  // Quando a página de admin estiver carregada (DOM pronto), dispara todos os carregamentos e polling:
   onReady(() => {
     console.log("🟢 onReady/admin: iniciando pendentes e ativas");
     carregarUsuariosPendentes();
@@ -1207,9 +1511,9 @@ onReady(async () => {
     }, 30_000);
   });
 
-  // ----------------------
+  // --------------------------------------------------
   // 4) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
-  // ----------------------
+  // --------------------------------------------------
   document.getElementById('busca-usuarios')?.addEventListener('input', () => {
     paginaAtualUsuarios = 1;
     renderizarUsuariosPendentes();
@@ -1232,17 +1536,17 @@ onReady(async () => {
     renderizarReservasPendentes();
   });
 
-  // ----------------------
-  // 5) POLLING AUTOMÁTICO (Usuários + Reservas Pendentes)
-  // ----------------------
+  // --------------------------------------------------
+  // 5) POLLING AUTOMÁTICO (Usuários + Reservas)
+  // --------------------------------------------------
   setInterval(async () => {
     await carregarUsuariosPendentes();
     await carregarReservasPendentes();
   }, 10_000);
 
-  // ----------------------
+  // --------------------------------------------------
   // 6) LOGOUT DO ADMIN
-  // ----------------------
+  // --------------------------------------------------
   document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
     localStorage.removeItem('admin_user');
     localStorage.removeItem('admin_token');
