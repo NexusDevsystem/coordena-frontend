@@ -5,8 +5,8 @@
 // ======================================
 const turnoColors = {
   "Manhã": "rgba(75, 85, 99, 0.2)",   // azul claro
-  "Tarde": "rgba(75, 85, 99, 0.2)",   // laranja claro
-  "Noite": "rgba(75, 85, 99, 0.2)"    // cinza claro
+  "Tarde": "rgba(75, 85, 99, 0.2)",    // laranja claro
+  "Noite": "rgba(75, 85, 99, 0.2)"      // cinza claro
 };
 
 // ----------------------
@@ -21,25 +21,19 @@ function onReady(fn) {
 }
 
 // ----------------------
-// PEDIR PERMISSÃO DE NOTIFICAÇÃO
+// FUNÇÃO: SOLICITA PERMISSÃO DE NOTIFICAÇÕES
 // ----------------------
 function solicitarPermissaoNotificacao() {
-  // Se o navegador não suportar Notifications, não faz nada
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta notificações.");
     return;
   }
-
-  // Se já tiver sido concedida, não faz nada
   if (Notification.permission === "granted") {
     return;
   }
-
-  // Se ainda não tiver sido respondida (default), pede permissão
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       console.log("Permissão para Notificação:", permission);
-      // Se o usuário negar, Notification.permission ficará "denied"
     });
   }
 }
@@ -88,21 +82,18 @@ const Api = (() => {
     return headers;
   }
 
-  // busca reservas DINÂMICAS (aprovadas)
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
 
-  // busca horários fixos
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
-  // cria reserva
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -113,7 +104,6 @@ const Api = (() => {
     return res.json();
   }
 
-  // atualiza reserva
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -124,7 +114,6 @@ const Api = (() => {
     return res.json();
   }
 
-  // deleta reserva
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -147,14 +136,13 @@ const Api = (() => {
 // ----------------------
 const CalendarModule = (() => {
   let calendar;
-  let events = [];      // array interno com as reservas atualmente exibidas
-  let fixedSlots = [];  // usado pela tabela de ocupação
+  let events = [];
+  let fixedSlots = [];
 
-  // 1) Carrega os horários fixos do back-end e injeta como “background events”
   async function loadFixedSchedules() {
     try {
       const fixed = await Api.fetchFixedSchedules();
-      fixedSlots = fixed; // para uso na tabela de ocupação
+      fixedSlots = fixed;
       const fixedEvents = fixed.map(slot => ({
         title: `${slot.lab} (${slot.turno})`,
         daysOfWeek: [slot.dayOfWeek],
@@ -169,21 +157,15 @@ const CalendarModule = (() => {
     }
   }
 
-  // 2) Recarrega TODAS as reservas aprovadas do back-end e atualiza o FullCalendar
   async function reloadEvents() {
     try {
       const approvedReservations = await Api.fetchEvents();
-
-      // limpa todos os eventos “dinâmicos” atuais (não remove os fixedEvents)
       calendar.getEvents().forEach(fcEvent => {
         if (fcEvent.rendering !== 'background') {
           fcEvent.remove();
         }
       });
-
       events = approvedReservations;
-
-      // injeta todas as reservas aprovadas no FullCalendar
       approvedReservations.forEach(ev => {
         calendar.addEvent({
           id: ev._id,
@@ -197,16 +179,13 @@ const CalendarModule = (() => {
     }
   }
 
-  // 3) Inicializa o FullCalendar com uma lista inicial de “rawEvents”
   function init(rawEvents, onDateClick, onEventClick) {
     events = rawEvents;
-
     const el = document.getElementById('calendar');
     if (!el) {
       console.error('#calendar não encontrado');
       return;
     }
-
     const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
@@ -228,7 +207,6 @@ const CalendarModule = (() => {
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
-        // bloqueia seleção se já existir algum “background event” nesse intervalo
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -236,22 +214,14 @@ const CalendarModule = (() => {
         );
       }
     });
-
     calendar.render();
-
-    // 3.1) Carrega e mostra os horários fixos (“background events”)
     loadFixedSchedules();
-
-    // 3.2) A cada 30 segundos, recarrega as reservas aprovadas (se houver novas aprovações)
     setInterval(() => {
       reloadEvents();
-      // Também atualiza a tabela de ocupação, se for o caso
       if (typeof buildOccupancyTable === 'function') {
         buildOccupancyTable(document.getElementById('occupancy-date')?.value);
       }
     }, 30 * 1000);
-
-    // 3.3) Ajusta o calendário em caso de resize da tela
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
@@ -263,7 +233,6 @@ const CalendarModule = (() => {
     });
   }
 
-  // 4) Insere um novo evento dinamicamente (chamado após o usuário criar uma reserva)
   function add(ev) {
     events.push(ev);
     calendar.addEvent({
@@ -274,11 +243,9 @@ const CalendarModule = (() => {
     });
   }
 
-  // 5) Atualiza um evento existente (por exemplo, se o usuário editar a própria reserva)
   function update(id, ev) {
     const idx = events.findIndex(x => x._id === id);
     if (idx !== -1) events[idx] = ev;
-
     const fcEvent = calendar.getEventById(id);
     if (fcEvent) {
       fcEvent.setProp('title', `${ev.title} (${ev.time})`);
@@ -287,7 +254,6 @@ const CalendarModule = (() => {
     }
   }
 
-  // 6) Remove um evento (por exemplo, o usuário cancelou)
   function remove(id) {
     events = events.filter(x => x._id !== id);
     const fcEvent = calendar.getEventById(id);
@@ -340,7 +306,6 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    // Pré-preenche “responsável” com o nome do usuário logado, se existir
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
@@ -348,7 +313,6 @@ const FormModule = (() => {
     }
 
     if (evData) {
-      // Se for edição (nunca usado para professor, mas mantemos aqui)
       selectors.fields.data.value = evData.date;
       selectors.fields.start.value = evData.start;
       selectors.fields.end.value = evData.end;
@@ -391,7 +355,7 @@ const FormModule = (() => {
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
-      status: 'pending',   // força “pending” para toda reserva nova
+      status: 'pending',
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains('hidden')
@@ -399,9 +363,6 @@ const FormModule = (() => {
         : `${f.type.value} - ${f.sala.value}`
     };
 
-    // ————————————————————————————————
-    // Validação de conflito (mesma lógica de antes)
-    // ————————————————————————————————
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
     const dtEnd = new Date(`${payload.date}T${payload.end}`);
@@ -412,7 +373,6 @@ const FormModule = (() => {
       const evEnd = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
-    // Também valida contra horários fixos
     if (!conflict && typeof fixedSlots !== 'undefined') {
       const weekday = new Date(payload.date).getDay();
       conflict = fixedSlots.some(fs => {
@@ -427,29 +387,16 @@ const FormModule = (() => {
       return alert('Conflito: já existe agendamento ou horário fixo nesse período.');
     }
 
-    // ————————————————————————————————
-    // Cria/atualiza no backend
-    // ————————————————————————————————
     try {
       if (currentId) {
-        // Se estivesse editando uma reserva já aprovada (fluxo de edição)
         const updated = await Api.updateEvent(currentId, payload);
         CalendarModule.update(currentId, updated);
       } else {
-        // Criação de nova reserva → status “pending”
         await Api.createEvent(payload);
-
-        // NÃO adicionamos ao calendário ainda (porque está PENDENTE)
         alert('✅ Reserva criada! Aguardando aprovação do administrador.');
-
-        // O polling periódico do calendário irá buscar a rota GET /api/reservas
-        // e só trará a reserva depois que o admin mudar status → "approved".
       }
-
-      // Atualiza tabela de ocupação (caso esteja aberta no modal)
       const dateValue = f.data.value;
       safeBuildOccupancyTable(dateValue);
-
       close();
     } catch (err) {
       alert('Erro ao criar/atualizar reserva: ' + err.message);
@@ -458,15 +405,11 @@ const FormModule = (() => {
 
   function init() {
     cacheSelectors();
-
-    // Se houver um usuário logado, deixa “responsável” preenchido e readonly
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
     }
-
-    // Pré‐calcula término em +50 minutos automaticamente
     selectors.fields.start.addEventListener('change', () => {
       const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
       const d = new Date();
@@ -474,15 +417,12 @@ const FormModule = (() => {
       selectors.fields.end.value =
         `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
-
-    // Botões de abrir/fechar modal
     selectors.btnOpen?.addEventListener('click', () => open());
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
-    // … configuração de mapa de salas e lista de matérias (igual ao que você já tinha) …
     const salaOpts = {
-      'Laboratório': ['Lab B401','Lab B402','Lab B403','Lab B404','Lab B405','Lab B406','Lab Imaginologia']
+      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -496,7 +436,6 @@ const FormModule = (() => {
       }
     });
 
-    // mapa de cursos × matérias (completo)
     const courseMap = {
       'Engenharia de Computação': [
         'ARA0003 - PRINCÍPIOS DE GESTÃO',
@@ -635,7 +574,7 @@ const DetailModule = (() => {
 // MÓDULO DE TABELA DE OCUPAÇÃO DINÂMICA
 // ────────────────────────────────────
 
-let fixedSlots = [];  // vai ser populado em initOccupancyUpdates()
+let fixedSlots = [];
 
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -645,7 +584,6 @@ function toDate(Y, M, D, hm) {
   return new Date(Y, M - 1, D, h, m);
 }
 
-// **wrapper** que protege contra crashes
 async function safeBuildOccupancyTable(filterDate) {
   try {
     await buildOccupancyTable(filterDate);
@@ -656,9 +594,8 @@ async function safeBuildOccupancyTable(filterDate) {
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
-  table.innerHTML = '';  // limpa antes de tudo
+  table.innerHTML = '';
 
-  // 1) dados de reservas e slots fixos do dia
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const [Y, M, D] = dateStr.split('-').map(Number);
@@ -667,7 +604,6 @@ async function buildOccupancyTable(filterDate) {
   const dayEvents = allEvents.filter(e => e.date === dateStr);
   const fixedTodaySlots = fixedSlots.filter(s => s.dayOfWeek === weekday);
 
-  // 2) gera grade uniforme de 50 min do dia (08:00–22:00)
   const slotStart = toDate(Y, M, D, '08:00');
   const slotEnd = toDate(Y, M, D, '22:00');
   const timeRanges = [];
@@ -679,30 +615,26 @@ async function buildOccupancyTable(filterDate) {
     cursor = next;
   }
 
-  // 3) lista de salas (fixos + reservas)
   const labs = Array.from(new Set([
     ...fixedTodaySlots.map(s => s.lab),
     ...dayEvents.map(e => e.sala || e.resource)
   ]));
 
-  // 4) se não há dados
   if (!timeRanges.length || !labs.length) {
     table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
     return;
   }
 
-  // 5) cabeçalho
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
-  // 6) corpo
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
@@ -713,7 +645,6 @@ async function buildOccupancyTable(filterDate) {
       const cellStart = toDate(Y, M, D, start);
       const cellEnd = toDate(Y, M, D, end);
 
-      // reserva?
       const hasReservation = dayEvents.some(ev => {
         if ((ev.sala || ev.resource) !== lab) return false;
         const evStart = toDate(Y, M, D, ev.start);
@@ -721,23 +652,21 @@ async function buildOccupancyTable(filterDate) {
         return evStart < cellEnd && evEnd > cellStart;
       });
 
-      // aula fixa?
       const fixed = fixedTodaySlots.find(fs =>
         fs.lab === lab &&
         toDate(Y, M, D, fs.startTime) < cellEnd &&
         toDate(Y, M, D, fs.endTime) > cellStart
       );
 
-      // cor/texto
       let style = '', label = '';
       if (hasReservation) {
-        style = 'background-color: rgba(220,38,38,0.8);'; // vermelho
+        style = 'background-color: rgba(220,38,38,0.8);';
         label = 'ocupado';
       } else if (fixed) {
         style = `background-color: ${turnoColors[fixed.turno]};`;
         label = fixed.turno;
       } else {
-        style = 'background-color: rgba(16,185,129,0.8);'; // verde
+        style = 'background-color: rgba(16,185,129,0.8);';
         label = 'livre';
       }
 
@@ -766,7 +695,6 @@ async function refreshEvents() {
 }
 
 async function initOccupancyUpdates() {
-  // carrega fixedSlots
   try {
     fixedSlots = await Api.fetchFixedSchedules();
   } catch (err) {
@@ -776,10 +704,8 @@ async function initOccupancyUpdates() {
   const dateInput = document.getElementById('occupancy-date');
   dateInput.value = new Date().toISOString().slice(0, 10);
 
-  // listener de data
   dateInput.addEventListener('change', () => safeBuildOccupancyTable(dateInput.value));
 
-  // ciclos de atualização
   safeBuildOccupancyTable(dateInput.value);
   setInterval(() => safeBuildOccupancyTable(dateInput.value), 5 * 1000);
   setInterval(async () => {
@@ -792,10 +718,10 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // ----------------------
 onReady(async () => {
-  // 0) Solicitamos permissão de notificações
+  // 0) Solicita permissão de notificações
   solicitarPermissaoNotificacao();
 
-  // 1) Preenche nome e e-mail do usuário (menu) – Se existir
+  // 1) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
   if (user) {
     const nameEl = document.getElementById('menu-user-name');
@@ -848,7 +774,7 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 6) Referência única ao date-picker (ocupação)
+  // 6) Referência única ao date-picker
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-date não encontrado!');
@@ -905,26 +831,25 @@ onReady(async () => {
 });
 
 
-
 // ==================================================
 // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
 // ==================================================
 (function () {
   // Só executa se estivermos na página de admin
   if (!document.getElementById('lista-pendentes-usuarios') &&
-      !document.getElementById('lista-pendentes-reservas')) {
+    !document.getElementById('lista-pendentes-reservas')) {
     return;
   }
 
   // ----------------------
   // VARIÁVEIS GLOBAIS DO ADMIN
   // ----------------------
-  let usuariosPendentes    = [];
-  let reservasPendentes    = [];
-  let paginaAtualUsuarios  = 1;
-  let paginaAtualReservas  = 1;
-  let ultimoCountUsuarios  = null;
-  let ultimoCountReservas  = null;
+  let usuariosPendentes = [];
+  let reservasPendentes = [];
+  let paginaAtualUsuarios = 1;
+  let paginaAtualReservas = 1;
+  let ultimoCountUsuarios = null;
+  let ultimoCountReservas = null;
 
   // Obtém a URL-base do backend
   const BASE_API = window.location.hostname.includes('localhost')
@@ -973,17 +898,15 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-
-      // Checamos permissão de notificação
       const podeNotificar = Notification.permission === "granted";
 
       // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
         if (podeNotificar) {
-          new Notification("Usuários Pendentes", {
-            body: `Existem ${dados.length} usuário(s) aguardando aprovação.`,
-            icon: "/assets/img/user-notification.png"
+          new Notification("Novos usuários pendentes", {
+            body: `Existem ${dados.length} novo(s) usuário(s) aguardando aprovação.`,
+            icon: "/assets/img/logo-notification.png"
           });
         }
       }
@@ -992,9 +915,9 @@ onReady(async () => {
         const diff = dados.length - ultimoCountUsuarios;
         mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
         if (podeNotificar) {
-          new Notification("Novas Solicitações de Usuário", {
+          new Notification("Nova(s) solicitação(ões) de usuário", {
             body: `${diff} novo(s) usuário(s) aguardando aprovação.`,
-            icon: "/assets/img/user-notification.png"
+            icon: "/assets/img/logo-notification.png"
           });
         }
       }
@@ -1008,7 +931,7 @@ onReady(async () => {
   }
 
   function renderizarUsuariosPendentes() {
-    const busca     = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
+    const busca = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
     const ordenacao = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
 
     let filtrados = usuariosPendentes.filter(u =>
@@ -1122,7 +1045,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
       }
-      // Recarrega a lista de usuários pendentes imediatamente
       carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em aprovarUsuario():', err);
@@ -1145,7 +1067,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
       }
-      // Recarrega a lista de usuários pendentes
       carregarUsuariosPendentes();
     } catch (err) {
       console.error('Erro em rejeitarUsuario():', err);
@@ -1153,8 +1074,7 @@ onReady(async () => {
     }
   }
 
-  // Expondo as funções para o escopo global (para que onclick="…" funcione)
-  window.aprovarUsuario  = aprovarUsuario;
+  window.aprovarUsuario = aprovarUsuario;
   window.rejeitarUsuario = rejeitarUsuario;
   window.mudarPaginaUsuarios = mudarPaginaUsuarios;
 
@@ -1186,26 +1106,21 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-
-      // Checamos permissão de notificação
       const podeNotificar = Notification.permission === "granted";
 
-      // Se for primeira vez e já houver pendentes, notifica todos
       if (ultimoCountReservas === null && dados.length > 0) {
         mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
         if (podeNotificar) {
-          new Notification("Reservas Pendentes", {
+          new Notification("Novas solicitações de reserva", {
             body: `Existem ${dados.length} reserva(s) aguardando aprovação.`,
             icon: "/assets/img/calendar-notification.png"
           });
         }
-      }
-      // Se não for primeira vez e o total aumentou, notifica só a diferença
-      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+      } else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
         const diff = dados.length - ultimoCountReservas;
         mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
         if (podeNotificar) {
-          new Notification("Novas Solicitações de Reserva", {
+          new Notification("Nova(s) solicitação(ões) de reserva", {
             body: `${diff} nova(s) reserva(s) aguardando aprovação.`,
             icon: "/assets/img/calendar-notification.png"
           });
@@ -1221,18 +1136,14 @@ onReady(async () => {
   }
 
   function renderizarReservasPendentes() {
-    const busca      = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
+    const busca = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
     const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
-    const ordenacao  = document.getElementById('ordenacao-reservas')?.value || 'date';
+    const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
-      // Filtra por texto livre (lab ou requisitante)
       const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
       if (!textoBusca.includes(busca)) return false;
-
-      // Se há filtro de data, só exibe se r.date === filtroData
       if (filtroData && r.date !== filtroData) return false;
-
       return true;
     });
 
@@ -1350,7 +1261,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
       }
-      // Recarrega a lista de reservas pendentes e também as ativas
       carregarReservasPendentes();
       carregarReservasAtivas();
     } catch (err) {
@@ -1374,7 +1284,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
       }
-      // Recarrega a lista de reservas pendentes
       carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em rejeitarReserva():', err);
@@ -1382,29 +1291,20 @@ onReady(async () => {
     }
   }
 
-  // Expondo as funções para o escopo global (para que onclick="…" funcione)
-  window.aprovarReserva    = aprovarReserva;
-  window.rejeitarReserva   = rejeitarReserva;
+  window.aprovarReserva = aprovarReserva;
+  window.rejeitarReserva = rejeitarReserva;
   window.mudarPaginaReservas = mudarPaginaReservas;
-
 
   // ----------------------
   // 3) MÓDULO “RESERVAS ATIVAS” (AUTODELETE AO CHEGAR EM 100%)
   // ----------------------
 
-  // Variável para armazenar o intervalo que atualiza as barras de progresso a cada 30 s
   let intervaloReservasAtivas = null;
 
-  /**
-   * 3.1) Função para deletar uma reserva pelo ID.
-   *       Utiliza exatamente a mesma rota que o backend já aceita para 'deleteEvent' do calendário:
-   *         DELETE /api/reservations/:id
-   */
   async function deleteReservation(id) {
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) return;
-
       await fetch(`${BASE_API}/api/reservations/${id}`, {
         method: 'DELETE',
         headers: {
@@ -1417,17 +1317,10 @@ onReady(async () => {
     }
   }
 
-  /**
-   * 3.2) Função que busca todas as reservas aprovadas, deleta as que já terminaram,
-   *       filtra as restantes, e envia para renderizar.
-   */
   async function carregarReservasAtivas() {
     try {
-      // a) Pega o token do admin
       const token = localStorage.getItem('admin_token');
       if (!token) return;
-
-      // b) Chama a rota que retorna somente reservas com status=approved
       const url = `${BASE_API}/api/reservations?status=approved`;
       const resp = await fetch(url, {
         method: 'GET',
@@ -1436,60 +1329,42 @@ onReady(async () => {
           'Authorization': `Bearer ${token}`
         }
       });
-
       if (!resp.ok) {
         throw new Error(`Falha ao buscar reservas aprovadas (status ${resp.status})`);
       }
-
-      // c) Recebe o array completo de reservas aprovadas
       const todasReservas = await resp.json();
       console.log("🔍[DEBUG] reservas aprovadas vindas da API:", todasReservas);
 
       const agora = new Date();
 
-      // d) Para cada reserva, verifica se já passou do horário de término.
-      //    Se sim, chama deleteReservation(r._id)
       todasReservas.forEach(r => {
-        // ATENÇÃO: se sua API usar campos diferentes para data/hora de término
-        // (por ex. r.horaFim), ajuste abaixo:
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) {
           deleteReservation(r._id);
         }
       });
 
-      // e) Filtra as reservas “não-terminadas” (ou seja, que ainda não passaram do fim)
-      //    OBS: a exclusão será efetiva no próximo polling, então aqui fazemos filtro local
       const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
       const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
 
       const filtradas = todasReservas.filter(r => {
-        // (1) Se a reserva já terminou, descartamos localmente também
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) return false;
-
-        // (2) Filtro de data: se tiver data selecionada, mantém apenas r.date === filtroData
         if (filtroData && r.date !== filtroData) return false;
-
-        // (3) Filtro de texto: se tiver termoBusca, verifica se laboratório ou requisitante contém
         const nomeLab = (r.sala || r.resource || '').toLowerCase();
         const nomeResp = (r.responsible || '').toLowerCase();
         if (termoBusca && !nomeLab.includes(termoBusca) && !nomeResp.includes(termoBusca)) {
           return false;
         }
-
         return true;
       });
 
-      // f) Ordena cronologicamente pelas propriedades date + start
       filtradas.sort((a, b) => {
-        // Se seu backend usar campo diferente para hora de início (ex: r.horaInicio), ajuste aqui
         const da = new Date(`${a.date}T${a.start}:00`);
         const db = new Date(`${b.date}T${b.start}:00`);
         return da - db;
       });
 
-      // g) Envia as reservas filtradas para renderizar os cards
       renderizarReservasAtivas(filtradas);
 
     } catch (err) {
@@ -1497,27 +1372,18 @@ onReady(async () => {
     }
   }
 
-  /**
-   * 3.3) Função que cria dinamicamente um card para cada reserva aprovada restante,
-   *       exibindo título, subtítulo, data/horário e a barra de progresso.
-   */
   function renderizarReservasAtivas(reservas) {
     const container = document.getElementById("lista-ativas");
     if (!container) return;
 
-    // Limpa o container antes de desenhar
     container.innerHTML = "";
 
     const agora = new Date();
 
     reservas.forEach(r => {
-      // (A) Objetos Date para início e fim
-      // ATENÇÃO: se seu backend usar outro campo para hora de término (ex: r.horaFim),
-      // substitua abaixo:
       const inicio = new Date(`${r.date}T${r.start}:00`);
       const fim    = new Date(`${r.date}T${r.end}:00`);
 
-      // (B) Percentual de progresso (0% antes do início, 100% após fim)
       let porcentagem = 0;
       if (agora < inicio) {
         porcentagem = 0;
@@ -1527,19 +1393,15 @@ onReady(async () => {
         porcentagem = ((agora - inicio) / (fim - inicio)) * 100;
       }
 
-      // (C) Cria coluna do grid (Bootstrap)
       const col = document.createElement("div");
       col.className = "col-12 col-md-6 col-lg-4";
 
-      // (D) Cria o card
       const card = document.createElement("div");
       card.className = "card shadow-sm h-100";
 
-      // (E) Cria o body do card
       const cardBody = document.createElement("div");
       cardBody.className = "card-body";
 
-      // (F) Monta o HTML interno do card
       cardBody.innerHTML = `
         <h5 class="card-title mb-1">${r.sala || r.resource || ''}</h5>
         <p class="card-text text-secondary mb-2">${r.responsible || ''}</p>
@@ -1562,13 +1424,11 @@ onReady(async () => {
         </p>
       `;
 
-      // (G) Monta a hierarquia: cardBody → card → col → container
       card.appendChild(cardBody);
       col.appendChild(card);
       container.appendChild(col);
     });
 
-    // Se não houver reservas, exibe mensagem
     if (reservas.length === 0) {
       container.innerHTML = `
         <div class="text-center py-5 text-light w-100">
@@ -1580,11 +1440,6 @@ onReady(async () => {
     }
   }
 
-  /**
-   * 3.4) Listeners para os campos de filtro na aba “Reservas Ativas”:
-   *       - #busca-ativas (input text) → recarrega lista a cada tecla
-   *       - #filtro-data-ativas (input date) → recarrega lista ao mudar data
-   */
   document.getElementById('busca-ativas')?.addEventListener('input', () => {
     carregarReservasAtivas();
   });
@@ -1592,24 +1447,12 @@ onReady(async () => {
     carregarReservasAtivas();
   });
 
-  /**
-   * 3.5) Chamadas iniciais e atualização periódica:
-   *       - onReady: dispara primeiro carregamento
-   *       - setInterval: recarrega a cada 30 segundos para atualizar progresso e deletar
-   */
   onReady(() => {
-    // 1) Dispara ao abrir a página
     carregarReservasAtivas();
-
-    // 2) A cada 30 segundos, recarrega para:
-    //    - atualizar as barras de progresso
-    //    - deletar automaticamente qualquer reserva cujo horário já tenha passado
     intervaloReservasAtivas = setInterval(() => {
       carregarReservasAtivas();
     }, 30_000);
   });
-
-
 
   // ----------------------
   // 4) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
