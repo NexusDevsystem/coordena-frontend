@@ -64,21 +64,23 @@ const Api = (() => {
     return headers;
   }
 
-  // busca reservas dinâmicas
+  // busca apenas as reservas com status === 'approved'
   async function fetchEvents() {
     const res = await fetch(BASE, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
-    return res.json();
+    const todasAsReservas = await res.json();
+    // filtra para retornar somente as reservas aprovadas
+    return todasAsReservas.filter(r => r.status === 'approved');
   }
 
-  // busca horários fixos
+  // busca horários fixos (permanece inalterado)
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
 
-  // cria reserva
+  // cria reserva (sem mudança)
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -89,7 +91,7 @@ const Api = (() => {
     return res.json();
   }
 
-  // atualiza reserva
+  // atualiza reserva (sem mudança)
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -100,7 +102,7 @@ const Api = (() => {
     return res.json();
   }
 
-  // deleta reserva
+  // deleta reserva (sem mudança)
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -123,12 +125,14 @@ const Api = (() => {
 // ----------------------
 const CalendarModule = (() => {
   let calendar;
-  let events = [];
+  let events = [];      // array interno com as reservas atualmente exibidas
+  let fixedSlots = [];  // usado pela tabela de ocupação, mantemos igual
 
-  // 1) Função auxiliar: carrega os horários fixos do back
+  // 1) Carrega os horários fixos do back-end e injeta como “background events”
   async function loadFixedSchedules() {
     try {
       const fixed = await Api.fetchFixedSchedules();
+      fixedSlots = fixed; // para uso na tabela de ocupação
       const fixedEvents = fixed.map(slot => ({
         title: `${slot.lab} (${slot.turno})`,
         daysOfWeek: [slot.dayOfWeek],
@@ -137,33 +141,71 @@ const CalendarModule = (() => {
         display: 'background',
         color: '#66666680'
       }));
+      // Adiciona como fonte de eventos “de fundo”
       calendar.addEventSource(fixedEvents);
-      fixedSlots = fixed; // para uso na tabela de ocupação
     } catch (err) {
       console.error('Falha ao carregar horários fixos:', err);
     }
   }
 
+  // 2) Recarrega TODAS as reservas aprovadas do back-end e atualiza o FullCalendar
+  async function reloadEvents() {
+    try {
+      // a) busca somente reservas com status === 'approved'
+      const approvedReservations = await Api.fetchEvents();
+
+      // b) limpa todos os eventos “dinâmicos” atuais (não remove os fixedEvents)
+      //    Para isso, iteramos sobre calendar.getEvents(), mas filtramos apenas
+      //    aqueles que não sejam “background” (i.e. aqueles cujo rendering !== 'background')
+      calendar.getEvents().forEach(fcEvent => {
+        if (fcEvent.rendering !== 'background') {
+          fcEvent.remove();
+        }
+      });
+
+      // c) atualiza nosso array interno
+      events = approvedReservations;
+
+      // d) injeta todas as reservas aprovadas no FullCalendar
+      approvedReservations.forEach(ev => {
+        calendar.addEvent({
+          id: ev._id,
+          title: `${ev.title} (${ev.time})`,
+          start: `${ev.date}T${ev.start}`,
+          end:   `${ev.date}T${ev.end}`
+        });
+      });
+    } catch (err) {
+      console.error('Erro ao recarregar eventos aprovados:', err);
+    }
+  }
+
+  // 3) Inicializa o FullCalendar com uma lista inicial de “rawEvents”
   function init(rawEvents, onDateClick, onEventClick) {
+    // Já definimos “events” como o array inicial (que deve conter somente reservas aprovadas)
     events = rawEvents;
 
     const el = document.getElementById('calendar');
-    if (!el) return console.error('#calendar não encontrado');
+    if (!el) {
+      console.error('#calendar não encontrado');
+      return;
+    }
 
     const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
       initialView: isMobile ? 'listWeek' : 'dayGridMonth',
       headerToolbar: {
-        left: isMobile ? 'prev,next' : 'prev,next today',
+        left:   isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right:  isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       },
+      // Mapeamos o array “events” para o formato que o FullCalendar entende
       events: events.map(e => ({
-        id: e._id,
+        id:    e._id,
         title: `${e.title} (${e.time})`,
         start: `${e.date}T${e.start}`,
-        end: `${e.date}T${e.end}`
+        end:   `${e.date}T${e.end}`
       })),
       dateClick: onDateClick,
       eventClick: onEventClick,
@@ -171,6 +213,7 @@ const CalendarModule = (() => {
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
+        // bloqueia seleção se já existir algum “background event” nesse intervalo
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -180,35 +223,47 @@ const CalendarModule = (() => {
     });
 
     calendar.render();
+
+    // 3.1) Carrega e mostra os horários fixos (“background events”)
     loadFixedSchedules();
-    setInterval(() => buildOccupancyTable(), 60 * 1000);
+
+    // 3.2) A cada 30 segundos, recarrega as reservas aprovadas (se houver novas aprovações)
+    setInterval(() => {
+      reloadEvents();
+      // Também atualiza a tabela de ocupação, se for o caso
+      if (typeof buildOccupancyTable === 'function') {
+        buildOccupancyTable(document.getElementById('occupancy-date')?.value);
+      }
+    }, 30 * 1000);
+
+    // 3.3) Ajusta o calendário em caso de resize da tela
     window.addEventListener('resize', () => {
       const nowMobile = window.innerWidth < 640;
       calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
       calendar.setOption('headerToolbar', {
-        left: nowMobile ? 'prev,next' : 'prev,next today',
+        left:   nowMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right:  nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
       });
     });
   }
 
-  // adiciona um evento recém-criado
+  // 4) Insere um novo evento dinamicamente (chamado após o usuário criar uma reserva)
   function add(ev) {
-    // 1) atualiza array interno
+    // 1) adiciona no array interno
     events.push(ev);
     // 2) injeta no FullCalendar
     calendar.addEvent({
-      id: ev._id,
+      id:    ev._id,
       title: `${ev.title} (${ev.time})`,
       start: `${ev.date}T${ev.start}`,
-      end: `${ev.date}T${ev.end}`
+      end:   `${ev.date}T${ev.end}`
     });
   }
 
-  // atualiza um evento existente
+  // 5) Atualiza um evento existente (por exemplo, se o usuário editar a própria reserva)
   function update(id, ev) {
-    // 1) atualiza array interno
+    // 1) atualiza array
     const idx = events.findIndex(x => x._id === id);
     if (idx !== -1) events[idx] = ev;
 
@@ -221,7 +276,7 @@ const CalendarModule = (() => {
     }
   }
 
-  // remove um evento
+  // 6) Remove um evento (por exemplo, o usuário cancelou)
   function remove(id) {
     // 1) remove do array interno
     events = events.filter(x => x._id !== id);
