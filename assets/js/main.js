@@ -241,7 +241,7 @@ const CalendarModule = (() => {
 })();
 
 // ----------------------
-// MÓDULO FORMULÁRIO
+// MÓDULO FORMULÁRIO (CRIAÇÃO E EDIÇÃO DE RESERVA)
 // ----------------------
 const FormModule = (() => {
   let currentId = null;
@@ -277,7 +277,7 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    // pré‐preenche sempre com o usuário logado
+    // Pré-preenche “responsável” com o nome do usuário logado, se existir
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
@@ -285,10 +285,10 @@ const FormModule = (() => {
     }
 
     if (evData) {
-      // pré‐preencher para edição caso exista evData
-      selectors.fields.data.value = evData.date;
+      // Se for edição (nunca usado para professor, mas mantemos aqui)
+      selectors.fields.data.value  = evData.date;
       selectors.fields.start.value = evData.start;
-      selectors.fields.end.value = evData.end;
+      selectors.fields.end.value   = evData.end;
       selectors.fields.recurso.value = evData.resource;
       selectors.fields.recurso.dispatchEvent(new Event('change'));
       selectors.fields.sala.value = evData.sala || '';
@@ -297,9 +297,9 @@ const FormModule = (() => {
         selectors.fields.resp.value = evData.responsible;
         selectors.fields.resp.setAttribute('readonly', 'readonly');
       }
-      selectors.fields.dept.value = evData.department;
-      selectors.fields.status.value = evData.status;
-      selectors.fields.desc.value = evData.description;
+      selectors.fields.dept.value      = evData.department;
+      selectors.fields.status.value    = evData.status;
+      selectors.fields.desc.value      = evData.description;
       if (evData.materia) {
         selectors.fields.materia.innerHTML = `<option value="${evData.materia}">${evData.materia}</option>`;
         selectors.fields.materia.disabled = false;
@@ -328,7 +328,7 @@ const FormModule = (() => {
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
-      status: 'pending',                // força “pending”
+      status: 'pending',   // força “pending” para toda reserva nova
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains('hidden')
@@ -337,7 +337,7 @@ const FormModule = (() => {
     };
 
     // ————————————————————————————————
-    // valida conflito (dinâmico + fixos) 
+    // Validação de conflito (mesma lógica de antes)
     // ————————————————————————————————
     const allEvents = CalendarModule.getEvents();
     const dtStart = new Date(`${payload.date}T${payload.start}`);
@@ -349,7 +349,7 @@ const FormModule = (() => {
       const evEnd   = new Date(`${ev.date}T${ev.end}`);
       return dtStart < evEnd && dtEnd > evStart;
     });
-    // checa conflitos contra slots fixos
+    // Também valida contra horários fixos
     if (!conflict && typeof fixedSlots !== 'undefined') {
       const weekday = new Date(payload.date).getDay();
       conflict = fixedSlots.some(fs => {
@@ -365,45 +365,45 @@ const FormModule = (() => {
     }
 
     // ————————————————————————————————
-    // cria/atualiza no backend
+    // Cria/atualiza no backend
     // ————————————————————————————————
     try {
       if (currentId) {
-        // edição de reserva já aprovada (ou em fluxo de edição)
-        const saved = await Api.updateEvent(currentId, payload);
-        CalendarModule.update(currentId, saved);
+        // Se estivesse editando uma reserva já aprovada (fluxo de edição)
+        const updated = await Api.updateEvent(currentId, payload);
+        CalendarModule.update(currentId, updated);
       } else {
-        // criando nova reserva → status “pending”
+        // Criação de nova reserva → status “pending”
         await Api.createEvent(payload);
 
-        // NÃO adicionamos no calendário agora, pois é “pending”
-        alert('Reserva criada! Aguardando aprovação do administrador.');
+        // NÃO adicionamos ao calendário ainda (porque está PENDENTE)
+        alert('✅ Reserva criada! Aguardando aprovação do administrador.');
 
-        // O polling periódico ou recarga da página irá buscar somente reservas com status “approved”,
-        // então, por enquanto, não damos .add() no FullCalendar.
+        // O polling periódico do calendário irá buscar a rota GET /api/reservas
+        // e só trará a reserva depois que o admin mudar status → "approved".
       }
 
-      // atualiza a tabela de ocupação (mesmo que não entre no calendário, 
-      // a tabela pode exibir algo ou atualizar)
+      // Atualiza tabela de ocupação (caso esteja aberta no modal)
       const dateValue = f.data.value;
       safeBuildOccupancyTable(dateValue);
 
       close();
     } catch (err) {
-      alert('Erro: ' + err.message);
+      alert('Erro ao criar/atualizar reserva: ' + err.message);
     }
   }
 
   function init() {
     cacheSelectors();
 
+    // Se houver um usuário logado, deixa “responsável” preenchido e readonly
     const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
     }
 
-    // pré‐calcula término +50min
+    // Pré‐calcula término em +50 minutos automaticamente
     selectors.fields.start.addEventListener('change', () => {
       const [hh, mm] = selectors.fields.start.value.split(':').map(Number);
       const d = new Date();
@@ -412,14 +412,14 @@ const FormModule = (() => {
         `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
 
-    // botões
+    // Botões de abrir/fechar modal
     selectors.btnOpen?.addEventListener('click', () => open());
     selectors.btnClose?.addEventListener('click', close);
     selectors.form?.addEventListener('submit', handleSubmit);
 
-    // mapa de salas (igual antes)
+    // … configuração de mapa de salas e lista de matérias (iguais ao que você já tinha) …
     const salaOpts = {
-      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
+      'Laboratório': ['Lab B401','Lab B402','Lab B403','Lab B404','Lab B405','Lab B406','Lab Imaginologia']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
