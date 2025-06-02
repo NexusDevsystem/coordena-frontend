@@ -18,138 +18,42 @@ function onReady(fn) {
 // --------------------------------------------------
 const turnoColors = {
   'Matutino': 'rgba(59, 130, 246, 0.8)',   // azul
-  'Vespertino': 'rgba(234, 179, 8, 0.8)',  // amarelo
-  'Noturno': 'rgba(220, 38, 38, 0.8)'      // vermelho
+  'Vespertino': 'rgba(234, 179, 8, 0.8)', // amarelo
+  'Noturno': 'rgba(220, 38, 38, 0.8)'     // vermelho
 };
 
 // --------------------------------------------------
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-let notificacoesAtivas = false;
+let notificacoesUsuarioAtivas = false;
 
-function solicitarPermissaoNotificacao() {
+// Pede permissão ao navegador para exibir notificações.
+function solicitarPermissaoNotificacaoUsuario() {
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta API de Notificações.");
     return;
   }
   if (Notification.permission === "granted") {
-    notificacoesAtivas = true;
-    console.log("📢 Notificações já permitidas anteriormente.");
+    notificacoesUsuarioAtivas = true;
     return;
   }
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
-      if (permission === "granted") {
-        notificacoesAtivas = true;
-        console.log("✅ Permissão de Notificações: GRANTED");
-      } else {
-        notificacoesAtivas = false;
-        console.log("❌ Permissão de Notificações: NEGADA ou DEFAULT");
-      }
+      notificacoesUsuarioAtivas = (permission === "granted");
     });
   }
 }
 
-function enviarNotificacao(titulo, texto) {
-  if (notificacoesAtivas && Notification.permission === "granted") {
+// Dispara uma notificação para o usuário se já tiver permissão.
+function enviarNotificacaoUsuario(titulo, texto) {
+  if (notificacoesUsuarioAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
-      icon: "/assets/img/logo-notification.png"
+      icon: "/assets/img/logo-notification.png" // ou qualquer ícone que você queira usar
     });
   }
 }
-
-// -----------------------------------------------------------------
-// A PARTIR DAQUI: LÓGICA DE “POLLING” PARA NOTIFICAR O PRÓPRIO USUÁRIO
-// -----------------------------------------------------------------
-
-// Variáveis que guardam o estado anterior, para comparação:
-let usuarioAnterior = null;
-let reservasAnteriores = [];
-
-// Função que busca o próprio usuário (status, nome etc.) da API
-async function buscarMeuUsuario() {
-  // Ajuste aqui a URL conforme o seu endpoint real de “/me”
-  const res = await fetch('/api/users/me', {
-    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
-  });
-  if (!res.ok) throw new Error(`Erro ao buscar usuário (${res.status})`);
-  return await res.json();
-}
-
-// Função que busca todas as reservas do usuário logado
-async function buscarMinhasReservas() {
-  // Ajuste a URL conforme seu endpoint real de “minhas reservas” (pode ser ?userId=)
-  const userId = Auth.getCurrentUser()?._id;
-  const res = await fetch(`/api/reservations?userId=${userId}`, {
-    headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
-  });
-  if (!res.ok) throw new Error(`Erro ao buscar reservas (${res.status})`);
-  return await res.json();
-}
-
-// Aqui fazemos o polling em intervalos de 15s para detectar mudanças de status
-async function iniciarPollingStatusUsuario() {
-  try {
-    // 1ª iteração: inicializa “estado anterior”
-    usuarioAnterior = await buscarMeuUsuario();
-    reservasAnteriores = await buscarMinhasReservas();
-  } catch (e) {
-    console.error("Falha ao inicializar polling de status:", e);
-    return;
-  }
-
-  setInterval(async () => {
-    try {
-      // 1) Verifica mudança no status do próprio usuário:
-      const usuarioAtual = await buscarMeuUsuario();
-      if (usuarioAnterior.status === 'pending' && usuarioAtual.status === 'active') {
-        enviarNotificacao(
-          '✔️ Conta aprovada',
-          'Sua conta foi aprovada. Bem-vindo(a)!'
-        );
-      }
-      if (usuarioAnterior.status === 'pending' && usuarioAtual.status === 'rejected') {
-        enviarNotificacao(
-          '❌ Conta rejeitada',
-          'Sua solicitação de cadastro foi rejeitada. Fale com o suporte.'
-        );
-      }
-      usuarioAnterior = usuarioAtual;
-
-      // 2) Verifica mudanças no status das reservas:
-      const reservasAtuais = await buscarMinhasReservas();
-      const mapaAntes = {};
-      reservasAnteriores.forEach(r => { mapaAntes[r._id] = r.status; });
-
-      for (const r of reservasAtuais) {
-        const statusAntes = mapaAntes[r._id];
-        const statusAgora = r.status;
-
-        // Reserva aprovada?
-        if (statusAntes === 'pending' && statusAgora === 'approved') {
-          enviarNotificacao(
-            '✔️ Reserva aprovada',
-            `Sua reserva em ${new Date(r.date).toLocaleDateString('pt-BR')} das ${r.start} às ${r.end} foi aprovada.`
-          );
-        }
-        // Reserva recusada?
-        if (statusAntes === 'pending' && statusAgora === 'rejected') {
-          enviarNotificacao(
-            '❌ Reserva recusada',
-            `Sua reserva em ${new Date(r.date).toLocaleDateString('pt-BR')} das ${r.start} às ${r.end} foi recusada.`
-          );
-        }
-      }
-      // Atualiza “reservasAnteriores” para a próxima iteração
-      reservasAnteriores = reservasAtuais;
-    } catch (err) {
-      console.error("Erro no polling periódico de usuário/reservas:", err);
-    }
-  }, 15_000); // a cada 15 segundos
-}
-
 // --------------------------------------------------
 // MÓDULO DE TEMA (Dark/Light)
 // --------------------------------------------------
@@ -509,10 +413,7 @@ const FormModule = (() => {
     selectors.form?.addEventListener('submit', handleSubmit);
 
     const salaOpts = {
-      'Laboratório': [
-        'Lab B401', 'Lab B402', 'Lab B403',
-        'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia'
-      ]
+      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -758,12 +659,12 @@ async function buildOccupancyTable(filterDate) {
         style = 'background-color: rgba(220,38,38,0.8);';
         label = 'ocupado';
       } else if (fixed) {
-        // Horário fixo: usa turnoColors ou fallback
+        // Horário fixo: usa turnoColors ou fallback se não existir
         const corDoTurno = turnoColors[fixed.turno] || 'rgba(107,114,128,0.5)';
         style = `background-color: ${corDoTurno};`;
         label = fixed.turno;
       } else {
-        // Livre: verde
+        // Se não há nada, pinta de verde (livre)
         style = 'background-color: rgba(16,185,129,0.8);';
         label = 'livre';
       }
@@ -816,7 +717,7 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // --------------------------------------------------
 onReady(async () => {
-  // 0) Se já tiver permissão, ajusta a flag e desabilita botão:
+  // ****** VERIFICA PERMISSÃO DE NOTIFICAÇÃO ****** //
   if (("Notification" in window) && Notification.permission === "granted") {
     notificacoesAtivas = true;
     const btnNotifs = document.getElementById('btn-ativar-notificacoes');
@@ -826,12 +727,7 @@ onReady(async () => {
     }
   }
 
-  // 1) Pedimos permissão de notificações para o usuário (Dashboard clássico)
-  //    e, em seguida, iniciamos o polling para notificar aprovações.
-  solicitarPermissaoNotificacao();
-  iniciarPollingStatusUsuario();
-
-  // 2) Preenche nome e e-mail do usuário no menu
+  // 1) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
   if (user) {
     const nameEl = document.getElementById('menu-user-name');
@@ -840,12 +736,12 @@ onReady(async () => {
     if (emailEl) emailEl.textContent = user.email || '—';
   }
 
-  // 3) Inicializa tema, formulários e detalhes
+  // 2) Inicializa tema, formulários e detalhes
   ThemeToggle.init();
   FormModule.init();
   DetailModule.init();
 
-  // 4) Botão de alternar tema no menu
+  // 3) Botão de alternar tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -865,7 +761,7 @@ onReady(async () => {
     });
   }
 
-  // 5) Botão de Logout — redireciona para "/login.html"
+  // 4) Botão de Logout — redireciona para "/login.html"
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
@@ -876,7 +772,7 @@ onReady(async () => {
     });
   }
 
-  // 6) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
+  // 5) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
@@ -886,7 +782,7 @@ onReady(async () => {
     });
   }
 
-  // 7) Busca reservas iniciais para o FullCalendar
+  // 6) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -894,14 +790,14 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 8) Referência ao date-picker de ocupação
+  // 7) Referência ao date-picker de ocupação
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-table não encontrado! Verifique o HTML.');
     return;
   }
 
-  // 9) Inicializa o FullCalendar
+  // 8) Inicializa o FullCalendar
   CalendarModule.init(
     data,
     info => {
@@ -927,21 +823,21 @@ onReady(async () => {
     }
   );
 
-  // 10) Configura date-picker
+  // 9) Configura date-picker
   dateInput.value = new Date().toISOString().slice(0, 10);
   dateInput.addEventListener('change', () => {
     buildOccupancyTable(dateInput.value);
   });
 
-  // 11) Inicia auto-refresh da tabela de ocupação
+  // 10) Inicia auto-refresh da tabela de ocupação
   initOccupancyUpdates();
 
-  // 12) Listener extra (importação desativada)
+  // 11) Listener extra (importação desativada)
   document.getElementById('import-schedule')?.addEventListener('click', () => {
     alert('Importação de horários fixos desativada nesta versão.');
   });
 
-  // 13) Chamada inicial para popular a tabela
+  // 12) Chamada inicial para popular a tabela
   buildOccupancyTable(dateInput.value);
 });
 
@@ -952,8 +848,8 @@ onReady(async () => {
 (function () {
   // Só executa se estivermos na página de admin (verifica também #lista-ativas)
   if (!document.getElementById('lista-pendentes-usuarios') &&
-      !document.getElementById('lista-pendentes-reservas') &&
-      !document.getElementById('lista-ativas')) {
+    !document.getElementById('lista-pendentes-reservas') &&
+    !document.getElementById('lista-ativas')) {
     return;
   }
 
@@ -1379,7 +1275,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao aprovar a reserva.');
       }
-      // Recarrega pendentes e ativas após aprovação
       carregarReservasPendentes();
       carregarReservasAtivas();
     } catch (err) {
@@ -1403,7 +1298,6 @@ onReady(async () => {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
       }
-      // Recarrega apenas as pendentes após rejeição
       carregarReservasPendentes();
     } catch (err) {
       console.error('Erro em rejeitarReserva():', err);
@@ -1561,7 +1455,6 @@ onReady(async () => {
       carregarReservasAtivas();
     }, 30_000);
   });
-
 
   // --------------------------------------------------
   // 4) BIND DOS EVENTOS DE BUSCA / FILTRO (Usuários + Reservas)
