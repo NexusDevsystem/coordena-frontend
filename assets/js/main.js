@@ -18,52 +18,55 @@ function onReady(fn) {
 // --------------------------------------------------
 const turnoColors = {
   'Matutino': 'rgba(59, 130, 246, 0.8)',   // azul
-  'Vespertino': 'rgba(234, 179, 8, 0.8)', // amarelo
-  'Noturno': 'rgba(220, 38, 38, 0.8)'     // vermelho
+  'Vespertino': 'rgba(234, 179, 8, 0.8)',  // amarelo
+  'Noturno': 'rgba(220, 38, 38, 0.8)'      // vermelho
 };
 
 // --------------------------------------------------
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
 
-let notificacoesUsuarioAtivas = false;
+let notificacoesAtivas = false;
 
 // Pede permissão ao navegador para exibir notificações.
-function solicitarPermissaoNotificacaoUsuario() {
+function solicitarPermissaoNotificacao() {
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta API de Notificações.");
     return;
   }
   if (Notification.permission === "granted") {
-    notificacoesUsuarioAtivas = true;
+    notificacoesAtivas = true;
     return;
   }
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
-      notificacoesUsuarioAtivas = (permission === "granted");
+      notificacoesAtivas = (permission === "granted");
     });
   }
 }
 
-// Dispara uma notificação para o usuário se já tiver permissão.
-function enviarNotificacaoUsuario(titulo, texto) {
-  if (notificacoesUsuarioAtivas && Notification.permission === "granted") {
+// Dispara uma notificação (tanto para admin quanto para usuário) se já tiver permissão.
+function enviarNotificacao(titulo, texto) {
+  if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
       body: texto,
-      icon: "/assets/img/logo-notification.png" // ou qualquer ícone que você queira usar
+      icon: "/assets/img/logo-notification.png"
     });
   }
 }
+
 // --------------------------------------------------
 // MÓDULO DE TEMA (Dark/Light)
 // --------------------------------------------------
 const ThemeToggle = (() => {
   const themeKey = 'theme';
   const root = document.documentElement;
+
   function applyTheme(mode) {
     root.classList.toggle('dark', mode === 'dark');
     localStorage.setItem(themeKey, mode);
   }
+
   function init() {
     const saved = localStorage.getItem(themeKey) || 'light';
     applyTheme(saved);
@@ -74,6 +77,7 @@ const ThemeToggle = (() => {
       });
     }
   }
+
   return { init };
 })();
 
@@ -97,11 +101,13 @@ const Api = (() => {
     if (!res.ok) throw new Error(`Falha ao buscar reservas: ${res.status}`);
     return res.json();
   }
+
   async function fetchFixedSchedules() {
     const res = await fetch(FIXED, { headers: authHeaders(false) });
     if (!res.ok) throw new Error(`Falha ao buscar horários fixos: ${res.status}`);
     return res.json();
   }
+
   async function createEvent(data) {
     const res = await fetch(BASE, {
       method: 'POST',
@@ -111,6 +117,7 @@ const Api = (() => {
     if (!res.ok) throw new Error('Falha ao criar reserva');
     return res.json();
   }
+
   async function updateEvent(id, data) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'PUT',
@@ -120,6 +127,7 @@ const Api = (() => {
     if (!res.ok) throw new Error('Falha ao atualizar reserva');
     return res.json();
   }
+
   async function deleteEvent(id) {
     const res = await fetch(`${BASE}/${id}`, {
       method: 'DELETE',
@@ -270,12 +278,16 @@ const CalendarModule = (() => {
     if (fcEvent) fcEvent.remove();
   }
 
+  function getEvents() {
+    return events;
+  }
+
   return {
     init,
     add,
     update,
     remove,
-    getEvents: () => events
+    getEvents
   };
 })();
 
@@ -373,8 +385,6 @@ const FormModule = (() => {
         : `${f.type.value} - ${f.sala.value}`
     };
 
-    // … (sua verificação de conflito permanece igual)
-
     try {
       if (currentId) {
         const updated = await Api.updateEvent(currentId, payload);
@@ -392,6 +402,11 @@ const FormModule = (() => {
   }
 
   function init() {
+    // Só continua se realmente existir o formulário na página
+    if (!document.getElementById('agendamento-form')) {
+      return;
+    }
+
     cacheSelectors();
 
     const user = (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
@@ -413,7 +428,10 @@ const FormModule = (() => {
     selectors.form?.addEventListener('submit', handleSubmit);
 
     const salaOpts = {
-      'Laboratório': ['Lab B401', 'Lab B402', 'Lab B403', 'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia']
+      'Laboratório': [
+        'Lab B401', 'Lab B402', 'Lab B403',
+        'Lab B404', 'Lab B405', 'Lab B406', 'Lab Imaginologia'
+      ]
     };
     selectors.fields.recurso?.addEventListener('change', () => {
       const tipo = selectors.fields.recurso.value;
@@ -536,6 +554,11 @@ const DetailModule = (() => {
   }
 
   function init() {
+    // Só continua se o modal de detalhes existir na página
+    if (!document.getElementById('event-modal')) {
+      return;
+    }
+
     cacheSelectors();
     selectors.btnClose?.addEventListener('click', close);
     selectors.btnEdit?.addEventListener('click', () => {
@@ -549,7 +572,7 @@ const DetailModule = (() => {
       try {
         await Api.deleteEvent(currentId);
         CalendarModule.remove(currentId);
-        const dateValue = document.getElementById('occupancy-date').value;
+        const dateValue = document.getElementById('occupancy-date')?.value;
         safeBuildOccupancyTable(dateValue);
         close();
       } catch (err) {
@@ -570,6 +593,7 @@ let fixedSlots = [];
 function padHM(date) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
+
 function toDate(Y, M, D, hm) {
   const [h, m] = hm.split(':').map(Number);
   return new Date(Y, M - 1, D, h, m);
@@ -585,6 +609,10 @@ async function safeBuildOccupancyTable(filterDate) {
 
 async function buildOccupancyTable(filterDate) {
   const table = document.getElementById('occupancy-table');
+  if (!table) {
+    console.error('#occupancy-table não encontrado');
+    return;
+  }
   table.innerHTML = '';
 
   const allEvents = CalendarModule.getEvents();
@@ -701,6 +729,10 @@ async function initOccupancyUpdates() {
   }
 
   const dateInput = document.getElementById('occupancy-date');
+  if (!dateInput) {
+    console.error('#occupancy-date não encontrado');
+    return;
+  }
   dateInput.value = new Date().toISOString().slice(0, 10);
 
   dateInput.addEventListener('change', () => safeBuildOccupancyTable(dateInput.value));
@@ -727,7 +759,10 @@ onReady(async () => {
     }
   }
 
-  // 1) Preenche nome e e-mail do usuário no menu
+  // 1) Pedimos permissão de notificações (se ainda não tiver sido concedida).
+  solicitarPermissaoNotificacao();
+
+  // 2) Preenche nome e e-mail do usuário no menu
   const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
   if (user) {
     const nameEl = document.getElementById('menu-user-name');
@@ -736,12 +771,16 @@ onReady(async () => {
     if (emailEl) emailEl.textContent = user.email || '—';
   }
 
-  // 2) Inicializa tema, formulários e detalhes
+  // 3) Inicializa tema
   ThemeToggle.init();
+
+  // 4) Inicializa FormModule apenas se o formulário existir nesta página
   FormModule.init();
+
+  // 5) Inicializa DetailModule apenas se o modal de detalhes existir nesta página
   DetailModule.init();
 
-  // 3) Botão de alternar tema no menu
+  // 6) Botão de alternar tema no menu
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -761,7 +800,7 @@ onReady(async () => {
     });
   }
 
-  // 4) Botão de Logout — redireciona para "/login.html"
+  // 7) Botão de Logout — redireciona para "/login.html"
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
@@ -772,7 +811,7 @@ onReady(async () => {
     });
   }
 
-  // 5) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
+  // 8) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
@@ -782,7 +821,7 @@ onReady(async () => {
     });
   }
 
-  // 6) Busca reservas iniciais para o FullCalendar
+  // 9) Busca reservas iniciais para o FullCalendar
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -790,55 +829,56 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 7) Referência ao date-picker de ocupação
+  // 10) Referência ao date-picker de ocupação
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-table não encontrado! Verifique o HTML.');
-    return;
-  }
-
-  // 8) Inicializa o FullCalendar
-  CalendarModule.init(
-    data,
-    info => {
-      dateInput.value = info.dateStr;
-      buildOccupancyTable(info.dateStr);
-      FormModule.open(null, {
-        date: info.dateStr,
-        start: '00:00',
-        end: '00:00',
-        resource: '',
-        sala: '',
-        type: '',
-        responsible: '',
-        department: '',
-        status: '',
-        description: '',
-        time: ''
-      });
-    },
-    info => {
-      const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
-      if (ev) DetailModule.open(ev);
+  } else {
+    // 11) Inicializa o FullCalendar apenas se existir o elemento #calendar
+    if (document.getElementById('calendar')) {
+      CalendarModule.init(
+        data,
+        info => {
+          dateInput.value = info.dateStr;
+          buildOccupancyTable(info.dateStr);
+          FormModule.open(null, {
+            date: info.dateStr,
+            start: '00:00',
+            end: '00:00',
+            resource: '',
+            sala: '',
+            type: '',
+            responsible: '',
+            department: '',
+            status: '',
+            description: '',
+            time: ''
+          });
+        },
+        info => {
+          const ev = CalendarModule.getEvents().find(e => e._id === info.event.id);
+          if (ev) DetailModule.open(ev);
+        }
+      );
     }
-  );
 
-  // 9) Configura date-picker
-  dateInput.value = new Date().toISOString().slice(0, 10);
-  dateInput.addEventListener('change', () => {
+    // 12) Configura date-picker
+    dateInput.value = new Date().toISOString().slice(0, 10);
+    dateInput.addEventListener('change', () => {
+      buildOccupancyTable(dateInput.value);
+    });
+
+    // 13) Inicia auto-refresh da tabela de ocupação
+    initOccupancyUpdates();
+
+    // 14) Listener extra (importação desativada)
+    document.getElementById('import-schedule')?.addEventListener('click', () => {
+      alert('Importação de horários fixos desativada nesta versão.');
+    });
+
+    // 15) Chamada inicial para popular a tabela
     buildOccupancyTable(dateInput.value);
-  });
-
-  // 10) Inicia auto-refresh da tabela de ocupação
-  initOccupancyUpdates();
-
-  // 11) Listener extra (importação desativada)
-  document.getElementById('import-schedule')?.addEventListener('click', () => {
-    alert('Importação de horários fixos desativada nesta versão.');
-  });
-
-  // 12) Chamada inicial para popular a tabela
-  buildOccupancyTable(dateInput.value);
+  }
 });
 
 // ==================================================
@@ -846,10 +886,13 @@ onReady(async () => {
 // ==================================================
 
 (function () {
-  // Só executa se estivermos na página de admin (verifica também #lista-ativas)
-  if (!document.getElementById('lista-pendentes-usuarios') &&
-    !document.getElementById('lista-pendentes-reservas') &&
-    !document.getElementById('lista-ativas')) {
+  // Verifica se cada container existe no DOM
+  const hasUsersContainer = !!document.getElementById('lista-pendentes-usuarios');
+  const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
+  const hasActiveContainer = !!document.getElementById('lista-ativas');
+
+  // Se não existir nenhum, interrompe todo o bloco
+  if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
     return;
   }
 
@@ -910,7 +953,7 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
+      const podeNotificar = (typeof enviarNotificacao === 'function' && notificacoesAtivas && Notification.permission === "granted");
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
@@ -941,19 +984,22 @@ onReady(async () => {
   }
 
   function renderizarUsuariosPendentes() {
+    const container = document.getElementById('lista-pendentes-usuarios');
+    if (!container) return; // se não existir, apenas sai
+
     const busca = document.getElementById('busca-usuarios')?.value.trim().toLowerCase() || '';
     const ordenacao = document.getElementById('ordenacao-usuarios')?.value || 'createdAt';
 
     let filtrados = usuariosPendentes.filter(u =>
-      u.name.toLowerCase().includes(busca) ||
-      u.email.toLowerCase().includes(busca)
+      (u.name || '').toLowerCase().includes(busca) ||
+      (u.email || '').toLowerCase().includes(busca)
     );
 
     filtrados.sort((a, b) => {
       if (ordenacao === 'createdAt') {
         return new Date(a.createdAt) - new Date(b.createdAt);
       }
-      return a[ordenacao].localeCompare(b[ordenacao]);
+      return (a[ordenacao] || '').localeCompare(b[ordenacao]);
     });
 
     const totalPaginas = Math.ceil(filtrados.length / 6);
@@ -962,9 +1008,6 @@ onReady(async () => {
     }
     const inicio = (paginaAtualUsuarios - 1) * 6;
     const exibidos = filtrados.slice(inicio, inicio + 6);
-
-    const container = document.getElementById('lista-pendentes-usuarios');
-    if (!container) return;
 
     if (filtrados.length === 0) {
       container.innerHTML = `
@@ -1119,7 +1162,7 @@ onReady(async () => {
       const dados = await res.json();
       console.log("🔍 Pending-reservations:", dados);
 
-      const podeNotificar = notificacoesAtivas && Notification.permission === "granted";
+      const podeNotificar = (typeof enviarNotificacao === 'function' && notificacoesAtivas && Notification.permission === "granted");
 
       if (ultimoCountReservas === null && dados.length > 0) {
         mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
@@ -1150,13 +1193,16 @@ onReady(async () => {
   }
 
   function renderizarReservasPendentes() {
+    const container = document.getElementById('lista-pendentes-reservas');
+    if (!container) return; // se container não existir, apenas sai
+
     const busca = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
     const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
     const ordenacao = document.getElementById('ordenacao-reservas')?.value || 'date';
 
     let filtrados = reservasPendentes.filter(r => {
-      const textoBusca = (r.resource + ' ' + r.responsible).toLowerCase();
-      if (!textoBusca.includes(busca)) return false;
+      const textoBusca = ((r.resource || '') + ' ' + (r.responsible || '')).toLowerCase();
+      if (busca && !textoBusca.includes(busca)) return false;
       if (filtroData && r.date !== filtroData) return false;
       return true;
     });
@@ -1165,7 +1211,7 @@ onReady(async () => {
       if (ordenacao === 'date') {
         return new Date(a.date) - new Date(b.date);
       }
-      return a[ordenacao].localeCompare(b[ordenacao]);
+      return (a[ordenacao] || '').localeCompare(b[ordenacao]);
     });
 
     const totalPaginas = Math.ceil(filtrados.length / 6);
@@ -1174,9 +1220,6 @@ onReady(async () => {
     }
     const inicio = (paginaAtualReservas - 1) * 6;
     const exibidos = filtrados.slice(inicio, inicio + 6);
-
-    const container = document.getElementById('lista-pendentes-reservas');
-    if (!container) return;
 
     if (filtrados.length === 0) {
       container.innerHTML = `
@@ -1340,7 +1383,7 @@ onReady(async () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}` 
         }
       });
       if (!resp.ok) {
@@ -1364,7 +1407,7 @@ onReady(async () => {
         const fim = new Date(`${r.date}T${r.end}:00`);
         if (agora > fim) return false;
         if (filtroData && r.date !== filtroData) return false;
-        const nomeLab = (r.sala || r.resource || '').toLowerCase();
+        const nomeLab = ((r.sala || r.resource) || '').toLowerCase();
         const nomeResp = (r.responsible || '').toLowerCase();
         if (termoBusca && !nomeLab.includes(termoBusca) && !nomeResp.includes(termoBusca)) {
           return false;
@@ -1451,7 +1494,8 @@ onReady(async () => {
     carregarUsuariosPendentes();
     carregarReservasPendentes();
     carregarReservasAtivas();
-    intervaloReservasAtivas = setInterval(() => {
+    // Atualiza lista de ativas a cada 30 segundos:
+    setInterval(() => {
       carregarReservasAtivas();
     }, 30_000);
   });
@@ -1485,8 +1529,8 @@ onReady(async () => {
   // 5) POLLING AUTOMÁTICO (Usuários + Reservas)
   // --------------------------------------------------
   setInterval(async () => {
-    await carregarUsuariosPendentes();
-    await carregarReservasPendentes();
+    carregarUsuariosPendentes();
+    carregarReservasPendentes();
   }, 10_000);
 
   // --------------------------------------------------
