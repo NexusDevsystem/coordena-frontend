@@ -28,7 +28,6 @@ const turnoColors = {
 
 let notificacoesAtivas = false;
 
-// Pede permissão ao navegador para exibir notificações.
 function solicitarPermissaoNotificacao() {
   if (!("Notification" in window)) {
     console.warn("Este navegador não suporta API de Notificações.");
@@ -45,7 +44,6 @@ function solicitarPermissaoNotificacao() {
   }
 }
 
-// Dispara uma notificação (tanto para admin quanto para usuário) se já tiver permissão.
 function enviarNotificacao(titulo, texto) {
   if (notificacoesAtivas && Notification.permission === "granted") {
     new Notification(titulo, {
@@ -1137,63 +1135,64 @@ onReady(async () => {
   // --------------------------------------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
   // --------------------------------------------------
-  async function carregarReservasPendentes() {
-    console.log("📢 carregarReservasPendentes() invocada");
-    try {
-      const token = localStorage.getItem('admin_token');
-      if (!token) {
-        alert('Sessão do Admin expirada. Faça login novamente.');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401 || res.status === 403) {
-        alert('Sem permissão ou token inválido. Faça login novamente.');
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-        window.location.replace('/login.html');
-        return;
-      }
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Falha ao carregar reservas pendentes.');
-      }
-
-      const dados = await res.json();
-  const podeNotificar = (typeof enviarNotificacao === 'function'
-                         && notificacoesAtivas
-                         && Notification.permission === "granted");
-
-  if (ultimoCountReservas === null && dados.length > 0) {
-    mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🆕 Reservas Pendentes",
-        `Existem ${dados.length} reserva(s) aguardando aprovação.`
-      );
+ async function carregarReservasPendentes() {
+  console.log("📢 carregarReservasPendentes() invocada");
+  try {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      /* trata token inválido… */
+      return;
     }
-  }
-  else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-    const diff = dados.length - ultimoCountReservas;
-    mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🔔 Nova(s) Solicitação(ões) de Reserva",
-        `${diff} nova(s) reserva(s) aguardando aprovação.`
-      );
-    }
-  }
 
-      ultimoCountReservas = dados.length;
-      reservasPendentes = dados;
-      renderizarReservasPendentes();
-    } catch (err) {
-      console.error('Erro em carregarReservasPendentes():', err);
+    const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      /* trata erro 401/403… */
+      return;
     }
+
+    const dados = await res.json();
+    // Verifica se podemos notificar (só chama enviarNotificacao se a função existir)
+    const podeNotificar = (
+      typeof enviarNotificacao === 'function' &&
+      notificacoesAtivas &&
+      Notification.permission === "granted"
+    );
+
+    // Se for o primeiro carregamento e tiver itens
+    if (ultimoCountReservas === null && dados.length > 0) {
+      mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+      if (podeNotificar) {
+        enviarNotificacao(
+          "🆕 Reservas Pendentes",
+          `Existem ${dados.length} reserva(s) aguardando aprovação.`
+        );
+      }
+    }
+    // Se já havia listagem anterior e agora vieram mais
+    else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+      const diff = dados.length - ultimoCountReservas;
+      mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+      if (podeNotificar) {
+        enviarNotificacao(
+          "🔔 Nova(s) Solicitação(ões) de Reserva",
+          `${diff} nova(s) reserva(s) aguardando aprovação.`
+        );
+      }
+    }
+
+    ultimoCountReservas = dados.length;
+    reservasPendentes = dados;
+
+    // Atenção: a partir daqui, a função não deve lançar erro NENHUM,
+    // para que renderizarReservasPendentes() sempre seja chamado:
+    renderizarReservasPendentes();
+  } catch (err) {
+    console.error('Erro em carregarReservasPendentes():', err);
   }
+}
+
 
   function renderizarReservasPendentes() {
     const container = document.getElementById('lista-pendentes-reservas');
