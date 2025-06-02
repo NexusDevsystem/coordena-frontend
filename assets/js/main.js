@@ -887,14 +887,15 @@ onReady(async () => {
 
 (function () {
   // Verifica se cada container existe no DOM
-  const hasUsersContainer = !!document.getElementById('lista-pendentes-usuarios');
+  const hasUsersContainer       = !!document.getElementById('lista-pendentes-usuarios');
   const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
-  const hasActiveContainer = !!document.getElementById('lista-ativas');
+  const hasActiveContainer      = !!document.getElementById('lista-ativas');
 
   // Se não existir nenhum, interrompe todo o bloco
   if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
     return;
   }
+  solicitarPermissaoNotificacao();
 
   // ----------------------
   // VARIÁVEIS GLOBAIS DO ADMIN
@@ -952,28 +953,30 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
       }
 
-      const dados = await res.json();
-      const podeNotificar = (typeof enviarNotificacao === 'function' && notificacoesAtivas && Notification.permission === "granted");
+     const dados = await res.json();
+  const podeNotificar = (typeof enviarNotificacao === 'function'
+                         && notificacoesAtivas
+                         && Notification.permission === "granted");
 
-      if (ultimoCountUsuarios === null && dados.length > 0) {
-        mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🆕 Usuários Pendentes",
-            `Existem ${dados.length} usuário(s) aguardando aprovação.`
-          );
-        }
-      }
-      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
-        const diff = dados.length - ultimoCountUsuarios;
-        mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🔔 Nova(s) Solicitação(ões) de Usuário",
-            `${diff} novo(s) usuário(s) aguardando aprovação.`
-          );
-        }
-      }
+  if (ultimoCountUsuarios === null && dados.length > 0) {
+    mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+    if (podeNotificar) {
+      enviarNotificacao(
+        "🆕 Usuários Pendentes",
+        `Existem ${dados.length} usuário(s) aguardando aprovação.`
+      );
+    }
+  }
+  else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+    const diff = dados.length - ultimoCountUsuarios;
+    mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
+    if (podeNotificar) {
+      enviarNotificacao(
+        "🔔 Nova(s) Solicitação(ões) de Usuário",
+        `${diff} novo(s) usuário(s) aguardando aprovação.`
+      );
+    }
+  }
 
       ultimoCountUsuarios = dados.length;
       usuariosPendentes = dados;
@@ -1160,29 +1163,29 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-      console.log("🔍 Pending-reservations:", dados);
+  const podeNotificar = (typeof enviarNotificacao === 'function'
+                         && notificacoesAtivas
+                         && Notification.permission === "granted");
 
-      const podeNotificar = (typeof enviarNotificacao === 'function' && notificacoesAtivas && Notification.permission === "granted");
-
-      if (ultimoCountReservas === null && dados.length > 0) {
-        mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🆕 Reservas Pendentes",
-            `Existem ${dados.length} reserva(s) aguardando aprovação.`
-          );
-        }
-      }
-      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-        const diff = dados.length - ultimoCountReservas;
-        mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-        if (podeNotificar) {
-          enviarNotificacao(
-            "🔔 Nova(s) Solicitação(ões) de Reserva",
-            `${diff} nova(s) reserva(s) aguardando aprovação.`
-          );
-        }
-      }
+  if (ultimoCountReservas === null && dados.length > 0) {
+    mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+    if (podeNotificar) {
+      enviarNotificacao(
+        "🆕 Reservas Pendentes",
+        `Existem ${dados.length} reserva(s) aguardando aprovação.`
+      );
+    }
+  }
+  else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+    const diff = dados.length - ultimoCountReservas;
+    mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+    if (podeNotificar) {
+      enviarNotificacao(
+        "🔔 Nova(s) Solicitação(ões) de Reserva",
+        `${diff} nova(s) reserva(s) aguardando aprovação.`
+      );
+    }
+  }
 
       ultimoCountReservas = dados.length;
       reservasPendentes = dados;
