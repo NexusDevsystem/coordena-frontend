@@ -881,52 +881,84 @@ onReady(async () => {
   }
 });
 
-// ==================================================
-// A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
-// ==================================================
-
+// ────────────────────────────────────────────────────────────
+// A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO (FRONT-END)
+// ────────────────────────────────────────────────────────────
 (function () {
-  // Verifica se cada container existe no DOM
   const hasUsersContainer       = !!document.getElementById('lista-pendentes-usuarios');
   const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
   const hasActiveContainer      = !!document.getElementById('lista-ativas');
 
-  // Se não existir nenhum, interrompe todo o bloco
   if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
     return;
   }
+
+  // 1) Pediu permissão de notificação assim que entrou no admin
   solicitarPermissaoNotificacao();
 
-  // ----------------------
-  // VARIÁVEIS GLOBAIS DO ADMIN
-  // ----------------------
-  let usuariosPendentes = [];
-  let reservasPendentes = [];
-  let paginaAtualUsuarios = 1;
-  let paginaAtualReservas = 1;
-  let ultimoCountUsuarios = null;
-  let ultimoCountReservas = null;
+  // 2) CONFIGURAÇÃO DO SOCKET.IO NO FRONT
+  //    - Ajuste a URL para a mesma do seu backend (ex: https://coordena-backend.onrender.com)
+  const socket = io('https://coordena-backend.onrender.com', {
+    transports: ['websocket'],
+    secure: true
+  });
 
+  socket.on('connect', () => {
+    console.log('🔌 Conectado ao Socket.IO:', socket.id);
+  });
+  socket.on('disconnect', () => {
+    console.log('⚡ Desconectado do Socket.IO');
+  });
+
+  // 3) Quando houver UMA NOVA RESERVA no backend, recebemos esse evento em tempo real:
+  socket.on('novaReserva', (dadosReserva) => {
+    console.log("🔔 Evento novaReserva recebido:", dadosReserva);
+    // Atualiza a lista de pendentes imediatamente:
+    carregarReservasPendentes();
+    // Atualiza o calendário (se estiver na aba de calendário)
+    if (typeof reloadEvents === 'function') {
+      reloadEvents();
+    }
+  });
+
+  // 4) Quando uma reserva for aprovada (admin), receba o evento:
+  socket.on('reservaAprovada', (reservaAprovada) => {
+    console.log("✅ Evento reservaAprovada recebido:", reservaAprovada);
+    // Atualiza a lista de pendentes e a lista de ativas:
+    carregarReservasPendentes();
+    carregarReservasAtivas();
+    // Atualiza o calendário também
+    if (typeof reloadEvents === 'function') {
+      reloadEvents();
+    }
+  });
+
+  // 5) Modelos semelhantes para “novoUsuarioPendente” e “usuarioAprovado”
+  socket.on('novoUsuarioPendente', (novoUsuario) => {
+    console.log("🆕 Evento novoUsuarioPendente recebido:", novoUsuario);
+    carregarUsuariosPendentes();
+  });
+  socket.on('usuarioAprovado', (usuarioAtualizado) => {
+    console.log("✔️ Evento usuarioAprovado recebido:", usuarioAtualizado);
+    carregarUsuariosPendentes();
+  });
+
+  // -------------------------------------------------------------
+  // Funções e variáveis do admin (reservas/usuários pendentes)
+  // -------------------------------------------------------------
+  let usuariosPendentes      = [];
+  let reservasPendentes      = [];
+  let paginaAtualUsuarios    = 1;
+  let paginaAtualReservas    = 1;
+  let ultimoCountUsuarios    = null;
+  let ultimoCountReservas    = null;
   const BASE_API = window.location.hostname.includes('localhost')
     ? 'http://localhost:10000'
     : 'https://coordena-backend.onrender.com';
 
-  // ----------------------
-  // FUNÇÃO: EXIBE NOTIFICAÇÃO IN-APP (Toast do Bootstrap)
-  // ----------------------
-  function mostrarToast(texto) {
-    const body = document.getElementById('meuToastBody');
-    if (body) body.innerText = texto;
-    const toastEl = document.getElementById('toastNovoCadastro');
-    if (toastEl) {
-      const toast = new bootstrap.Toast(toastEl);
-      toast.show();
-    }
-  }
-
-  // --------------------------------------------------
+  // ------------------------------
   // 1) CARREGAR E NOTIFICAR USUÁRIOS PENDENTES
-  // --------------------------------------------------
+  // ------------------------------
   async function carregarUsuariosPendentes() {
     console.log("📢 carregarUsuariosPendentes() invocada");
     try {
@@ -953,30 +985,30 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
       }
 
-     const dados = await res.json();
-  const podeNotificar = (typeof enviarNotificacao === 'function'
-                         && notificacoesAtivas
-                         && Notification.permission === "granted");
+      const dados = await res.json();
+      const podeNotificar = (typeof enviarNotificacao === 'function'
+                             && notificacoesAtivas
+                             && Notification.permission === "granted");
 
-  if (ultimoCountUsuarios === null && dados.length > 0) {
-    mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🆕 Usuários Pendentes",
-        `Existem ${dados.length} usuário(s) aguardando aprovação.`
-      );
-    }
-  }
-  else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
-    const diff = dados.length - ultimoCountUsuarios;
-    mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🔔 Nova(s) Solicitação(ões) de Usuário",
-        `${diff} novo(s) usuário(s) aguardando aprovação.`
-      );
-    }
-  }
+      if (ultimoCountUsuarios === null && dados.length > 0) {
+        mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🆕 Usuários Pendentes",
+            `Existem ${dados.length} usuário(s) aguardando aprovação.`
+          );
+        }
+      }
+      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+        const diff = dados.length - ultimoCountUsuarios;
+        mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🔔 Nova(s) Solicitação(ões) de Usuário",
+            `${diff} novo(s) usuário(s) aguardando aprovação.`
+          );
+        }
+      }
 
       ultimoCountUsuarios = dados.length;
       usuariosPendentes = dados;
@@ -1102,6 +1134,8 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao aprovar o usuário.');
       }
       carregarUsuariosPendentes();
+      // Emite evento de volta via Socket.IO (opcional, caso queira broadcast extra)
+      // socket.emit('usuarioAprovado', { _id: id });
     } catch (err) {
       console.error('Erro em aprovarUsuario():', err);
       alert(err.message);
@@ -1124,6 +1158,7 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao rejeitar o usuário.');
       }
       carregarUsuariosPendentes();
+      // socket.emit('usuarioRejeitado', { _id: id });
     } catch (err) {
       console.error('Erro em rejeitarUsuario():', err);
       alert(err.message);
@@ -1163,29 +1198,30 @@ onReady(async () => {
       }
 
       const dados = await res.json();
-  const podeNotificar = (typeof enviarNotificacao === 'function'
-                         && notificacoesAtivas
-                         && Notification.permission === "granted");
+      console.log("🔍 Pending-reservations:", dados);
+      const podeNotificar = (typeof enviarNotificacao === 'function'
+                             && notificacoesAtivas
+                             && Notification.permission === "granted");
 
-  if (ultimoCountReservas === null && dados.length > 0) {
-    mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🆕 Reservas Pendentes",
-        `Existem ${dados.length} reserva(s) aguardando aprovação.`
-      );
-    }
-  }
-  else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-    const diff = dados.length - ultimoCountReservas;
-    mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🔔 Nova(s) Solicitação(ões) de Reserva",
-        `${diff} nova(s) reserva(s) aguardando aprovação.`
-      );
-    }
-  }
+      if (ultimoCountReservas === null && dados.length > 0) {
+        mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🆕 Reservas Pendentes",
+            `Existem ${dados.length} reserva(s) aguardando aprovação.`
+          );
+        }
+      }
+      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+        const diff = dados.length - ultimoCountReservas;
+        mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🔔 Nova(s) Solicitação(ões) de Reserva",
+            `${diff} nova(s) reserva(s) aguardando aprovação.`
+          );
+        }
+      }
 
       ultimoCountReservas = dados.length;
       reservasPendentes = dados;
@@ -1197,7 +1233,7 @@ onReady(async () => {
 
   function renderizarReservasPendentes() {
     const container = document.getElementById('lista-pendentes-reservas');
-    if (!container) return; // se container não existir, apenas sai
+    if (!container) return; // se não existir, apenas sai
 
     const busca = document.getElementById('busca-reservas')?.value.trim().toLowerCase() || '';
     const filtroData = document.getElementById('filtro-data-reservas')?.value || '';
@@ -1323,6 +1359,8 @@ onReady(async () => {
       }
       carregarReservasPendentes();
       carregarReservasAtivas();
+      // Para disparar via WebSocket (caso queira que o mesmo evento vá para outros admins conectados):
+      // socket.emit('reservaAprovada', { _id: id });
     } catch (err) {
       console.error('Erro em aprovarReserva():', err);
       alert(err.message);
@@ -1345,6 +1383,7 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao rejeitar a reserva.');
       }
       carregarReservasPendentes();
+      // socket.emit('reservaRejeitada', { _id: id });
     } catch (err) {
       console.error('Erro em rejeitarReserva():', err);
       alert(err.message);
@@ -1497,10 +1536,10 @@ onReady(async () => {
     carregarUsuariosPendentes();
     carregarReservasPendentes();
     carregarReservasAtivas();
-    // Atualiza lista de ativas a cada 30 segundos:
+    // Fica atualizando lista de ativas a cada 30 segundos por precaução
     setInterval(() => {
       carregarReservasAtivas();
-    }, 30_000);
+    }, 30000);
   });
 
   // --------------------------------------------------
@@ -1529,12 +1568,12 @@ onReady(async () => {
   });
 
   // --------------------------------------------------
-  // 5) POLLING AUTOMÁTICO (Usuários + Reservas)
+  // 5) POLLING AUTOMÁTICO (Usuários + Reservas) — fallback apenas
   // --------------------------------------------------
   setInterval(async () => {
     carregarUsuariosPendentes();
     carregarReservasPendentes();
-  }, 10_000);
+  }, 10000);
 
   // --------------------------------------------------
   // 6) LOGOUT DO ADMIN
