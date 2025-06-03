@@ -83,7 +83,9 @@
         />
       </div>
 
-      <!-- Senha -->
+      <!-- ===========================
+           SENHA (com todos os 5 critérios)
+           =========================== -->
       <div class="relative form-group">
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
         <input
@@ -103,6 +105,30 @@
         >
           <i class="fa-solid fa-eye-slash"></i>
         </button>
+
+        <!-- Lista de critérios de senha -->
+        <ul id="passwordCriteria" class="mt-2 text-sm space-y-1">
+          <li class="flex items-center text-red-500" id="c-min-length">
+            <i class="fas fa-times mr-2"></i>
+            com pelo menos 8 caracteres
+          </li>
+          <li class="flex items-center text-red-500" id="c-uppercase-lowercase">
+            <i class="fas fa-times mr-2"></i>
+            com letras minúsculas (a-z) e maiúsculas (A-Z)
+          </li>
+          <li class="flex items-center text-red-500" id="c-number-symbol">
+            <i class="fas fa-times mr-2"></i>
+            com pelo menos um número (0-9) ou um símbolo
+          </li>
+          <li class="flex items-center text-green-500" id="c-no-email">
+            <i class="fas fa-check mr-2"></i>
+            que não inclua seu endereço de e-mail
+          </li>
+          <li class="flex items-center text-gray-500" id="c-not-common">
+            <i class="fas fa-circle mr-2"></i>
+            não é normalmente usado
+          </li>
+        </ul>
       </div>
 
       <!-- Confirmar Senha -->
@@ -197,9 +223,6 @@
     // --------------------------------------------------
     // Toggle “olhinho” para mostrar/ocultar senha
     // --------------------------------------------------
-    // Este script procura todos os botões com a classe `toggle-password`
-    // e, ao clicar, alterna o type do <input> entre "password" e "text",
-    // além de trocar o ícone de olho fechado (fa-eye-slash) para olho aberto (fa-eye).
     function initTogglePassword() {
       document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
         toggleBtn.addEventListener('click', () => {
@@ -207,7 +230,7 @@
           const formGroup = toggleBtn.closest('.form-group');
           if (!formGroup) return;
 
-          // O input pode estar como type="password" ou type="text"
+          // Pode ser type="password" ou type="text"
           const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
           if (!inputSenha) return;
 
@@ -226,8 +249,103 @@
       });
     }
 
-    // Chama a função logo depois que o script for carregado
-    // como ele está no final do <body>, o DOM já está pronto.
+    // --------------------------------------------------
+    // Validação em tempo real dos critérios de senha
+    // --------------------------------------------------
+    const criteriaMinLength       = document.getElementById('c-min-length');
+    const criteriaUpperLower      = document.getElementById('c-uppercase-lowercase');
+    const criteriaNumberSymbol    = document.getElementById('c-number-symbol');
+    const criteriaNoEmail         = document.getElementById('c-no-email');
+    const criteriaNotCommon       = document.getElementById('c-not-common');
+
+    // Lista de senhas muito comuns (exemplo resumido)
+    const commonPasswords = [
+      '123456', 'password', '12345678', 'qwerty', 'abc123',
+      '123456789', '111111', '1234567', 'iloveyou', 'adobe123',
+      '123123', 'admin', '1234567890', 'letmein', 'photoshop',
+      '1234', 'monkey', 'shadow', 'sunshine', '12345'
+      // … você pode estender esta lista conforme necessário
+    ];
+
+    document.getElementById('password')?.addEventListener('input', () => {
+      const senha     = document.getElementById('password').value;
+      const userEmail = document.getElementById('email')?.value.toLowerCase() || '';
+
+      // 1) MÍNIMO de 8 caracteres
+      if (senha.length >= 8) {
+        criteriaMinLength.classList.remove('text-red-500');
+        criteriaMinLength.classList.add('text-green-500');
+        criteriaMinLength.querySelector('i').classList.remove('fa-times');
+        criteriaMinLength.querySelector('i').classList.add('fa-check');
+      } else {
+        criteriaMinLength.classList.remove('text-green-500');
+        criteriaMinLength.classList.add('text-red-500');
+        criteriaMinLength.querySelector('i').classList.remove('fa-check');
+        criteriaMinLength.querySelector('i').classList.add('fa-times');
+      }
+
+      // 2) Pelo menos uma letra minúscula e uma maiúscula
+      const hasLowercase = /[a-z]/.test(senha);
+      const hasUppercase = /[A-Z]/.test(senha);
+      if (hasLowercase && hasUppercase) {
+        criteriaUpperLower.classList.remove('text-red-500');
+        criteriaUpperLower.classList.add('text-green-500');
+        criteriaUpperLower.querySelector('i').classList.remove('fa-times');
+        criteriaUpperLower.querySelector('i').classList.add('fa-check');
+      } else {
+        criteriaUpperLower.classList.remove('text-green-500');
+        criteriaUpperLower.classList.add('text-red-500');
+        criteriaUpperLower.querySelector('i').classList.remove('fa-check');
+        criteriaUpperLower.querySelector('i').classList.add('fa-times');
+      }
+
+      // 3) Pelo menos um número ou um símbolo
+      const hasNumber = /[0-9]/.test(senha);
+      const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(senha);
+      if (hasNumber || hasSymbol) {
+        criteriaNumberSymbol.classList.remove('text-red-500');
+        criteriaNumberSymbol.classList.add('text-green-500');
+        criteriaNumberSymbol.querySelector('i').classList.remove('fa-times');
+        criteriaNumberSymbol.querySelector('i').classList.add('fa-check');
+      } else {
+        criteriaNumberSymbol.classList.remove('text-green-500');
+        criteriaNumberSymbol.classList.add('text-red-500');
+        criteriaNumberSymbol.querySelector('i').classList.remove('fa-check');
+        criteriaNumberSymbol.querySelector('i').classList.add('fa-times');
+      }
+
+      // 4) Não incluir parte do e-mail (antes do @)
+      const lowerSenha = senha.toLowerCase();
+      const nomeUsuario = userEmail.split('@')[0] || '';
+      if (nomeUsuario && lowerSenha.includes(nomeUsuario)) {
+        criteriaNoEmail.classList.remove('text-green-500');
+        criteriaNoEmail.classList.add('text-red-500');
+        criteriaNoEmail.querySelector('i').classList.remove('fa-check');
+        criteriaNoEmail.querySelector('i').classList.add('fa-times');
+      } else {
+        criteriaNoEmail.classList.remove('text-red-500');
+        criteriaNoEmail.classList.add('text-green-500');
+        criteriaNoEmail.querySelector('i').classList.remove('fa-times');
+        criteriaNoEmail.querySelector('i').classList.add('fa-check');
+      }
+
+      // 5) NÃO ser uma senha muito comum
+      if (commonPasswords.includes(senha.toLowerCase())) {
+        // Se for comum, exibe em vermelho com “X”
+        criteriaNotCommon.classList.remove('text-green-500');
+        criteriaNotCommon.classList.add('text-red-500');
+        criteriaNotCommon.querySelector('i').classList.remove('fa-check', 'fa-circle');
+        criteriaNotCommon.querySelector('i').classList.add('fa-times');
+      } else {
+        // Senha não está na lista de comuns → exibe em verde com “check”
+        criteriaNotCommon.classList.remove('text-red-500', 'text-gray-500');
+        criteriaNotCommon.classList.add('text-green-500');
+        criteriaNotCommon.querySelector('i').classList.remove('fa-times', 'fa-circle');
+        criteriaNotCommon.querySelector('i').classList.add('fa-check');
+      }
+    });
+
+    // Chama a função de toggle de olho
     initTogglePassword();
   </script>
 </body>

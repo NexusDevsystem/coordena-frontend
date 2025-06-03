@@ -900,43 +900,39 @@ onReady(async () => {
     buildOccupancyTable(dateInput.value);
   }
 
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  // ────────────────────────────────────────────────────────────────────────
   // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  const pwdField  = document.getElementById('password');
-  const pwdToggle = document.getElementById('togglePassword');
-  if (pwdField && pwdToggle) {
-    pwdToggle.addEventListener('click', () => {
-      const type = pwdField.getAttribute('type');
-      if (type === 'password') {
-        pwdField.setAttribute('type', 'text');
-        pwdToggle.classList.remove('fa-eye');
-        pwdToggle.classList.add('fa-eye-slash');
-      } else {
-        pwdField.setAttribute('type', 'password');
-        pwdToggle.classList.remove('fa-eye-slash');
-        pwdToggle.classList.add('fa-eye');
-      }
+  // ────────────────────────────────────────────────────────────────────────
+  function initTogglePasswordFields() {
+    document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
+      toggleBtn.addEventListener('click', () => {
+        // Procura o <input> “irmão” mais próximo dentro da mesma .form-group
+        const formGroup = toggleBtn.closest('.form-group');
+        if (!formGroup) return;
+
+        // Pode ser type="password" ou type="text"
+        const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
+        if (!inputSenha) return;
+
+        if (inputSenha.type === 'password') {
+          // Mostra a senha
+          inputSenha.type = 'text';
+          toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
+          toggleBtn.querySelector('i').classList.add('fa-eye');
+        } else {
+          // Esconde a senha
+          inputSenha.type = 'password';
+          toggleBtn.querySelector('i').classList.remove('fa-eye');
+          toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+        }
+      });
     });
   }
 
-  const pwd2Field  = document.getElementById('password2');
-  const pwd2Toggle = document.getElementById('togglePassword2');
-  if (pwd2Field && pwd2Toggle) {
-    pwd2Toggle.addEventListener('click', () => {
-      const type = pwd2Field.getAttribute('type');
-      if (type === 'password') {
-        pwd2Field.setAttribute('type', 'text');
-        pwd2Toggle.classList.remove('fa-eye');
-        pwd2Toggle.classList.add('fa-eye-slash');
-      } else {
-        pwd2Field.setAttribute('type', 'password');
-        pwd2Toggle.classList.remove('fa-eye-slash');
-        pwd2Toggle.classList.add('fa-eye');
-      }
-    });
-  }
+  // Chama a função de toggle de olho, caso existam botões no DOM
+  initTogglePasswordFields();
 });
+
 
 
 // ==================================================
