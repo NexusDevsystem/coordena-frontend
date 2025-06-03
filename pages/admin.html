@@ -65,8 +65,7 @@
     </div>
     <!-- ========================================= -->
 
-    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas -->
-    <!-- Em telas estreitas, esse <ul> ficará rolável horizontalmente -->
+    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas / Histórico de Usuários -->
     <div class="overflow-auto mb-3">
       <ul class="nav nav-tabs flex-nowrap" id="adminTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -109,6 +108,21 @@
             aria-selected="false"
           >
             <i class="fas fa-check-circle"></i> Reservas Ativas
+          </button>
+        </li>
+        <!-- === NOVA ABA: Histórico de Usuários === -->
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="historico-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#historico"
+            type="button"
+            role="tab"
+            aria-controls="historico"
+            aria-selected="false"
+          >
+            <i class="fas fa-history"></i> Histórico de Usuários
           </button>
         </li>
       </ul>
@@ -211,6 +225,30 @@
         <!-- Lista de cards para as Reservas Ativas -->
         <div id="lista-ativas" class="row g-3"></div>
       </div>
+
+      <!-- =========== ABA 4 (nova): Histórico de Usuários ============ -->
+      <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
+        <div class="row mb-3 gx-2">
+          <!-- Você pode manter a busca/filtros aqui também, se quiser -->
+          <div class="col-12">
+            <h5 class="mb-3"><i class="fas fa-history me-2"></i> Histórico de Usuários</h5>
+            <!-- Exemplo de filtro de data (opcional) -->
+            <div class="mb-3">
+              <input
+                type="date"
+                id="filtro-data-historico"
+                class="form-control w-100"
+                placeholder="Selecionar período..."
+              />
+            </div>
+          </div>
+        </div>
+        <!-- Container onde você colocará, via JS, a lista ou tabela de histórico -->
+        <div id="lista-historico-usuarios">
+          <!-- Exemplo de texto enquanto não popula via JavaScript -->
+          <p class="text-muted">Aqui aparecerá o histórico de usuários (ex: usuários já aprovados, rejeitados ou removidos).</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -240,4 +278,5 @@
   <!-- Seu JS principal (contém toda a lógica de calendário + notificações) -->
   <script src="/assets/js/main.js"></script>
 </body>
+
 </html>
