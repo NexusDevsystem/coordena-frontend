@@ -519,31 +519,46 @@ const DetailModule = (() => {
   function cacheSelectors() {
     selectors.modal = document.getElementById('event-modal');
     selectors.btnClose = document.getElementById('modal-close');
-    selectors.btnEdit = document.getElementById('modal-edit');
+    selectors.btnEdit  = document.getElementById('modal-edit');
     selectors.btnDelete = document.getElementById('modal-cancel');
     selectors.fields = {
-      date: document.getElementById('modal-date'),
+      date:     document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
-      type: document.getElementById('modal-type'),
-      resp: document.getElementById('modal-resp'),
-      dept: document.getElementById('modal-dept'),
-      materia: document.getElementById('modal-materia'),
-      status: document.getElementById('modal-status'),
-      desc: document.getElementById('modal-desc')
+      type:     document.getElementById('modal-type'),
+      resp:     document.getElementById('modal-resp'),
+      dept:     document.getElementById('modal-dept'),
+      materia:  document.getElementById('modal-materia'),
+      status:   document.getElementById('modal-status'),
+      desc:     document.getElementById('modal-desc')
     };
   }
 
   function open(ev) {
     currentId = ev._id;
     const f = selectors.fields;
-    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
+
+    // Preenche os campos do modal
+    f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
     f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent = `Evento: ${ev.type}`;
-    f.resp.textContent = `Responsável: ${ev.responsible}`;
-    f.dept.textContent = `Curso: ${ev.department}`;
-    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent = `Status: ${ev.status}`;
-    f.desc.textContent = ev.description || 'Sem descrição';
+    f.type.textContent     = `Evento: ${ev.type}`;
+    f.resp.textContent     = `Responsável: ${ev.responsible}`;
+    f.dept.textContent     = `Curso: ${ev.department}`;
+    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
+    f.status.textContent   = `Status: ${ev.status}`;
+    f.desc.textContent     = ev.description || 'Sem descrição';
+
+    // Verifica se o usuário logado é o responsável desta reserva
+    const currentUser = Auth.getCurrentUser();
+    if (currentUser && ev.responsible === currentUser.name) {
+      // se for o dono, mostra o botão de excluir
+      selectors.btnDelete.style.display = 'inline-block';
+      selectors.btnEdit.style.display   = 'inline-block';
+    } else {
+      // se NÃO for o dono, oculta o botão de excluir (e edição, se desejar)
+      selectors.btnDelete.style.display = 'none';
+      selectors.btnEdit.style.display   = 'none';
+    }
+
     selectors.modal.classList.remove('hidden');
   }
 
@@ -552,25 +567,32 @@ const DetailModule = (() => {
   }
 
   function init() {
-    // Só continua se o modal de detalhes existir na página
-    if (!document.getElementById('event-modal')) {
-      return;
-    }
-
     cacheSelectors();
+
+    // Fechar modal
     selectors.btnClose?.addEventListener('click', close);
+
+    // Botão “Editar” leva ao FormModule, mas só estará visível para o dono (já controlamos em open())
     selectors.btnEdit?.addEventListener('click', () => {
       if (!currentId) return;
       const ev = CalendarModule.getEvents().find(e => e._id === currentId);
       if (ev) FormModule.open(currentId, ev);
       close();
     });
+
+    // Botão “Cancelar” (deleta a reserva), somente para quem criou
     selectors.btnDelete?.addEventListener('click', async () => {
       if (!currentId) return;
+
+      // Confirmar ação
+      if (!confirm('Tem certeza que deseja cancelar esta reserva?')) {
+        return;
+      }
+
       try {
         await Api.deleteEvent(currentId);
         CalendarModule.remove(currentId);
-        const dateValue = document.getElementById('occupancy-date')?.value;
+        const dateValue = document.getElementById('occupancy-date').value;
         safeBuildOccupancyTable(dateValue);
         close();
       } catch (err) {
