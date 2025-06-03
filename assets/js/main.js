@@ -904,26 +904,22 @@ onReady(async () => {
   // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
-    toggleBtn.addEventListener('click', () => {
-      // Encontrar o input “irmão” dentro da mesma .form-group
-      const formGroup = toggleBtn.closest('.form-group');
-      if (!formGroup) return;
+  toggleBtn.addEventListener('click', () => {
+    const formGroup  = toggleBtn.closest('.form-group');
+    if (!formGroup) return;
 
-      // Pode ser type="password" ou type="text"
-      const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
-      if (!inputSenha) return;
+    const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
+    if (!inputSenha) return;
 
-      if (inputSenha.type === 'password') {
-        // Mostra a senha
-        inputSenha.type = 'text';
-        toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
-        toggleBtn.querySelector('i').classList.add('fa-eye');
-      } else {
-        // Esconde a senha
-        inputSenha.type = 'password';
-        toggleBtn.querySelector('i').classList.remove('fa-eye');
-        toggleBtn.querySelector('i').classList.add('fa-eye-slash');
-      }
+    if (inputSenha.type === 'password') {
+      inputSenha.type = 'text';
+      toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
+      toggleBtn.querySelector('i').classList.add('fa-eye');
+    } else {
+      inputSenha.type = 'password';
+      toggleBtn.querySelector('i').classList.remove('fa-eye');
+      toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+    }
     });
   });
 });
