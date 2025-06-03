@@ -1266,7 +1266,7 @@ onReady(async () => {
     try {
       const token = localStorage.getItem('admin_token');
       const res = await fetch(`${BASE_API}/api/admin/reject-user/${id}`, {
-        method: 'DELETE',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
