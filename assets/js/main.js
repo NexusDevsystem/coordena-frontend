@@ -900,40 +900,33 @@ onReady(async () => {
     buildOccupancyTable(dateInput.value);
   }
 
-  // ────────────────────────────────────────────────────────────────────────
+  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
-  // ────────────────────────────────────────────────────────────────────────
-  function initTogglePasswordFields() {
-    document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
-      toggleBtn.addEventListener('click', () => {
-        // Procura o <input> “irmão” mais próximo dentro da mesma .form-group
-        const formGroup = toggleBtn.closest('.form-group');
-        if (!formGroup) return;
+  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
+    toggleBtn.addEventListener('click', () => {
+      // Encontrar o input “irmão” dentro da mesma .form-group
+      const formGroup = toggleBtn.closest('.form-group');
+      if (!formGroup) return;
 
-        // Pode ser type="password" ou type="text"
-        const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
-        if (!inputSenha) return;
+      // Pode ser type="password" ou type="text"
+      const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
+      if (!inputSenha) return;
 
-        if (inputSenha.type === 'password') {
-          // Mostra a senha
-          inputSenha.type = 'text';
-          toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
-          toggleBtn.querySelector('i').classList.add('fa-eye');
-        } else {
-          // Esconde a senha
-          inputSenha.type = 'password';
-          toggleBtn.querySelector('i').classList.remove('fa-eye');
-          toggleBtn.querySelector('i').classList.add('fa-eye-slash');
-        }
-      });
+      if (inputSenha.type === 'password') {
+        // Mostra a senha
+        inputSenha.type = 'text';
+        toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
+        toggleBtn.querySelector('i').classList.add('fa-eye');
+      } else {
+        // Esconde a senha
+        inputSenha.type = 'password';
+        toggleBtn.querySelector('i').classList.remove('fa-eye');
+        toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+      }
     });
-  }
-
-  // Chama a função de toggle de olho, caso existam botões no DOM
-  initTogglePasswordFields();
+  });
 });
-
-
 
 // ==================================================
 // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
@@ -1007,30 +1000,30 @@ onReady(async () => {
         throw new Error(errJson.error || 'Falha ao carregar usuários pendentes.');
       }
 
-     const dados = await res.json();
-  const podeNotificar = (typeof enviarNotificacao === 'function'
-                         && notificacoesAtivas
-                         && Notification.permission === "granted");
+      const dados = await res.json();
+      const podeNotificar = (typeof enviarNotificacao === 'function'
+                             && notificacoesAtivas
+                             && Notification.permission === "granted");
 
-  if (ultimoCountUsuarios === null && dados.length > 0) {
-    mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🆕 Usuários Pendentes",
-        `Existem ${dados.length} usuário(s) aguardando aprovação.`
-      );
-    }
-  }
-  else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
-    const diff = dados.length - ultimoCountUsuarios;
-    mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
-    if (podeNotificar) {
-      enviarNotificacao(
-        "🔔 Nova(s) Solicitação(ões) de Usuário",
-        `${diff} novo(s) usuário(s) aguardando aprovação.`
-      );
-    }
-  }
+      if (ultimoCountUsuarios === null && dados.length > 0) {
+        mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🆕 Usuários Pendentes",
+            `Existem ${dados.length} usuário(s) aguardando aprovação.`
+          );
+        }
+      }
+      else if (ultimoCountUsuarios !== null && dados.length > ultimoCountUsuarios) {
+        const diff = dados.length - ultimoCountUsuarios;
+        mostrarToast(`${diff} nova(s) solicitação(ões) de usuário!`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🔔 Nova(s) Solicitação(ões) de Usuário",
+            `${diff} novo(s) usuário(s) aguardando aprovação.`
+          );
+        }
+      }
 
       ultimoCountUsuarios = dados.length;
       usuariosPendentes = dados;
@@ -1191,64 +1184,63 @@ onReady(async () => {
   // --------------------------------------------------
   // 2) CARREGAR E NOTIFICAR RESERVAS PENDENTES
   // --------------------------------------------------
- async function carregarReservasPendentes() {
-  console.log("📢 carregarReservasPendentes() invocada");
-  try {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      /* trata token inválido… */
-      return;
-    }
-
-    const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok) {
-      /* trata erro 401/403… */
-      return;
-    }
-
-    const dados = await res.json();
-    // Verifica se podemos notificar (só chama enviarNotificacao se a função existir)
-    const podeNotificar = (
-      typeof enviarNotificacao === 'function' &&
-      notificacoesAtivas &&
-      Notification.permission === "granted"
-    );
-
-    // Se for o primeiro carregamento e tiver itens
-    if (ultimoCountReservas === null && dados.length > 0) {
-      mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
-      if (podeNotificar) {
-        enviarNotificacao(
-          "🆕 Reservas Pendentes",
-          `Existem ${dados.length} reserva(s) aguardando aprovação.`
-        );
+  async function carregarReservasPendentes() {
+    console.log("📢 carregarReservasPendentes() invocada");
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        /* trata token inválido… */
+        return;
       }
-    }
-    // Se já havia listagem anterior e agora vieram mais
-    else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
-      const diff = dados.length - ultimoCountReservas;
-      mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
-      if (podeNotificar) {
-        enviarNotificacao(
-          "🔔 Nova(s) Solicitação(ões) de Reserva",
-          `${diff} nova(s) reserva(s) aguardando aprovação.`
-        );
+
+      const res = await fetch(`${BASE_API}/api/admin/pending-reservations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        /* trata erro 401/403… */
+        return;
       }
+
+      const dados = await res.json();
+      // Verifica se podemos notificar (só chama enviarNotificacao se a função existir)
+      const podeNotificar = (
+        typeof enviarNotificacao === 'function' &&
+        notificacoesAtivas &&
+        Notification.permission === "granted"
+      );
+
+      // Se for o primeiro carregamento e tiver itens
+      if (ultimoCountReservas === null && dados.length > 0) {
+        mostrarToast(`${dados.length} reserva(s) pendente(s) no momento.`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🆕 Reservas Pendentes",
+            `Existem ${dados.length} reserva(s) aguardando aprovação.`
+          );
+        }
+      }
+      // Se já havia listagem anterior e agora vieram mais
+      else if (ultimoCountReservas !== null && dados.length > ultimoCountReservas) {
+        const diff = dados.length - ultimoCountReservas;
+        mostrarToast(`${diff} nova(s) solicitação(ões) de reserva!`);
+        if (podeNotificar) {
+          enviarNotificacao(
+            "🔔 Nova(s) Solicitação(ões) de Reserva",
+            `${diff} nova(s) reserva(s) aguardando aprovação.`
+          );
+        }
+      }
+
+      ultimoCountReservas = dados.length;
+      reservasPendentes = dados;
+
+      // Atenção: a partir daqui, a função não deve lançar erro NENHUM,
+      // para que renderizarReservasPendentes() sempre seja chamado:
+      renderizarReservasPendentes();
+    } catch (err) {
+      console.error('Erro em carregarReservasPendentes():', err);
     }
-
-    ultimoCountReservas = dados.length;
-    reservasPendentes = dados;
-
-    // Atenção: a partir daqui, a função não deve lançar erro NENHUM,
-    // para que renderizarReservasPendentes() sempre seja chamado:
-    renderizarReservasPendentes();
-  } catch (err) {
-    console.error('Erro em carregarReservasPendentes():', err);
   }
-}
-
 
   function renderizarReservasPendentes() {
     const container = document.getElementById('lista-pendentes-reservas');
