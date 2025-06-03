@@ -46,7 +46,7 @@ const Auth = (() => {
 
   // --------------------------------------------------
   // FUNÇÃO: login(email, password)
-  // → Faz POST /api/auth/login → { user, token }
+  // → Faz POST /api/auth/login → { _id, name, email, role, status, token }
   // → Se status 403 ou 401, joga um Error com a mensagem do backend
   // → Se OK, salva token+user e redireciona de acordo com a role
   // --------------------------------------------------
@@ -95,10 +95,29 @@ const Auth = (() => {
 
     console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
 
+    // → AQUI ESTÁ A MUDANÇA MAIS IMPORTANTE:
+    // O backend agora retorna um objeto achatado, ex:
+    // { _id: "...", name: "...", email: "...", role: "professor", status: "approved", token: "..." }
+    //
+    // Antigamente esperávamos: { user: {...}, token: "..." }
+    // Agora pegamos diretamente o “role” e o “token” do próprio “data”.
+    //
+    // EXTRAEMOS o token diretamente, e construímos um objeto “user” para salvar no localStorage.
+
+    const token = data.token;
+    const role  = data.role;   // <-- pegamos do objeto retornado
+    // Reconstruímos um “userObj” sem o campo “token”
+    const userObj = {
+      _id:    data._id,
+      name:   data.name,
+      email:  data.email,
+      role:   data.role,
+      status: data.status
+    };
+
     // 1) Salva token + user no localStorage, separando por role
-    const role = data.user.role; // “admin”, “professor” ou “student”
-    saveTokenForRole(role, data.token);
-    saveUserForRole(role, data.user);
+    saveTokenForRole(role, token);
+    saveUserForRole(role, userObj);
 
     // 2) Redireciona conforme a role
     if (role === 'admin') {
@@ -107,7 +126,7 @@ const Auth = (() => {
       window.location.assign('index.html');
     }
 
-    return data.token;
+    return token;
   }
 
   // --------------------------------------------------
