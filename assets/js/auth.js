@@ -6,7 +6,10 @@ const Auth = (() => {
     ? 'http://localhost:10000/api/auth'
     : 'https://coordena-backend.onrender.com/api/auth';
 
-  // NÃO vamos mais usar uma única chave “token”; guardaremos tokens em chaves separadas
+  // --------------------------------------------------
+  // Helpers para armazenar token + user no localStorage,
+  // em chaves distintas para “admin” e para “user”
+  // --------------------------------------------------
   function saveTokenForRole(role, token) {
     if (role === 'admin') {
       localStorage.setItem('admin_token', token);
@@ -21,7 +24,6 @@ const Auth = (() => {
       : localStorage.getItem('token');
   }
 
-  // Guarda o objeto user também em chaves separadas
   function saveUserForRole(role, userObj) {
     const json = JSON.stringify(userObj);
     if (role === 'admin') {
@@ -31,7 +33,6 @@ const Auth = (() => {
     }
   }
 
-  // Recupera o user do localStorage, conforme a role
   function getUserForRole(role) {
     const key = role === 'admin' ? 'admin_user' : 'user';
     const str = localStorage.getItem(key);
@@ -43,6 +44,12 @@ const Auth = (() => {
     }
   }
 
+  // --------------------------------------------------
+  // FUNÇÃO: login(email, password)
+  // → Faz POST /api/auth/login → { user, token }
+  // → Se status 403 ou 401, joga um Error com a mensagem do backend
+  // → Se OK, salva token+user e redireciona de acordo com a role
+  // --------------------------------------------------
   async function login(email, password) {
     console.log('[Auth.login] API endpoint:', `${API}/login`);
     console.log('[Auth.login] Payload →', { email, password });
@@ -56,19 +63,20 @@ const Auth = (() => {
       });
     } catch (fetchErr) {
       console.error('[Auth.login] Erro no fetch:', fetchErr);
-      throw new Error('Falha ao conectar com o servidor. Verifique a rede.');
+      throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
     }
 
     console.log('[Auth.login] Status HTTP da resposta:', res.status);
     if (!res.ok) {
+      // Lê JSON de erro, se possível
       let errText = 'Credenciais inválidas.';
       try {
         const errJson = await res.json();
         console.log('[Auth.login] JSON de erro recebido:', errJson);
-        if (res.status === 403 && errJson.error) {
+        if (errJson.error) {
           errText = errJson.error;
-        } else if (errJson.error) {
-          errText = errJson.error;
+        } else if (errJson.message) {
+          errText = errJson.message;
         }
       } catch (jsonErr) {
         console.warn('[Auth.login] Não foi possível ler JSON de erro:', jsonErr);
@@ -76,6 +84,7 @@ const Auth = (() => {
       throw new Error(errText);
     }
 
+    // Se OK, parseia o JSON de sucesso
     let data;
     try {
       data = await res.json();
@@ -86,8 +95,8 @@ const Auth = (() => {
 
     console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
 
-    // 1) Salva no localStorage com chaves separadas
-    const role = data.user.role; // 'admin', 'professor' ou 'student'
+    // 1) Salva token + user no localStorage, separando por role
+    const role = data.user.role; // “admin”, “professor” ou “student”
     saveTokenForRole(role, data.token);
     saveUserForRole(role, data.user);
 
@@ -101,32 +110,67 @@ const Auth = (() => {
     return data.token;
   }
 
+  // --------------------------------------------------
+  // FUNÇÃO: register({ name, email, password })
+  // → Faz POST /api/auth/register
+  // → Se status != 2xx, joga Error com mensagem do backend
+  // → Se cadastrado, redireciona o usuário para login.html
+  // --------------------------------------------------
   async function register(data) {
     console.log('[Auth.register] API endpoint:', `${API}/register`);
     console.log('[Auth.register] Payload →', data);
 
-    const res = await fetch(`${API}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    let res;
+    try {
+      res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (fetchErr) {
+      console.error('[Auth.register] Erro no fetch:', fetchErr);
+      throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
+    }
 
     console.log('[Auth.register] Status HTTP da resposta:', res.status);
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('[Auth.register] JSON de erro recebido:', err);
-      throw new Error(err.error || 'Erro no cadastro');
+      let errText = 'Erro no cadastro.';
+      try {
+        const errJson = await res.json();
+        console.error('[Auth.register] JSON de erro recebido:', errJson);
+        if (errJson.error) {
+          errText = errJson.error;
+        } else if (errJson.message) {
+          errText = errJson.message;
+        }
+      } catch (jsonErr) {
+        console.warn('[Auth.register] Não foi possível ler JSON de erro:', jsonErr);
+      }
+      throw new Error(errText);
     }
 
-    const result = await res.json();
+    // Parse do JSON de confirmação bem-sucedida
+    let result;
+    try {
+      result = await res.json();
+    } catch (jsonErr) {
+      console.error('[Auth.register] Erro ao fazer parse do JSON de sucesso:', jsonErr);
+      throw new Error('Resposta inválida do servidor.');
+    }
+
     console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
 
+    // Redireciona para a página de login após cadastro
     window.location.assign('login.html');
     return result;
   }
 
+  // --------------------------------------------------
+  // FUNÇÃO: logout(role)
+  // → Remove token + user do localStorage para a role passada
+  // → Redireciona para login.html
+  // --------------------------------------------------
   function logout(role) {
-    // Remove apenas as chaves correspondentes àquela sessão
     if (role === 'admin') {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
@@ -137,6 +181,9 @@ const Auth = (() => {
     window.location.assign('login.html');
   }
 
+  // --------------------------------------------------
+  // FUNÇÕES DE CONSULTA (expor o user e token no front)
+  // --------------------------------------------------
   function getCurrentUser(role) {
     return getUserForRole(role);
   }
