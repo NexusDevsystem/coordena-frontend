@@ -904,25 +904,135 @@ onReady(async () => {
   // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
-  toggleBtn.addEventListener('click', () => {
-    const formGroup  = toggleBtn.closest('.form-group');
-    if (!formGroup) return;
+    toggleBtn.addEventListener('click', () => {
+      const formGroup  = toggleBtn.closest('.form-group');
+      if (!formGroup) return;
 
-    const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
-    if (!inputSenha) return;
+      const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
+      if (!inputSenha) return;
 
-    if (inputSenha.type === 'password') {
-      inputSenha.type = 'text';
-      toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
-      toggleBtn.querySelector('i').classList.add('fa-eye');
-    } else {
-      inputSenha.type = 'password';
-      toggleBtn.querySelector('i').classList.remove('fa-eye');
-      toggleBtn.querySelector('i').classList.add('fa-eye-slash');
-    }
+      if (inputSenha.type === 'password') {
+        inputSenha.type = 'text';
+        toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
+        toggleBtn.querySelector('i').classList.add('fa-eye');
+      } else {
+        inputSenha.type = 'password';
+        toggleBtn.querySelector('i').classList.remove('fa-eye');
+        toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+      }
     });
   });
+
+  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+  // NOVO: Sessão “Histórico de Usuários”
+  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+  // Função que busca e renderiza todos os usuários com status “approved” ou “rejected”
+  async function carregarHistoricoUsuarios() {
+    const container = document.getElementById('lista-historico-usuarios');
+    if (!container) return console.error('#lista-historico-usuarios não encontrado');
+
+    container.innerHTML = '<p class="text-center py-4">Carregando histórico...</p>';
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_API}/api/admin/users-history`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const historico = await res.json();
+
+      if (!historico.length) {
+        container.innerHTML = `
+          <div class="text-center py-5 text-muted">
+            <i class="fas fa-user-clock fa-3x mb-3"></i>
+            <h5>Nenhum usuário aprovado ou rejeitado ainda</h5>
+            <p>Ainda não há histórico de usuários.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // filtros de busca e ordenação
+      const termoBusca = document.getElementById('busca-historico-usuarios')?.value.trim().toLowerCase() || '';
+      const ordenacao = document.getElementById('ordenacao-historico-usuarios')?.value || 'updatedAt';
+
+      let filtrados = historico.filter(u => {
+        const texto = (u.name + ' ' + u.email).toLowerCase();
+        return texto.includes(termoBusca);
+      });
+
+      filtrados.sort((a, b) => {
+        if (ordenacao === 'updatedAt') {
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        }
+        if (ordenacao === 'name' || ordenacao === 'email') {
+          return (a[ordenacao] || '').localeCompare(b[ordenacao] || '');
+        }
+        if (ordenacao === 'status') {
+          return (a.status || '').localeCompare(b.status || '');
+        }
+        return 0;
+      });
+
+      let html = '<div class="row gx-3 gy-4">';
+      filtrados.forEach(u => {
+        html += `
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title mb-1">${u.name}</h5>
+                <p class="card-text text-secondary mb-1">${u.email}</p>
+                <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
+                <p class="card-text mb-2"><small>Status:
+                  ${u.status === 'approved'
+                    ? '<span class="badge bg-success">Aprovado</span>'
+                    : '<span class="badge bg-danger">Rejeitado</span>'}
+                </small></p>
+                <p class="card-text text-muted small">
+                  Data de cadastro: ${new Date(u.createdAt).toLocaleDateString('pt-BR')}<br>
+                  Última atualização: ${new Date(u.updatedAt).toLocaleDateString('pt-BR')} às ${new Date(u.updatedAt).toLocaleTimeString('pt-BR')}
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+
+    } catch (err) {
+      console.error('Falha ao carregar histórico de usuários:', err);
+      container.innerHTML = `
+        <div class="text-center py-5 text-danger">
+          <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+          <p>Não foi possível carregar o histórico de usuários.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Quando a aba “Histórico de Usuários” for exibida, disparamos a função
+  document.getElementById('historico-tab')?.addEventListener('shown.bs.tab', () => {
+    carregarHistoricoUsuarios();
+  });
+
+  // Também ligamos os filtros de busca e ordenação dentro da aba
+  document.getElementById('busca-historico-usuarios')?.addEventListener('input', () => {
+    carregarHistoricoUsuarios();
+  });
+  document.getElementById('ordenacao-historico-usuarios')?.addEventListener('change', () => {
+    carregarHistoricoUsuarios();
+  });
+
 });
+// --------------------------------------------------
+// Fim de onReady
+// --------------------------------------------------
+
 
 // ==================================================
 // A PARTIR DAQUI: CÓDIGO DO PAINEL DE ADMINISTRAÇÃO
