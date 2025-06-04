@@ -44,7 +44,7 @@
       // Se não houver usuário, redireciona para a página de login
       window.location.href = '../login.html';
     } else {
-      // Para uso nos outros scripts
+      // Armazena em window para uso posterior
       window.user = user;
     }
   </script>
@@ -177,14 +177,14 @@
         });
       }
 
-      // Função para buscar e exibir agendamentos do usuário
+      // Função para buscar e exibir agendamentos do usuário (todos os status)
       async function carregarMeusAgendamentos() {
         const container = document.getElementById('agendamentos-container');
         container.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">Carregando agendamentos...</p>`;
 
         try {
-          // Busca todas as reservas aprovadas (backend devolve apenas as com status: 'approved')
-          const token = Auth.getToken(); // pega do localStorage
+          // Busca TODAS as reservas do usuário (backend agora retorna todos os status)
+          const token = Auth.getToken();
           const res = await fetch('https://coordena-backend.onrender.com/api/reservations', {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -193,22 +193,42 @@
           if (!res.ok) throw new Error('Falha ao buscar agendamentos');
           const todasReservas = await res.json();
 
-          // Filtra apenas as reservas deste usuário (responsible === user.name)
-          const minhasReservas = todasReservas.filter(r => r.responsible === user.name);
-
-          if (minhasReservas.length === 0) {
-            container.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">Você não possui agendamentos aprovados.</p>`;
+          if (todasReservas.length === 0) {
+            container.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">Você não possui agendamentos.</p>`;
             return;
           }
 
-          // Monta cards para cada reserva, incluindo botões de ação
-          const html = minhasReservas.map(r => {
+          // Monta cards para cada reserva, mostrando status, e mantendo no histórico mesmo após conclusão
+          const html = todasReservas.map(r => {
             const recursoNome = r.sala ? r.sala : r.resource;
             const dataBR = new Date(r.date).toLocaleDateString('pt-BR');
-            const statusCapitalizado = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+            // Formata label de status com cor:
+            let statusClasse = '';
+            let statusLabel = '';
+            switch (r.status) {
+              case 'approved':
+                statusClasse = 'text-green-500';
+                statusLabel = 'Approved';
+                break;
+              case 'completed':
+                statusClasse = 'text-blue-500';
+                statusLabel = 'Completed';
+                break;
+              case 'pending':
+                statusClasse = 'text-yellow-500';
+                statusLabel = 'Pending';
+                break;
+              case 'canceled':
+                statusClasse = 'text-red-500';
+                statusLabel = 'Canceled';
+                break;
+              default:
+                statusClasse = 'text-gray-500';
+                statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+            }
             return `
               <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
-                <div class="flex justify-between">
+                <div class="flex justify-between flex-wrap">
                   <div class="space-y-1">
                     <p><span class="font-semibold">Data:</span> ${dataBR}</p>
                     <p><span class="font-semibold">Horário:</span> ${r.start} – ${r.end}</p>
@@ -220,28 +240,32 @@
                   <div class="text-right">
                     <p>
                       <span class="font-semibold">Status:</span>
-                      <span class="${r.status === 'approved' ? 'text-green-500' : 'text-yellow-500'}">
-                        ${statusCapitalizado}
-                      </span>
+                      <span class="${statusClasse}">${statusLabel}</span>
                     </p>
                   </div>
                 </div>
-                <div class="flex justify-end space-x-2">
-                  <!-- Botão Concluir Atividade -->
-                  <button onclick="concluirReserva('${r._id}')" 
-                          class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                    Concluir Atividade
-                  </button>
-                  <!-- Botão Editar -->
-                  <button onclick="editarReserva('${r._id}')" 
-                          class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                    Editar
-                  </button>
-                  <!-- Botão Cancelar -->
-                  <button onclick="cancelarReserva('${r._id}')" 
-                          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-                    Cancelar
-                  </button>
+                <div class="flex justify-end space-x-2 flex-wrap">
+                  <!-- Mostrar botão “Concluir” apenas se ainda estiver em Approved -->
+                  ${r.status === 'approved'
+                    ? `<button onclick="concluirReserva('${r._id}')" 
+                              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                         Concluir Atividade
+                       </button>`
+                    : ''}
+                  <!-- Mostrar botão “Editar” apenas se ainda for Pending ou Approved -->
+                  ${['pending', 'approved'].includes(r.status)
+                    ? `<button onclick="editarReserva('${r._id}')" 
+                              class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                         Editar
+                       </button>`
+                    : ''}
+                  <!-- Mostrar botão “Cancelar” apenas se excluir for permitido (Pending ou Approved) -->
+                  ${['pending', 'approved'].includes(r.status)
+                    ? `<button onclick="cancelarReserva('${r._id}')" 
+                              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                         Cancelar Reserva
+                       </button>`
+                    : ''}
                 </div>
               </div>
             `;
@@ -254,7 +278,7 @@
         }
       }
 
-      // Função para marcar como concluído (status → 'completed')
+      // Marcar como concluído: altera status para 'completed'
       window.concluirReserva = async (id) => {
         if (!confirm('Marcar esta atividade como concluída?')) return;
         try {
@@ -268,35 +292,37 @@
             body: JSON.stringify({ status: 'completed' })
           });
           if (!res.ok) throw new Error('Falha ao concluir atividade');
-          // Recarrega lista após concluir
+          // Mantém no histórico (não remove) → apenas recarrega a lista
           carregarMeusAgendamentos();
         } catch (err) {
           alert('Erro ao concluir atividade: ' + err.message);
         }
       };
 
-      // Função para cancelar reserva (DELETE)
+      // Cancelar reserva: altera status para 'canceled' (ou apaga, se preferir)
       window.cancelarReserva = async (id) => {
         if (!confirm('Deseja mesmo cancelar esta reserva?')) return;
         try {
           const token = Auth.getToken();
+          // Opcional 1: atualizar status para 'canceled'
           const res = await fetch(`https://coordena-backend.onrender.com/api/reservations/${id}`, {
-            method: 'DELETE',
+            method: 'PUT',
             headers: {
+              'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
-            }
+            },
+            body: JSON.stringify({ status: 'canceled' })
           });
           if (!res.ok) throw new Error('Falha ao cancelar reserva');
-          // Recarrega lista após cancelar
+          // Recarrega lista para manter histórico
           carregarMeusAgendamentos();
         } catch (err) {
           alert('Erro ao cancelar reserva: ' + err.message);
         }
       };
 
-      // Função para redirecionar ao calendário para editar
+      // Redirecionar para editar: envia query string ?edit=<id>
       window.editarReserva = (id) => {
-        // Encaminha para agendamento.html com query param ?edit=<id>
         window.location.href = `agendamento.html?edit=${id}`;
       };
 
