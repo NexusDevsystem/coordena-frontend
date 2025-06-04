@@ -79,9 +79,12 @@
 
       <!-- Lista de navegação -->
       <ul class="menu-list p-4 space-y-2">
-        <li><a href="../index.html">Início</a></li>
-        <li><a href="agendamento.html" class="font-semibold">Agendamentos</a></li>
-        <li><a href="meus-agendamentos.html">Meus Agendamentos</a></li>
+        <!-- Apenas “Meus Agendamentos” -->
+        <li>
+          <a href="meus-agendamentos.html" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
+            Meus Agendamentos
+          </a>
+        </li>
       </ul>
 
       <!-- Botões Tema / Sair -->
@@ -125,20 +128,22 @@
   <div
     class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
     <a href="../index.html"
-      class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200">
+      class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200"
+      title="Início">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
            stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5" />
       </svg>
     </a>
     <button
       class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200"
-      title="Calendário">
+      title="Agendamentos">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
            stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0
-                 00-2 2v12a2 2 0 002 2z" />
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7
+                 a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     </button>
   </div>
