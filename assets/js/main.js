@@ -80,13 +80,6 @@ const ThemeToggle = (() => {
 })();
 
 // --------------------------------------------------
-// MÓDULO DE AUTENTICAÇÃO
-// --------------------------------------------------
-// Supondo que Auth.getCurrentUser() retorna { name, email, token } ou null
-// e Auth.logout() limpa localStorage e/ou cookies relacionados ao login.
-
-
-// --------------------------------------------------
 // MÓDULO DE API (…)
 // --------------------------------------------------
 const Api = (() => {
@@ -96,7 +89,7 @@ const Api = (() => {
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
-    const token = Auth.getToken ? Auth.getToken() : null;
+    const token = Auth.getToken(); // default = 'user'
     const headers = { 'Authorization': `Bearer ${token || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
@@ -334,7 +327,7 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute('readonly');
 
-    const user = Auth.getCurrentUser();
+    const user = Auth.getCurrentUser(); // default = 'user'
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
@@ -380,7 +373,7 @@ const FormModule = (() => {
       resource: f.recurso.value,
       sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
       type: f.type.value,
-      // Mesmo que envie f.resp.value, o backend vai sobrescrever com req.user.name
+      // Backend ignora este campo e substitui por req.user.name
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
@@ -528,17 +521,17 @@ const DetailModule = (() => {
   function cacheSelectors() {
     selectors.modal = document.getElementById('event-modal');
     selectors.btnClose = document.getElementById('modal-close');
-    selectors.btnEdit  = document.getElementById('modal-edit');
+    selectors.btnEdit = document.getElementById('modal-edit');
     selectors.btnDelete = document.getElementById('modal-cancel');
     selectors.fields = {
-      date:     document.getElementById('modal-date'),
+      date: document.getElementById('modal-date'),
       resource: document.getElementById('modal-resource'),
-      type:     document.getElementById('modal-type'),
-      resp:     document.getElementById('modal-resp'),
-      dept:     document.getElementById('modal-dept'),
-      materia:  document.getElementById('modal-materia'),
-      status:   document.getElementById('modal-status'),
-      desc:     document.getElementById('modal-desc')
+      type: document.getElementById('modal-type'),
+      resp: document.getElementById('modal-resp'),
+      dept: document.getElementById('modal-dept'),
+      materia: document.getElementById('modal-materia'),
+      status: document.getElementById('modal-status'),
+      desc: document.getElementById('modal-desc')
     };
   }
 
@@ -547,25 +540,25 @@ const DetailModule = (() => {
     const f = selectors.fields;
 
     // Preenche os campos do modal
-    f.date.textContent     = `Data: ${ev.date} (${ev.time})`;
+    f.date.textContent = `Data: ${ev.date} (${ev.time})`;
     f.resource.textContent = `Recurso: ${ev.resource}`;
-    f.type.textContent     = `Evento: ${ev.type}`;
-    f.resp.textContent     = `Responsável: ${ev.responsible}`;
-    f.dept.textContent     = `Curso: ${ev.department}`;
-    f.materia.textContent  = `Matéria: ${ev.materia || '—'}`;
-    f.status.textContent   = `Status: ${ev.status}`;
-    f.desc.textContent     = ev.description || 'Sem descrição';
+    f.type.textContent = `Evento: ${ev.type}`;
+    f.resp.textContent = `Responsável: ${ev.responsible}`;
+    f.dept.textContent = `Curso: ${ev.department}`;
+    f.materia.textContent = `Matéria: ${ev.materia || '—'}`;
+    f.status.textContent = `Status: ${ev.status}`;
+    f.desc.textContent = ev.description || 'Sem descrição';
 
     // Verifica se o usuário logado é o responsável desta reserva
     const currentUser = Auth.getCurrentUser();
     if (currentUser && ev.responsible === currentUser.name) {
-      // se for o dono, mostra o botão de excluir
+      // se for o dono, mostra o botão de excluir e editar
       selectors.btnDelete.style.display = 'inline-block';
-      selectors.btnEdit.style.display   = 'inline-block';
+      selectors.btnEdit.style.display = 'inline-block';
     } else {
-      // se NÃO for o dono, oculta o botão de excluir (e edição, se desejar)
+      // se NÃO for o dono, oculta o botão de excluir e editar
       selectors.btnDelete.style.display = 'none';
-      selectors.btnEdit.style.display   = 'none';
+      selectors.btnEdit.style.display = 'none';
     }
 
     selectors.modal.classList.remove('hidden');
@@ -681,8 +674,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
-      ).join('')}
+    `<th class="px-2 py-1 border text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -780,7 +773,7 @@ async function initOccupancyUpdates() {
 onReady(async () => {
   // === 0) Carrega window.user a partir de Auth.getCurrentUser() (se existir) ===
   const storedUser = typeof Auth !== 'undefined' && Auth.getCurrentUser
-    ? Auth.getCurrentUser()
+    ? Auth.getCurrentUser()   // default = 'user'
     : null;
   if (storedUser && !window.user) {
     window.user = storedUser;
@@ -805,7 +798,13 @@ onReady(async () => {
   const protectedIds = ['calendar', 'agendamento-form', 'reservations-container'];
   const isProtected = protectedIds.some(id => document.getElementById(id));
   if (isProtected && (!window.user || !window.user.token)) {
-    window.location.href = '/login.html';
+    // Redireciona para login de usuário (pages/login.html)
+    const path = window.location.pathname;
+    if (path.includes('/pages/')) {
+      window.location.href = '../pages/login.html';
+    } else {
+      window.location.href = 'pages/login.html';
+    }
     return;
   }
 
@@ -847,15 +846,13 @@ onReady(async () => {
     });
   }
 
-  // === 8) Botão de Logout — limpa window.user e redireciona para "/login.html" ===
+  // === 8) Botão de Logout — limpa window.user e redireciona para pages/login.html ===
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
-      if (typeof Auth !== 'undefined' && Auth.logout) {
-        Auth.logout();
-      }
+      Auth.logout(); // por padrão, role = 'user'
       window.user = null;
-      window.location.href = '/login.html';
+      // o próprio Auth.logout já redireciona para 'pages/login.html'
     });
   }
 
@@ -933,7 +930,7 @@ onReady(async () => {
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
     toggleBtn.addEventListener('click', () => {
-      const formGroup  = toggleBtn.closest('.form-group');
+      const formGroup = toggleBtn.closest('.form-group');
       if (!formGroup) return;
 
       const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
@@ -1017,8 +1014,8 @@ onReady(async () => {
                 <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
                 <p class="card-text mb-2"><small>Status:
                   ${u.status === 'approved'
-                    ? '<span class="badge bg-success">Aprovado</span>'
-                    : '<span class="badge bg-danger">Rejeitado</span>'}
+            ? '<span class="badge bg-success">Aprovado</span>'
+            : '<span class="badge bg-danger">Rejeitado</span>'}
                 </small></p>
                 <p class="card-text text-muted small">
                   Data de cadastro: ${new Date(u.createdAt).toLocaleDateString('pt-BR')}<br>
@@ -1068,9 +1065,9 @@ onReady(async () => {
 
 (function () {
   // Verifica se cada container existe no DOM
-  const hasUsersContainer       = !!document.getElementById('lista-pendentes-usuarios');
+  const hasUsersContainer = !!document.getElementById('lista-pendentes-usuarios');
   const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
-  const hasActiveContainer      = !!document.getElementById('lista-ativas');
+  const hasActiveContainer = !!document.getElementById('lista-ativas');
 
   // Se não existir nenhum, interrompe todo o bloco
   if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
@@ -1136,8 +1133,8 @@ onReady(async () => {
 
       const dados = await res.json();
       const podeNotificar = (typeof enviarNotificacao === 'function'
-                             && notificacoesAtivas
-                             && Notification.permission === "granted");
+        && notificacoesAtivas
+        && Notification.permission === "granted");
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
@@ -1567,7 +1564,7 @@ onReady(async () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`
         }
       });
       if (!resp.ok) {

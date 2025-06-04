@@ -99,13 +99,10 @@ const Auth = (() => {
     // O backend agora retorna um objeto achatado, ex:
     // { _id: "...", name: "...", email: "...", role: "professor", status: "approved", token: "..." }
     //
-    // Antigamente esperávamos: { user: {...}, token: "..." }
-    // Agora pegamos diretamente o “role” e o “token” do próprio “data”.
-    //
-    // EXTRAEMOS o token diretamente, e construímos um objeto “user” para salvar no localStorage.
-
+    // Extraímos o token diretamente, e construímos um objeto “userObj” para salvar no localStorage.
     const token = data.token;
-    const role  = data.role;   // <-- pegamos do objeto retornado
+    const role  = data.role; // <-- pegamos do objeto retornado
+
     // Reconstruímos um “userObj” sem o campo “token”
     const userObj = {
       _id:    data._id,
@@ -180,16 +177,16 @@ const Auth = (() => {
     console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
 
     // Redireciona para a página de login após cadastro
-    window.location.assign('login.html');
+    window.location.assign('pages/login.html');
     return result;
   }
 
   // --------------------------------------------------
   // FUNÇÃO: logout(role)
   // → Remove token + user do localStorage para a role passada
-  // → Redireciona para login.html
+  // → Redireciona para pages/login.html
   // --------------------------------------------------
-  function logout(role) {
+  function logout(role = 'user') {
     if (role === 'admin') {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
@@ -197,17 +194,17 @@ const Auth = (() => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
-    window.location.assign('login.html');
+    window.location.assign('pages/login.html');
   }
 
   // --------------------------------------------------
   // FUNÇÕES DE CONSULTA (expor o user e token no front)
   // --------------------------------------------------
-  function getCurrentUser(role) {
+  function getCurrentUser(role = 'user') {
     return getUserForRole(role);
   }
 
-  function getToken(role) {
+  function getToken(role = 'user') {
     return getTokenForRole(role);
   }
 
