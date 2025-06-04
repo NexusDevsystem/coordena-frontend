@@ -639,6 +639,9 @@ async function buildOccupancyTable(filterDate) {
   }
   table.innerHTML = '';
 
+  const isDarkMode = document.documentElement.classList.contains('dark');
+  const textClass = isDarkMode ? 'text-white' : 'text-gray-900';
+
   const allEvents = CalendarModule.getEvents();
   const dateStr = filterDate || new Date().toISOString().slice(0, 10);
   const [Y, M, D] = dateStr.split('-').map(Number);
@@ -666,7 +669,7 @@ async function buildOccupancyTable(filterDate) {
   ]));
 
   if (!timeRanges.length || !labs.length) {
-    table.innerHTML = `<tr><td class="p-4 text-center text-white">Sem dados para exibir</td></tr>`;
+    table.innerHTML = `<tr><td class="p-4 text-center ${textClass}">Sem dados para exibir</td></tr>`;
     return;
   }
 
@@ -674,9 +677,9 @@ async function buildOccupancyTable(filterDate) {
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
-      <th class="px-2 py-1 border">Sala / Horário</th>
+      <th class="px-2 py-1 border ${textClass}">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border text-center">${r}</th>`
+        `<th class="px-2 py-1 border ${textClass} text-center">${r}</th>`
       ).join('')}
     </tr>`;
   table.appendChild(thead);
@@ -685,7 +688,7 @@ async function buildOccupancyTable(filterDate) {
   const tbody = document.createElement('tbody');
   labs.forEach(lab => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold">${lab}</td>`;
+    tr.innerHTML = `<td class="px-2 py-1 border font-semibold ${textClass}">${lab}</td>`;
 
     timeRanges.forEach(range => {
       const [start, end] = range.split('-');
@@ -722,7 +725,7 @@ async function buildOccupancyTable(filterDate) {
       }
 
       tr.innerHTML += `
-        <td class="px-2 py-1 border text-white text-center" style="${style}">
+        <td class="px-2 py-1 border ${textClass} text-center" style="${style}">
           ${label}
         </td>`;
     });
@@ -1034,8 +1037,8 @@ onReady(async () => {
                 <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
                 <p class="card-text mb-2"><small>Status:
                   ${u.status === 'approved'
-            ? '<span class="badge bg-success">Aprovado</span>'
-            : '<span class="badge bg-danger">Rejeitado</span>'}
+              ? '<span class="badge bg-success">Aprovado</span>'
+              : '<span class="badge bg-danger">Rejeitado</span>'}
                 </small></p>
                 <p class="card-text text-muted small">
                   Data de cadastro: ${new Date(u.createdAt).toLocaleDateString('pt-BR')}<br>
