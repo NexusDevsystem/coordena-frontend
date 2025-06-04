@@ -25,7 +25,6 @@ const turnoColors = {
 // --------------------------------------------------
 // VARIÁVEL E FUNÇÕES PARA NATIVE NOTIFICATIONS
 // --------------------------------------------------
-
 let notificacoesAtivas = false;
 
 function solicitarPermissaoNotificacao() {
@@ -89,7 +88,7 @@ const Api = (() => {
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
-    const token = Auth.getToken(); // default = 'user'
+    const token = Auth.getToken(); // Pega token de localStorage (role = 'user')
     const headers = { 'Authorization': `Bearer ${token || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
@@ -790,14 +789,17 @@ onReady(async () => {
   }
   solicitarPermissaoNotificacao();
 
-  // === 2) Verifica se é página protegida e, se sim, redireciona ao login caso não haja window.user.token ===
+  // === 2) Verifica se é página protegida e, se sim, redireciona ao login caso não haja token ===
   // Definimos que as páginas protegidas são aquelas que contêm:
   //  • um elemento #calendar (tabela de reservas)
   //  • ou #agendamento-form (formulário de agendar)
   //  • ou #reservations-container (container de “Meus Agendamentos”)
   const protectedIds = ['calendar', 'agendamento-form', 'reservations-container'];
   const isProtected = protectedIds.some(id => document.getElementById(id));
-  if (isProtected && (!window.user || !window.user.token)) {
+
+  // EM VEZ DE window.user.token, usamos Auth.getToken()
+  const userToken = Auth.getToken(); 
+  if (isProtected && !userToken) {
     // Função auxiliar para redirecionar ao login conforme ambiente
     const redirectToLogin = () => {
       const host = window.location.hostname;
