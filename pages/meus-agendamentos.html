@@ -1,35 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Meus Agendamentos • Coordena+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Agendamentos</title>
 
-  <!-- Favicon -->
-  <link rel="icon" href="../assets/img/logo.png" type="image/png" />
-
-  <!-- PWA / full-screen on mobile -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#2563EB" />
-  <link rel="manifest" href="../manifest.json" />
-
-  <!-- Tailwind + Dark Mode -->
+  <!-- Tailwind (opcional) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
-
-  <!-- Aplica imediatamente o tema salvo (evita flash) -->
   <script>
+    // Aplica imediatamente o tema salvo (evita flash)
     const _theme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.remove('light');
     if (_theme === 'dark') document.documentElement.classList.add('dark');
   </script>
-
-  <link rel="stylesheet" href="../assets/css/styles.css" />
 
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
@@ -37,296 +23,185 @@
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <!-- Proteção de rota: redireciona ao login se não houver usuário logado -->
+  <!-- Proteção de rota: se não estiver logado → redireciona p/ login -->
   <script>
     const user = Auth.getCurrentUser();
     if (!user) {
-      // Se não houver usuário, redireciona para a página de login
-      window.location.href = '../login.html';
-    } else {
-      // Armazena em window para uso posterior
-      window.user = user;
+      window.location.href = '../pages/login.html';
     }
   </script>
 
-  <!-- Off-Canvas Menu -->
-  <header class="offcanvas-menu">
-    <input type="checkbox" id="toggle-menu" />
-
-    <!-- Ícone hambúrguer / X -->
-    <label for="toggle-menu" class="toggle-open"></label>
-
-    <nav>
-      <!-- Usuário logado -->
-      <div class="menu-user-info p-4">
-        <div id="menu-user-name" class="font-semibold"></div>
-        <div id="menu-user-email" class="text-sm text-gray-600 dark:text-gray-400"></div>
-      </div>
-
-      <!-- Botão de fechar (X) -->
-      <label for="toggle-menu" class="toggle-close"></label>
-
-      <!-- Lista de navegação: apenas “Meus Agendamentos” -->
-      <ul class="menu-list p-4 space-y-2">
-        <li>
-          <a href="meus-agendamentos.html"
-             class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
-            Meus Agendamentos
-          </a>
-        </li>
-      </ul>
-
-      <!-- Botões Tema / Sair -->
-      <div class="menu-footer-btns p-4 flex space-x-4">
-        <!-- Botão Tema -->
-        <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
-          <!-- Ícone Sol -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sun h-6 w-6" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-          <!-- Ícone Lua -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-moon h-6 w-6" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" />
-          </svg>
-        </button>
-
-        <!-- Botão Logout -->
-        <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-logout h-6 w-6" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-        </button>
-      </div>
-    </nav>
+  <!-- Header simples -->
+  <header class="bg-blue-600 text-white py-4">
+    <div class="container mx-auto flex justify-between items-center px-4">
+      <h1 class="text-2xl font-semibold">Meus Agendamentos</h1>
+      <button id="btn-voltar" class="px-3 py-1 bg-blue-400 rounded hover:bg-blue-500">
+        ← Voltar ao Calendário
+      </button>
+    </div>
   </header>
 
-  <!-- Quick Access (botões flutuantes no topo) -->
-  <div
-    class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-full p-2 flex space-x-4 z-40">
-    <a href="../index.html"
-      class="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition duration-200"
-      title="Início">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-           stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l9-9 9 9m-1 9h-4a2 2 0 01-2-2v-5H9v5a2 2 0 01-2 2H5" />
-      </svg>
-    </a>
-    <button
-      class="p-2 bg-blue-500 rounded-full hover:scale-110 transform transition duration-200"
-      title="Agendamentos">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-           stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0
-                 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    </button>
-  </div>
+  <!-- Conteúdo -->
+  <main class="container mx-auto mt-8 px-4 space-y-6">
 
-  <!-- Main content -->
-  <main class="pt-24 pb-8 mx-auto max-w-4xl px-4 space-y-8">
+    <!-- Lista de Reservas do Usuário -->
+    <section id="lista-meus-agendamentos" class="space-y-4">
+      <!-- Aqui o JS vai injetar cada cartão de reserva -->
+      <p class="text-center text-gray-500">Carregando seus agendamentos...</p>
+    </section>
 
-    <h1 class="text-3xl font-semibold text-center">Meus Agendamentos</h1>
-
-    <div id="agendamentos-container" class="space-y-4">
-      <p class="text-center text-gray-600 dark:text-gray-400">Carregando agendamentos...</p>
-    </div>
-
-    <footer class="text-center text-sm text-gray-600 dark:text-gray-400 pb-6">
-      Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
-    </footer>
   </main>
 
+  <footer class="text-center text-sm text-gray-600 dark:text-gray-400 py-6">
+    Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
+  </footer>
+
   <script>
-    (async () => {
-      // Exibe nome e e-mail no menu
-      document.getElementById('menu-user-name').textContent = user.name;
-      document.getElementById('menu-user-email').textContent = user.email;
+    (function() {
+      // 1) Elementos
+      const listaContainer = document.getElementById('lista-meus-agendamentos');
+      const btnVoltar = document.getElementById('btn-voltar');
 
-      // Logout
-      document.getElementById('menu-logout-btn').addEventListener('click', () => {
-        Auth.logout();
-      });
+      // 2) API Base
+      const API_BASE = window.location.hostname.includes('localhost')
+        ? 'http://localhost:10000/api'
+        : 'https://coordena-backend.onrender.com/api';
 
-      // Alternar tema no menu
-      const menuThemeBtn = document.getElementById('menu-theme-btn');
-      if (menuThemeBtn) {
-        menuThemeBtn.addEventListener('click', () => {
-          const isDark = document.documentElement.classList.contains('dark');
-          if (isDark) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-          } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-          }
-        });
-      }
+      // 3) Pega token do usuário
+      const token = Auth.getToken(); // chave “token” salva no localStorage
 
-      // Função para buscar e exibir agendamentos do usuário (todos os status)
+      // 4) Função para buscar “Meus Agendamentos”
       async function carregarMeusAgendamentos() {
-        const container = document.getElementById('agendamentos-container');
-        container.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">Carregando agendamentos...</p>`;
+        listaContainer.innerHTML = '<p class="text-center text-gray-500">Carregando seus agendamentos...</p>';
 
         try {
-          // Busca TODAS as reservas do usuário (backend agora retorna todos os status)
-          const token = Auth.getToken();
-          const res = await fetch('https://coordena-backend.onrender.com/api/reservations', {
+          const res = await fetch(`${API_BASE}/reservations/me`, {
             headers: {
+              'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             }
           });
-          if (!res.ok) throw new Error('Falha ao buscar agendamentos');
-          const todasReservas = await res.json();
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const dados = await res.json();
 
-          if (todasReservas.length === 0) {
-            container.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">Você não possui agendamentos.</p>`;
+          if (!dados.length) {
+            listaContainer.innerHTML = `
+              <div class="text-center py-8 text-gray-500">
+                <p>Você ainda não fez nenhum agendamento.</p>
+              </div>`;
             return;
           }
 
-          // Monta cards para cada reserva, mostrando status, e mantendo no histórico mesmo após conclusão
-          const html = todasReservas.map(r => {
-            const recursoNome = r.sala ? r.sala : r.resource;
-            const dataBR = new Date(r.date).toLocaleDateString('pt-BR');
-            // Formata label de status com cor:
-            let statusClasse = '';
-            let statusLabel = '';
-            switch (r.status) {
+          // 5) Renderiza cada agendamento
+          listaContainer.innerHTML = '';
+          dados.forEach(reserva => {
+            const { _id, date, start, end, resource, sala, type, department, materia, status } = reserva;
+
+            // Traduz status para exibição amigável e cor
+            let corStatus = '';
+            let textoStatus = '';
+            switch(status) {
+              case 'pending':
+                corStatus = 'text-yellow-500'; textoStatus = 'Pendente';
+                break;
               case 'approved':
-                statusClasse = 'text-green-500';
-                statusLabel = 'Approved';
+                corStatus = 'text-blue-500'; textoStatus = 'Aprovado';
                 break;
               case 'completed':
-                statusClasse = 'text-blue-500';
-                statusLabel = 'Completed';
-                break;
-              case 'pending':
-                statusClasse = 'text-yellow-500';
-                statusLabel = 'Pending';
+                corStatus = 'text-green-500'; textoStatus = 'Concluído';
                 break;
               case 'canceled':
-                statusClasse = 'text-red-500';
-                statusLabel = 'Canceled';
+                corStatus = 'text-red-500'; textoStatus = 'Cancelado';
                 break;
               default:
-                statusClasse = 'text-gray-500';
-                statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+                corStatus = 'text-gray-500'; textoStatus = status;
             }
-            return `
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
-                <div class="flex justify-between flex-wrap">
-                  <div class="space-y-1">
-                    <p><span class="font-semibold">Data:</span> ${dataBR}</p>
-                    <p><span class="font-semibold">Horário:</span> ${r.start} – ${r.end}</p>
-                    <p><span class="font-semibold">Recurso:</span> ${recursoNome}</p>
-                    <p><span class="font-semibold">Tipo:</span> ${r.type}</p>
-                    <p><span class="font-semibold">Curso:</span> ${r.department}</p>
-                    <p><span class="font-semibold">Matéria:</span> ${r.materia || '—'}</p>
-                  </div>
-                  <div class="text-right">
-                    <p>
-                      <span class="font-semibold">Status:</span>
-                      <span class="${statusClasse}">${statusLabel}</span>
-                    </p>
-                  </div>
-                </div>
-                <div class="flex justify-end space-x-2 flex-wrap">
-                  <!-- Mostrar botão “Concluir” apenas se ainda estiver em Approved -->
-                  ${r.status === 'approved'
-                    ? `<button onclick="concluirReserva('${r._id}')" 
-                              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                         Concluir Atividade
-                       </button>`
-                    : ''}
-                  <!-- Mostrar botão “Editar” apenas se ainda for Pending ou Approved -->
-                  ${['pending', 'approved'].includes(r.status)
-                    ? `<button onclick="editarReserva('${r._id}')" 
-                              class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                         Editar
-                       </button>`
-                    : ''}
-                  <!-- Mostrar botão “Cancelar” apenas se excluir for permitido (Pending ou Approved) -->
-                  ${['pending', 'approved'].includes(r.status)
-                    ? `<button onclick="cancelarReserva('${r._id}')" 
-                              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-                         Cancelar Reserva
-                       </button>`
-                    : ''}
-                </div>
-              </div>
-            `;
-          }).join('');
 
-          container.innerHTML = html;
+            // Se já estiver “completed” ou “canceled”, não mostramos botões de ação
+            const showBtns = (status === 'pending' || status === 'approved');
+
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-2';
+
+            card.innerHTML = `
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-400 dark:text-gray-500">Data: <strong>${new Date(date).toLocaleDateString('pt-BR')}</strong></p>
+                  <p class="text-sm text-gray-400 dark:text-gray-500">Horário: <strong>${start} – ${end}</strong></p>
+                </div>
+                <p class="font-semibold ${corStatus}">${textoStatus}</p>
+              </div>
+              <p class="text-sm"><strong>Recurso:</strong> ${resource} ${sala ? `– ${sala}` : ''}</p>
+              <p class="text-sm"><strong>Tipo:</strong> ${type}</p>
+              <p class="text-sm"><strong>Curso:</strong> ${department}</p>
+              <p class="text-sm"><strong>Matéria:</strong> ${materia || '—'}</p>
+              ${showBtns
+                ? `<div class="flex gap-2 mt-3">
+                    <button data-id="${_id}" data-acao="complete" class="btn-concluir px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded">
+                      Concluir Atividade
+                    </button>
+                    <button data-id="${_id}" data-acao="cancel" class="btn-cancelar px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded">
+                      Cancelar Reserva
+                    </button>
+                  </div>`
+                : ''
+              }
+            `;
+            listaContainer.appendChild(card);
+          });
+
+          // 6) Vincula os eventos dos botões (após inserirmos tudo)
+          document.querySelectorAll('.btn-concluir').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.currentTarget.getAttribute('data-id');
+              await atualizarStatus(id, 'completed');
+            });
+          });
+          document.querySelectorAll('.btn-cancelar').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.currentTarget.getAttribute('data-id');
+              await atualizarStatus(id, 'canceled');
+            });
+          });
+
         } catch (err) {
-          console.error(err);
-          container.innerHTML = `<p class="text-center text-red-500">Não foi possível carregar seus agendamentos.</p>`;
+          console.error('Erro ao carregar meus agendamentos:', err);
+          listaContainer.innerHTML = `
+            <div class="text-center py-8 text-red-500">
+              <p>Não foi possível carregar seus agendamentos.</p>
+            </div>`;
         }
       }
 
-      // Marcar como concluído: altera status para 'completed'
-      window.concluirReserva = async (id) => {
-        if (!confirm('Marcar esta atividade como concluída?')) return;
+      // 7) Função para chamar PUT /api/reservations/:id e atualizar status
+      async function atualizarStatus(id, novoStatus) {
+        if (!confirm(`Deseja realmente marcar como “${novoStatus === 'completed' ? 'Concluído' : 'Cancelado'}”?`)) {
+          return;
+        }
         try {
-          const token = Auth.getToken();
-          const res = await fetch(`https://coordena-backend.onrender.com/api/reservations/${id}`, {
+          const res = await fetch(`${API_BASE}/reservations/${id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ status: 'completed' })
+            body: JSON.stringify({ status: novoStatus })
           });
-          if (!res.ok) throw new Error('Falha ao concluir atividade');
-          // Mantém no histórico (não remove) → apenas recarrega a lista
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          // Após atualização de status → recarrega a lista
           carregarMeusAgendamentos();
         } catch (err) {
-          alert('Erro ao concluir atividade: ' + err.message);
+          console.error('Erro ao atualizar status:', err);
+          alert('Não foi possível atualizar o status. Tente novamente.');
         }
-      };
+      }
 
-      // Cancelar reserva: altera status para 'canceled' (ou apaga, se preferir)
-      window.cancelarReserva = async (id) => {
-        if (!confirm('Deseja mesmo cancelar esta reserva?')) return;
-        try {
-          const token = Auth.getToken();
-          // Opcional 1: atualizar status para 'canceled'
-          const res = await fetch(`https://coordena-backend.onrender.com/api/reservations/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: 'canceled' })
-          });
-          if (!res.ok) throw new Error('Falha ao cancelar reserva');
-          // Recarrega lista para manter histórico
-          carregarMeusAgendamentos();
-        } catch (err) {
-          alert('Erro ao cancelar reserva: ' + err.message);
-        }
-      };
+      // 8) “Voltar ao Calendário”
+      btnVoltar.addEventListener('click', () => {
+        window.location.href = 'agendamento.html'; // ou o caminho correto p/ a página de calendário
+      });
 
-      // Redirecionar para editar: envia query string ?edit=<id>
-      window.editarReserva = (id) => {
-        window.location.href = `agendamento.html?edit=${id}`;
-      };
-
-      // Carrega os agendamentos assim que a página estiver pronta
+      // 9) Na carga inicial da página, busca os agendamentos
       carregarMeusAgendamentos();
     })();
   </script>
