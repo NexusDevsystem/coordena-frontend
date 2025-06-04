@@ -40,6 +40,15 @@
 
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
+
+  <!--
+    Este bloco CSS garante que qualquer marcador automático (como “01”) em li::before
+    seja removido totalmente.  -->
+  <style>
+    .menu-list li::before {
+      content: none !important;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
@@ -66,71 +75,73 @@
     }
   </script>
 
-  <!-- Off-Canvas Menu (ExPoNjm) -->
-<header class="offcanvas-menu">
-  <input type="checkbox" id="toggle-menu" />
+  <!-- Off-Canvas Menu -->
+  <header class="offcanvas-menu">
+    <input type="checkbox" id="toggle-menu" />
 
-  <!-- Ícone hambúrguer / X -->
-  <label for="toggle-menu" class="toggle-open"></label>
+    <!-- Ícone hambúrguer / X -->
+    <label for="toggle-menu" class="toggle-open"></label>
 
-  <nav>
-    <!-- Usuário logado -->
-    <div class="menu-user-info p-4">
-      <div id="menu-user-name" class="font-semibold"></div>
-      <!-- Adicionei `break-words` para que o e-mail quebre corretamente em várias linhas -->
-      <div id="menu-user-email" class="text-sm text-gray-600 dark:text-gray-400 break-words"></div>
-    </div>
+    <nav>
+      <!-- Usuário logado -->
+      <div class="menu-user-info p-4">
+        <!-- Nome do usuário -->
+        <div id="menu-user-name" class="font-semibold text-lg text-gray-800 dark:text-gray-200"></div>
+        <!-- E-mail: agora com break-words, whitespace-normal e max-w-xs para forçar quebra -->
+        <div id="menu-user-email"
+             class="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words whitespace-normal max-w-xs">
+        </div>
+      </div>
 
-    <!-- Botão de fechar (X) -->
-    <label for="toggle-menu" class="toggle-close"></label>
+      <!-- Botão de fechar (X) -->
+      <label for="toggle-menu" class="toggle-close"></label>
 
-    <!-- Lista de navegação -->
-    <!-- Adicionei `list-none` para remover qualquer numeração automatizada -->
-    <ul class="menu-list p-4 space-y-2 list-none">
-      <li>
-        <a href="meus-agendamentos.html"
-           class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
-          Meus Agendamentos
-        </a>
-      </li>
-    </ul>
+      <!-- Lista de navegação (sem nenhum marcador automático) -->
+      <ul class="menu-list p-4 space-y-2 list-none">
+        <li class="list-none">
+          <a href="meus-agendamentos.html"
+             class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
+            Meus Agendamentos
+          </a>
+        </li>
+      </ul>
 
-    <!-- Botões Tema / Sair -->
-    <div class="menu-footer-btns p-4 flex space-x-4">
-      <!-- Botão Tema -->
-      <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
-        <!-- Ícone Sol -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sun h-6 w-6" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5" />
-          <line x1="12" y1="1" x2="12" y2="3" />
-          <line x1="12" y1="21" x2="12" y2="23" />
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-          <line x1="1" y1="12" x2="3" y2="12" />
-          <line x1="21" y1="12" x2="23" y2="12" />
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-        </svg>
-        <!-- Ícone Lua -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-moon h-6 w-6" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" />
-        </svg>
-      </button>
+      <!-- Botões Tema / Sair -->
+      <div class="menu-footer-btns p-4 flex space-x-4">
+        <!-- Botão Tema -->
+        <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
+          <!-- Ícone Sol -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sun h-6 w-6" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <!-- Ícone Lua -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-moon h-6 w-6" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" />
+          </svg>
+        </button>
 
-      <!-- Botão Logout -->
-      <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-logout h-6 w-6" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-      </button>
-    </div>
-  </nav>
-</header>
+        <!-- Botão Logout -->
+        <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-logout h-6 w-6" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </header>
 
 
   <!-- Quick Access (botões flutuantes no topo) -->
@@ -156,6 +167,7 @@
       </svg>
     </button>
   </div>
+
 
   <!-- Main content -->
   <main class="pt-24 pb-8 mx-auto max-w-full px-4 space-y-8">
