@@ -172,6 +172,7 @@ const CalendarModule = (() => {
   async function reloadEvents() {
     try {
       const approvedReservations = await Api.fetchEvents();
+      // remove todos os eventos não-fundo
       calendar.getEvents().forEach(fcEvent => {
         if (fcEvent.rendering !== 'background') {
           fcEvent.remove();
@@ -199,14 +200,14 @@ const CalendarModule = (() => {
       return;
     }
 
-    const isMobile = window.innerWidth < 640;
     calendar = new FullCalendar.Calendar(el, {
       locale: 'pt-br',
-      initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+      // → Sempre usa grid mensal
+      initialView: 'dayGridMonth',
       headerToolbar: {
-        left: isMobile ? 'prev,next' : 'prev,next today',
+        left: 'prev,next today',
         center: 'title',
-        right: isMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       events: events.map(e => ({
         id: e._id,
@@ -220,6 +221,7 @@ const CalendarModule = (() => {
       allDaySlot: false,
       selectable: true,
       selectAllow: selectInfo => {
+        // evita sobrepor com horários fixos (rendering='background')
         return !calendar.getEvents().some(ev =>
           ev.rendering === 'background' &&
           ev.start < selectInfo.end &&
@@ -231,6 +233,7 @@ const CalendarModule = (() => {
     calendar.render();
     loadFixedSchedules();
 
+    // Atualiza periodicamente
     setInterval(() => {
       reloadEvents();
       if (typeof buildOccupancyTable === 'function') {
@@ -238,13 +241,13 @@ const CalendarModule = (() => {
       }
     }, 30 * 1000);
 
+    // Ao redimensionar, reforça a view mensal e o toolbar
     window.addEventListener('resize', () => {
-      const nowMobile = window.innerWidth < 640;
-      calendar.changeView(nowMobile ? 'listWeek' : 'dayGridMonth');
+      calendar.changeView('dayGridMonth');
       calendar.setOption('headerToolbar', {
-        left: nowMobile ? 'prev,next' : 'prev,next today',
+        left: 'prev,next today',
         center: 'title',
-        right: nowMobile ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
       });
     });
   }
