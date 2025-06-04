@@ -201,34 +201,47 @@
             return;
           }
 
-          // Monta cards para cada reserva
+          // Monta cards para cada reserva, incluindo botões de ação
           const html = minhasReservas.map(r => {
             const recursoNome = r.sala ? r.sala : r.resource;
             const dataBR = new Date(r.date).toLocaleDateString('pt-BR');
             const statusCapitalizado = r.status.charAt(0).toUpperCase() + r.status.slice(1);
             return `
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col md:flex-row md:justify-between">
-                <div class="space-y-1">
-                  <p><span class="font-semibold">Data:</span> ${dataBR}</p>
-                  <p><span class="font-semibold">Horário:</span> ${r.start} – ${r.end}</p>
-                  <p><span class="font-semibold">Recurso:</span> ${recursoNome}</p>
-                  <p><span class="font-semibold">Tipo:</span> ${r.type}</p>
-                  <p><span class="font-semibold">Curso:</span> ${r.department}</p>
-                  <p><span class="font-semibold">Matéria:</span> ${r.materia || '—'}</p>
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
+                <div class="flex justify-between">
+                  <div class="space-y-1">
+                    <p><span class="font-semibold">Data:</span> ${dataBR}</p>
+                    <p><span class="font-semibold">Horário:</span> ${r.start} – ${r.end}</p>
+                    <p><span class="font-semibold">Recurso:</span> ${recursoNome}</p>
+                    <p><span class="font-semibold">Tipo:</span> ${r.type}</p>
+                    <p><span class="font-semibold">Curso:</span> ${r.department}</p>
+                    <p><span class="font-semibold">Matéria:</span> ${r.materia || '—'}</p>
+                  </div>
+                  <div class="text-right">
+                    <p>
+                      <span class="font-semibold">Status:</span>
+                      <span class="${r.status === 'approved' ? 'text-green-500' : 'text-yellow-500'}">
+                        ${statusCapitalizado}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <div class="mt-4 md:mt-0 md:text-right space-y-1">
-                  <p>
-                    <span class="font-semibold">Status:</span>
-                    <span class="${r.status === 'approved' ? 'text-green-500' : 'text-yellow-500'}">
-                      ${statusCapitalizado}
-                    </span>
-                  </p>
-                  ${r.status === 'pending'
-                    ? `<button onclick="cancelarReserva('${r._id}')"
-                              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-                         Cancelar
-                       </button>`
-                    : ``}
+                <div class="flex justify-end space-x-2">
+                  <!-- Botão Concluir Atividade -->
+                  <button onclick="concluirReserva('${r._id}')" 
+                          class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Concluir Atividade
+                  </button>
+                  <!-- Botão Editar -->
+                  <button onclick="editarReserva('${r._id}')" 
+                          class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                    Editar
+                  </button>
+                  <!-- Botão Cancelar -->
+                  <button onclick="cancelarReserva('${r._id}')" 
+                          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Cancelar
+                  </button>
                 </div>
               </div>
             `;
@@ -241,9 +254,30 @@
         }
       }
 
-      // Função para cancelar reserva pendente
+      // Função para marcar como concluído (status → 'completed')
+      window.concluirReserva = async (id) => {
+        if (!confirm('Marcar esta atividade como concluída?')) return;
+        try {
+          const token = Auth.getToken();
+          const res = await fetch(`https://coordena-backend.onrender.com/api/reservations/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: 'completed' })
+          });
+          if (!res.ok) throw new Error('Falha ao concluir atividade');
+          // Recarrega lista após concluir
+          carregarMeusAgendamentos();
+        } catch (err) {
+          alert('Erro ao concluir atividade: ' + err.message);
+        }
+      };
+
+      // Função para cancelar reserva (DELETE)
       window.cancelarReserva = async (id) => {
-        if (!confirm('Deseja mesmo cancelar esta reserva pendente?')) return;
+        if (!confirm('Deseja mesmo cancelar esta reserva?')) return;
         try {
           const token = Auth.getToken();
           const res = await fetch(`https://coordena-backend.onrender.com/api/reservations/${id}`, {
@@ -258,6 +292,12 @@
         } catch (err) {
           alert('Erro ao cancelar reserva: ' + err.message);
         }
+      };
+
+      // Função para redirecionar ao calendário para editar
+      window.editarReserva = (id) => {
+        // Encaminha para agendamento.html com query param ?edit=<id>
+        window.location.href = `agendamento.html?edit=${id}`;
       };
 
       // Carrega os agendamentos assim que a página estiver pronta
