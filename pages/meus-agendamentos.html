@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Agendamentos – Coordena+</title>
+
+  <!-- Tailwind + Dark Mode -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+
+  <!-- Aplica imediatamente o tema salvo (evita flash) -->
+  <script>
+    const _theme = localStorage.getItem('theme') || 'light';
+    if (_theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
+  <!-- Seu CSS global -->
+  <link rel="stylesheet" href="../assets/css/global.css" />
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <!-- Off-Canvas Menu (copie exatamente de, por exemplo, index.html) -->
+  <header class="offcanvas-menu">
+    <input type="checkbox" id="toggle-menu" />
+    <label for="toggle-menu" class="toggle-open"></label>
+    <nav class="menu">
+      <div class="menu-user-info">
+        <div id="menu-user-name">Usuário</div>
+        <div id="menu-user-email">email@exemplo.com</div>
+      </div>
+      <label for="toggle-menu" class="toggle-close"></label>
+      <ul class="menu-list">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="agendamento.html">Agendar</a></li>
+        <li><a href="meus-agendamentos.html" class="font-bold">Meus Agendamentos</a></li>
+      </ul>
+      <div class="menu-footer-btns">
+        <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
+          <!-- ícone sol/lua, se tiver no seu main.js -->
+        </button>
+        <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
+          <!-- ícone de logout, se houver -->
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="p-6 min-h-screen">
+    <h1 class="text-2xl font-semibold mb-4">Meus Agendamentos</h1>
+
+    <!-- Onde buscaremos e exibiremos os cartões -->
+    <div id="reservations-container" class="space-y-4">
+      <p id="loading-text" class="text-gray-600 dark:text-gray-400">
+        Carregando os agendamentos...
+      </p>
+    </div>
+  </main>
+
+  <!-- Script geral de autenticação, tema e logout -->
+  <script src="../assets/js/main.js"></script>
+
+  <!-- Script específico para “Meus Agendamentos” -->
+  <script>
+    (function () {
+      // 1) Se não estiver logado, redirecione para login.html
+      if (!window.user || !window.user.token) {
+        window.location.href = '../login.html';
+        return;
+      }
+
+      // 2) Preenche nome/e-mail no menu
+      document.getElementById('menu-user-name').textContent = window.user.name;
+      document.getElementById('menu-user-email').textContent = window.user.email;
+
+      // 3) Faz requisição para obter “meus agendamentos”
+      fetch('https://coordena-backend.onrender.com/api/reservations/me', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + window.user.token
+        }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao carregar agendamentos');
+          return res.json();
+        })
+        .then(data => {
+          const container = document.getElementById('reservations-container');
+          const loading = document.getElementById('loading-text');
+          loading.remove();
+
+          if (!data || data.length === 0) {
+            const nada = document.createElement('p');
+            nada.textContent = 'Você ainda não realizou nenhum agendamento.';
+            nada.className = 'text-gray-700 dark:text-gray-300';
+            container.appendChild(nada);
+            return;
+          }
+
+          // 4) Para cada reserva retornada, cria um “card”
+          data.forEach(reserva => {
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 flex flex-col space-y-2';
+
+            card.innerHTML = `
+              <h2 class="text-lg font-semibold">
+                ${reserva.title} (${reserva.date} – ${reserva.start} às ${reserva.end})
+              </h2>
+              <p>
+                <span class="font-medium">Recurso:</span> ${reserva.resource} 
+                ${reserva.sala ? '/ Sala: ' + reserva.sala : ''}
+              </p>
+              <p><span class="font-medium">Tipo:</span> ${reserva.type}</p>
+              <p><span class="font-medium">Departamento:</span> ${reserva.department}</p>
+              <p><span class="font-medium">Descrição:</span> ${reserva.description || '—'}</p>
+              <p>
+                <span class="font-medium">Status:</span>
+                <span class="${
+                  reserva.status === 'approved'
+                    ? 'text-green-600'
+                    : reserva.status === 'pending'
+                      ? 'text-yellow-500'
+                      : 'text-red-500'
+                }">
+                  ${reserva.status.charAt(0).toUpperCase() + reserva.status.slice(1)}
+                </span>
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Criado em: ${new Date(reserva.createdAt).toLocaleString('pt-BR')}
+              </p>
+            `;
+            container.appendChild(card);
+          });
+        })
+        .catch(err => {
+          const container = document.getElementById('reservations-container');
+          const loading = document.getElementById('loading-text');
+          loading.remove();
+
+          const erroMsg = document.createElement('p');
+          erroMsg.textContent = 'Não foi possível carregar seus agendamentos.';
+          erroMsg.className = 'text-red-600 dark:text-red-400';
+          container.appendChild(erroMsg);
+          console.error(err);
+        });
+    })();
+  </script>
+</body>
+</html>

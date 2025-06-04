@@ -80,6 +80,13 @@ const ThemeToggle = (() => {
 })();
 
 // --------------------------------------------------
+// MÓDULO DE AUTENTICAÇÃO
+// --------------------------------------------------
+// Supondo que Auth.getCurrentUser() retorna { name, email, token } ou null
+// e Auth.logout() limpa localStorage e/ou cookies relacionados ao login.
+
+
+// --------------------------------------------------
 // MÓDULO DE API (…)
 // --------------------------------------------------
 const Api = (() => {
@@ -89,7 +96,8 @@ const Api = (() => {
   const FIXED = BASE.replace('/reservations', '/fixedSchedules');
 
   function authHeaders(isJson = false) {
-    const headers = { 'Authorization': `Bearer ${Auth.getToken() || ''}` };
+    const token = Auth.getToken ? Auth.getToken() : null;
+    const headers = { 'Authorization': `Bearer ${token || ''}` };
     if (isJson) headers['Content-Type'] = 'application/json';
     return headers;
   }
@@ -372,6 +380,7 @@ const FormModule = (() => {
       resource: f.recurso.value,
       sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
       type: f.type.value,
+      // Mesmo que envie f.resp.value, o backend vai sobrescrever com req.user.name
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
@@ -407,7 +416,7 @@ const FormModule = (() => {
 
     cacheSelectors();
 
-    const user = (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
+    const user = Auth.getCurrentUser();
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute('readonly', 'readonly');
@@ -769,7 +778,15 @@ async function initOccupancyUpdates() {
 // INICIALIZAÇÃO PRINCIPAL
 // --------------------------------------------------
 onReady(async () => {
-  // ****** VERIFICA PERMISSÃO DE NOTIFICAÇÃO ****** //
+  // === 0) Carrega window.user a partir de Auth.getCurrentUser() (se existir) ===
+  const storedUser = typeof Auth !== 'undefined' && Auth.getCurrentUser
+    ? Auth.getCurrentUser()
+    : null;
+  if (storedUser && !window.user) {
+    window.user = storedUser;
+  }
+
+  // === 1) Pedimos permissão de notificações (se ainda não tiver sido concedida). ===
   if (("Notification" in window) && Notification.permission === "granted") {
     notificacoesAtivas = true;
     const btnNotifs = document.getElementById('btn-ativar-notificacoes');
@@ -778,12 +795,22 @@ onReady(async () => {
       btnNotifs.innerHTML = '<i class="fas fa-bell-slash"></i> Notificações Ativadas';
     }
   }
-
-  // 1) Pedimos permissão de notificações (se ainda não tiver sido concedida).
   solicitarPermissaoNotificacao();
 
-  // 2) Preenche nome e e-mail do usuário no menu
-  const user = window.user || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
+  // === 2) Verifica se é página protegida e, se sim, redireciona ao login caso não haja window.user.token ===
+  // Definimos que as páginas protegidas são aquelas que contêm:
+  //  • um elemento #calendar (tabela de reservas)
+  //  • ou #agendamento-form (formulário de agendar)
+  //  • ou #reservations-container (container de “Meus Agendamentos”)
+  const protectedIds = ['calendar', 'agendamento-form', 'reservations-container'];
+  const isProtected = protectedIds.some(id => document.getElementById(id));
+  if (isProtected && (!window.user || !window.user.token)) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  // === 3) Preenche nome e e-mail do usuário no menu, se houver ===
+  const user = window.user;
   if (user) {
     const nameEl = document.getElementById('menu-user-name');
     const emailEl = document.getElementById('menu-user-email');
@@ -791,16 +818,16 @@ onReady(async () => {
     if (emailEl) emailEl.textContent = user.email || '—';
   }
 
-  // 3) Inicializa tema
+  // === 4) Inicializa tema ===
   ThemeToggle.init();
 
-  // 4) Inicializa FormModule apenas se o formulário existir nesta página
+  // === 5) Inicializa FormModule apenas se o formulário existir nesta página ===
   FormModule.init();
 
-  // 5) Inicializa DetailModule apenas se o modal de detalhes existir nesta página
+  // === 6) Inicializa DetailModule apenas se o modal de detalhes existir nesta página ===
   DetailModule.init();
 
-  // 6) Botão de alternar tema no menu
+  // === 7) Botão de alternar tema no menu ===
   const menuThemeBtn = document.getElementById('menu-theme-btn');
   if (menuThemeBtn) {
     if (document.documentElement.classList.contains('dark')) {
@@ -820,18 +847,19 @@ onReady(async () => {
     });
   }
 
-  // 7) Botão de Logout — redireciona para "/login.html"
+  // === 8) Botão de Logout — limpa window.user e redireciona para "/login.html" ===
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
       if (typeof Auth !== 'undefined' && Auth.logout) {
         Auth.logout();
       }
+      window.user = null;
       window.location.href = '/login.html';
     });
   }
 
-  // 8) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão)
+  // === 9) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão) ===
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
   if (btnNotifs) {
     btnNotifs.addEventListener('click', () => {
@@ -841,7 +869,7 @@ onReady(async () => {
     });
   }
 
-  // 9) Busca reservas iniciais para o FullCalendar
+  // === 10) Busca reservas iniciais para o FullCalendar ===
   let data = [];
   try {
     data = await Api.fetchEvents();
@@ -849,12 +877,12 @@ onReady(async () => {
     console.warn('Falha ao buscar reservas, iniciando calendário vazio', err);
   }
 
-  // 10) Referência ao date-picker de ocupação
+  // === 11) Referência ao date-picker de ocupação ===
   const dateInput = document.getElementById('occupancy-date');
   if (!dateInput) {
     console.error('Elemento #occupancy-table não encontrado! Verifique o HTML.');
   } else {
-    // 11) Inicializa o FullCalendar apenas se existir o elemento #calendar
+    // === 12) Inicializa o FullCalendar apenas se existir o elemento #calendar ===
     if (document.getElementById('calendar')) {
       CalendarModule.init(
         data,
@@ -882,21 +910,21 @@ onReady(async () => {
       );
     }
 
-    // 12) Configura date-picker
+    // === 13) Configura date-picker ===
     dateInput.value = new Date().toISOString().slice(0, 10);
     dateInput.addEventListener('change', () => {
       buildOccupancyTable(dateInput.value);
     });
 
-    // 13) Inicia auto-refresh da tabela de ocupação
+    // === 14) Inicia auto-refresh da tabela de ocupação ===
     initOccupancyUpdates();
 
-    // 14) Listener extra (importação desativada)
+    // === 15) Listener extra (importação desativada) ===
     document.getElementById('import-schedule')?.addEventListener('click', () => {
       alert('Importação de horários fixos desativada nesta versão.');
     });
 
-    // 15) Chamada inicial para popular a tabela
+    // === 16) Chamada inicial para popular a tabela ===
     buildOccupancyTable(dateInput.value);
   }
 
