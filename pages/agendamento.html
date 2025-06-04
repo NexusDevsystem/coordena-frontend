@@ -44,13 +44,19 @@
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500">
 
-  <!-- Proteção de rota / oculta botões conforme role -->
+  <!-- Proteção de rota / define window.user e oculta botões conforme role -->
   <script>
+    // 1) Recupera o usuário do localStorage
     const user = Auth.getCurrentUser();
+    // 2) Se não existir, redireciona para login
     if (!user) {
       window.location.href = '../login.html';
+    } else {
+      // Armazena em window.user para ser usado pelo main.js
+      window.user = user;
     }
-    // Se for student, esconde o botão “Novo Agendamento” e botões de edição/cancelamento no modal
+
+    // 3) Se for student, esconde o botão “Novo Agendamento” e botões de edição/cancelamento no modal
     if (user.role === 'student') {
       document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('open-form-modal')?.classList.add('hidden');
@@ -70,8 +76,8 @@
     <nav>
       <!-- Usuário logado -->
       <div class="menu-user-info p-4">
-        <div id="menu-user-name" class="font-semibold">Seu Nome</div>
-        <div id="menu-user-email" class="text-sm text-gray-600 dark:text-gray-400">seu.email@exemplo.com</div>
+        <div id="menu-user-name" class="font-semibold"></div>
+        <div id="menu-user-email" class="text-sm text-gray-600 dark:text-gray-400"></div>
       </div>
 
       <!-- Botão de fechar (X) -->
@@ -81,7 +87,10 @@
       <ul class="menu-list p-4 space-y-2">
         <!-- Apenas “Meus Agendamentos” -->
         <li>
-          <a href="meus-agendamentos.html" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
+          <!-- Link relativo correto: este arquivo está em /pages/agendamento.html,
+               portanto “meus-agendamentos.html” também deve estar em /pages/ -->
+          <a href="meus-agendamentos.html"
+             class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
             Meus Agendamentos
           </a>
         </li>
@@ -142,8 +151,8 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
            stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7
-                 a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0
+                 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     </button>
   </div>
