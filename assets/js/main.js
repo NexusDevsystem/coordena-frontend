@@ -674,8 +674,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border">Sala / Horário</th>
       ${timeRanges.map(r =>
-    `<th class="px-2 py-1 border text-center">${r}</th>`
-  ).join('')}
+        `<th class="px-2 py-1 border text-center">${r}</th>`
+      ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -798,13 +798,28 @@ onReady(async () => {
   const protectedIds = ['calendar', 'agendamento-form', 'reservations-container'];
   const isProtected = protectedIds.some(id => document.getElementById(id));
   if (isProtected && (!window.user || !window.user.token)) {
-    // Redireciona para login de usuário (pages/login.html)
-    const path = window.location.pathname;
-    if (path.includes('/pages/')) {
-      window.location.href = '../pages/login.html';
-    } else {
-      window.location.href = 'pages/login.html';
-    }
+    // Função auxiliar para redirecionar ao login conforme ambiente
+    const redirectToLogin = () => {
+      const host = window.location.hostname;
+
+      // 1) Em produção (ex: coordenaplus.com.br), login.html está na raiz pública
+      if (host.includes('coordenaplus.com.br')) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // 2) Em desenvolvimento (localhost), usamos /pages/login.html
+      const path = window.location.pathname;
+      if (path.includes('/pages/')) {
+        // Se já estamos dentro de /pages/, subimos uma pasta e procuramos login.html
+        window.location.href = '../pages/login.html';
+      } else {
+        // Se estamos na raiz local (ex: http://localhost:5500/index.html), descemos para /pages/login.html
+        window.location.href = 'pages/login.html';
+      }
+    };
+
+    redirectToLogin();
     return;
   }
 
@@ -949,7 +964,7 @@ onReady(async () => {
   });
 
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  // NOVO: Sessão “Histórico de Usuários”
+  // NOVO: Sessão “Histórico de Usuários” (Admin)
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
   // Função que busca e renderiza todos os usuários com status “approved” ou “rejected”
@@ -1065,9 +1080,9 @@ onReady(async () => {
 
 (function () {
   // Verifica se cada container existe no DOM
-  const hasUsersContainer = !!document.getElementById('lista-pendentes-usuarios');
+  const hasUsersContainer       = !!document.getElementById('lista-pendentes-usuarios');
   const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
-  const hasActiveContainer = !!document.getElementById('lista-ativas');
+  const hasActiveContainer      = !!document.getElementById('lista-ativas');
 
   // Se não existir nenhum, interrompe todo o bloco
   if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
@@ -1133,8 +1148,8 @@ onReady(async () => {
 
       const dados = await res.json();
       const podeNotificar = (typeof enviarNotificacao === 'function'
-        && notificacoesAtivas
-        && Notification.permission === "granted");
+                             && notificacoesAtivas
+                             && Notification.permission === "granted");
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
