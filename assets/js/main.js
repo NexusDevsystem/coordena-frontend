@@ -679,8 +679,8 @@ async function buildOccupancyTable(filterDate) {
     <tr>
       <th class="px-2 py-1 border ${textClass}">Sala / Horário</th>
       ${timeRanges.map(r =>
-        `<th class="px-2 py-1 border ${textClass} text-center">${r}</th>`
-      ).join('')}
+    `<th class="px-2 py-1 border ${textClass} text-center">${r}</th>`
+  ).join('')}
     </tr>`;
   table.appendChild(thead);
 
@@ -804,7 +804,7 @@ onReady(async () => {
   const isProtected = protectedIds.some(id => document.getElementById(id));
 
   // EM VEZ DE window.user.token, usamos Auth.getToken()
-  const userToken = Auth.getToken(); 
+  const userToken = Auth.getToken();
   if (isProtected && !userToken) {
     // Função auxiliar para redirecionar ao login conforme ambiente
     const redirectToLogin = () => {
@@ -869,15 +869,19 @@ onReady(async () => {
     });
   }
 
-  // === 8) Botão de Logout — limpa window.user e redireciona para pages/login.html ===
+  // === 8) Botão de Logout — limpa window.user e redireciona corretamente para /login.html ===
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
-      Auth.logout(); // por padrão, role = 'user'
-      window.user = null;
-      // o próprio Auth.logout já redireciona para 'pages/login.html'
+      Auth.logout();       // continua limpando token/localStorage, etc.
+      window.user = null;  // removemos a referência local também
+
+      // FORÇAMOS o redirecionamento para ../login.html
+      // (ou seja, sobe uma pasta para chegar à raiz)
+      window.location.href = '../login.html';
     });
   }
+
 
   // === 9) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão) ===
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
@@ -1037,8 +1041,8 @@ onReady(async () => {
                 <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
                 <p class="card-text mb-2"><small>Status:
                   ${u.status === 'approved'
-              ? '<span class="badge bg-success">Aprovado</span>'
-              : '<span class="badge bg-danger">Rejeitado</span>'}
+            ? '<span class="badge bg-success">Aprovado</span>'
+            : '<span class="badge bg-danger">Rejeitado</span>'}
                 </small></p>
                 <p class="card-text text-muted small">
                   Data de cadastro: ${new Date(u.createdAt).toLocaleDateString('pt-BR')}<br>
@@ -1088,9 +1092,9 @@ onReady(async () => {
 
 (function () {
   // Verifica se cada container existe no DOM
-  const hasUsersContainer       = !!document.getElementById('lista-pendentes-usuarios');
+  const hasUsersContainer = !!document.getElementById('lista-pendentes-usuarios');
   const hasReservationsContainer = !!document.getElementById('lista-pendentes-reservas');
-  const hasActiveContainer      = !!document.getElementById('lista-ativas');
+  const hasActiveContainer = !!document.getElementById('lista-ativas');
 
   // Se não existir nenhum, interrompe todo o bloco
   if (!hasUsersContainer && !hasReservationsContainer && !hasActiveContainer) {
@@ -1156,8 +1160,8 @@ onReady(async () => {
 
       const dados = await res.json();
       const podeNotificar = (typeof enviarNotificacao === 'function'
-                             && notificacoesAtivas
-                             && Notification.permission === "granted");
+        && notificacoesAtivas
+        && Notification.permission === "granted");
 
       if (ultimoCountUsuarios === null && dados.length > 0) {
         mostrarToast(`${dados.length} usuário(s) pendente(s) no momento.`);
@@ -1557,90 +1561,90 @@ onReady(async () => {
   window.mudarPaginaReservas = mudarPaginaReservas;
 
   // --------------------------------------------------
-// 3) MÓDULO “RESERVAS ATIVAS” (…)
-// --------------------------------------------------
-let intervaloReservasAtivas = null;
+  // 3) MÓDULO “RESERVAS ATIVAS” (…)
+  // --------------------------------------------------
+  let intervaloReservasAtivas = null;
 
-// Essa era a função que apagava a reserva do banco:
-// async function deleteReservation(id) { ... }
+  // Essa era a função que apagava a reserva do banco:
+  // async function deleteReservation(id) { ... }
 
-// --------------------------------------------------
-// Em vez de deletar, vamos criar a função que apenas marca como "concluido":
-// --------------------------------------------------
-async function concluirReservation(id) {
-  try {
-    const token = localStorage.getItem('admin_token');
-    if (!token) return;
-    await fetch(`${BASE_API}/api/reservations/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ status: 'concluido' })
-    });
-    console.log(`🟢 Reserva ${id} marcada como concluída.`);
-  } catch (err) {
-    console.error(`Erro ao concluir reserva ${id}:`, err);
-  }
-}
-
-async function carregarReservasAtivas() {
-  console.log("📢 carregarReservasAtivas() invocada");
-  try {
-    const token = localStorage.getItem('admin_token');
-    if (!token) return;
-
-    const url = `${BASE_API}/api/reservations?status=approved`;
-    const resp = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    if (!resp.ok) {
-      throw new Error(`Falha ao buscar reservas aprovadas (status ${resp.status})`);
+  // --------------------------------------------------
+  // Em vez de deletar, vamos criar a função que apenas marca como "concluido":
+  // --------------------------------------------------
+  async function concluirReservation(id) {
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return;
+      await fetch(`${BASE_API}/api/reservations/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'concluido' })
+      });
+      console.log(`🟢 Reserva ${id} marcada como concluída.`);
+    } catch (err) {
+      console.error(`Erro ao concluir reserva ${id}:`, err);
     }
-    const todasReservas = await resp.json();
-    console.log("🔍 Reservas aprovadas:", todasReservas);
-
-    const agora = new Date();
-    todasReservas.forEach(r => {
-      const fim = new Date(`${r.date}T${r.end}:00`);
-      if (agora > fim) {
-        // Antes: deleteReservation(r._id);
-        // Agora, apenas marca como concluída:
-        concluirReservation(r._id);
-      }
-    });
-
-    const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
-    const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
-
-    const filtradas = todasReservas.filter(r => {
-      const fim = new Date(`${r.date}T${r.end}:00`);
-      if (agora > fim) return false;       // já foram concluídas
-      if (filtroData && r.date !== filtroData) return false;
-      const nomeLab = ((r.sala || r.resource) || '').toLowerCase();
-      const nomeResp = (r.responsible || '').toLowerCase();
-      if (termoBusca && !nomeLab.includes(termoBusca) && !nomeResp.includes(termoBusca)) {
-        return false;
-      }
-      return true;
-    });
-
-    filtradas.sort((a, b) => {
-      const da = new Date(`${a.date}T${a.start}:00`);
-      const db = new Date(`${b.date}T${b.start}:00`);
-      return da - db;
-    });
-
-    renderizarReservasAtivas(filtradas);
-  } catch (err) {
-    console.error("Erro no módulo de Reservas Ativas:", err);
   }
-}
+
+  async function carregarReservasAtivas() {
+    console.log("📢 carregarReservasAtivas() invocada");
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return;
+
+      const url = `${BASE_API}/api/reservations?status=approved`;
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!resp.ok) {
+        throw new Error(`Falha ao buscar reservas aprovadas (status ${resp.status})`);
+      }
+      const todasReservas = await resp.json();
+      console.log("🔍 Reservas aprovadas:", todasReservas);
+
+      const agora = new Date();
+      todasReservas.forEach(r => {
+        const fim = new Date(`${r.date}T${r.end}:00`);
+        if (agora > fim) {
+          // Antes: deleteReservation(r._id);
+          // Agora, apenas marca como concluída:
+          concluirReservation(r._id);
+        }
+      });
+
+      const termoBusca = document.getElementById('busca-ativas')?.value.trim().toLowerCase() || '';
+      const filtroData = document.getElementById('filtro-data-ativas')?.value || '';
+
+      const filtradas = todasReservas.filter(r => {
+        const fim = new Date(`${r.date}T${r.end}:00`);
+        if (agora > fim) return false;       // já foram concluídas
+        if (filtroData && r.date !== filtroData) return false;
+        const nomeLab = ((r.sala || r.resource) || '').toLowerCase();
+        const nomeResp = (r.responsible || '').toLowerCase();
+        if (termoBusca && !nomeLab.includes(termoBusca) && !nomeResp.includes(termoBusca)) {
+          return false;
+        }
+        return true;
+      });
+
+      filtradas.sort((a, b) => {
+        const da = new Date(`${a.date}T${a.start}:00`);
+        const db = new Date(`${b.date}T${b.start}:00`);
+        return da - db;
+      });
+
+      renderizarReservasAtivas(filtradas);
+    } catch (err) {
+      console.error("Erro no módulo de Reservas Ativas:", err);
+    }
+  }
 
   function renderizarReservasAtivas(reservas) {
     const container = document.getElementById("lista-ativas");
