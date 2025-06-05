@@ -81,18 +81,17 @@
   <label for="toggle-menu" class="toggle-open"></label>
 
   <nav class="bg-gray-900 h-full">
-    <!-- Usuário logado (centralizado) -->
-    <div class="menu-user-info py-4 text-center">
-      <div id="menu-user-name"
-           class="text-2xl font-bold text-gray-100 leading-tight">
-        <!-- Aqui vai “João Magno” -->
-      </div>
-      <!-- Remova `break-words` para quebras somente em pontos/autorizados -->
-      <div id="menu-user-email"
-           class="mt-1 text-sm text-gray-400 px-2 whitespace-normal">
-        <!-- Aqui vai “202302450921@professor.estacio.br” -->
-      </div>
-    </div>
+    <!-- Agora: alinhado à esquerda, nome e e-mail começam no mesmo ponto -->
+<div class="menu-user-info py-4 px-4 flex flex-col items-start">
+  <div id="menu-user-name"
+       class="text-2xl font-bold text-gray-100 leading-tight">
+    <!-- “João Magno” -->
+  </div>
+  <div id="menu-user-email"
+       class="mt-1 text-sm text-gray-400 whitespace-normal">
+    <!-- “202302450921@professor.estacio.br” -->
+  </div>
+</div>
 
     <label for="toggle-menu" class="toggle-close"></label>
 
