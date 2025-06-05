@@ -83,18 +83,14 @@
   <label for="toggle-menu" class="toggle-open"></label>
 
   <nav class="bg-gray-900 h-full">
-    <!-- Usuário logado (padding-left reduzido de p-4 para px-2) -->
-    <div class="menu-user-info px-2 py-4">
+    <!-- Usuário logado (centralizado horizontalmente) -->
+    <div class="menu-user-info py-4 text-center">
       <!-- Nome do usuário -->
-      <div
-        id="menu-user-name"
-        class="text-2xl font-bold text-gray-100 leading-tight"
-      ></div>
-      <!-- E-mail do usuário (sem quebra de linha) -->
-      <div
-        id="menu-user-email"
-        class="mt-1 text-sm text-gray-400 whitespace-nowrap"
-      ></div>
+      <div id="menu-user-name"
+           class="text-2xl font-bold text-gray-100 leading-tight"></div>
+      <!-- E-mail do usuário (quebra de linha se precisar) -->
+      <div id="menu-user-email"
+           class="mt-1 text-sm text-gray-400 break-words px-2"></div>
     </div>
 
     <!-- Botão de fechar (X) -->
@@ -103,30 +99,23 @@
     <!-- Lista de navegação: apenas “Meus Agendamentos” -->
     <ul class="menu-list p-4 space-y-2 list-none">
       <li class="list-none">
-        <a
-          href="meus-agendamentos.html"
-          class="block text-lg font-medium text-gray-100 hover:text-blue-400"
-        >
+        <a href="meus-agendamentos.html"
+           class="block text-lg font-medium text-gray-100 hover:text-blue-400">
           Meus Agendamentos
         </a>
       </li>
     </ul>
 
     <!-- Botões Tema / Sair -->
-    <div class="menu-footer-btns p-4 flex space-x-4">
+    <div class="menu-footer-btns p-4 flex justify-center space-x-4">
       <!-- Botão Tema -->
       <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
         <!-- Ícone Sol -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="icon icon-sun h-6 w-6 text-gray-100"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="icon icon-sun h-6 w-6 text-gray-100"
+             viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5" />
           <line x1="12" y1="1" x2="12" y2="3" />
           <line x1="12" y1="21" x2="12" y2="23" />
@@ -138,32 +127,22 @@
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
         </svg>
         <!-- Ícone Lua -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="icon icon-moon h-6 w-6 text-gray-100"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="icon icon-moon h-6 w-6 text-gray-100"
+             viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" />
         </svg>
       </button>
 
       <!-- Botão Logout -->
       <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="icon icon-logout h-6 w-6 text-red-500"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="icon icon-logout h-6 w-6 text-red-500"
+             viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />
@@ -172,6 +151,7 @@
     </div>
   </nav>
 </header>
+
 
 
 
