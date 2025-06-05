@@ -83,12 +83,14 @@
   <label for="toggle-menu" class="toggle-open"></label>
 
   <nav>
-    <!-- Usuário logado: diminuí o padding horizontal de px-4 para px-2 -->
-    <div class="menu-user-info py-4 px-2 flex flex-col items-start">
-      <div id="menu-user-name" class="text-2xl font-bold text-gray-100 leading-tight">
+    <!-- Usuário logado -->
+    <div class="menu-user-info py-4 px-0 flex flex-col items-start">
+      <div id="menu-user-name"
+           class="text-2xl font-bold text-gray-100 leading-tight">
         <!-- “João Magno” será injetado por JavaScript -->
       </div>
-      <div id="menu-user-email" class="mt-1 text-sm text-gray-400 whitespace-normal">
+      <div id="menu-user-email"
+           class="mt-1 text-sm text-gray-400 whitespace-normal">
         <!-- “202302450921@professor.estacio.br” será injetado por JavaScript -->
       </div>
     </div>
@@ -96,8 +98,8 @@
     <!-- Botão de fechar (X) -->
     <label for="toggle-menu" class="toggle-close"></label>
 
-    <!-- Lista de navegação: também removi o padding horizontal para alinhar à esquerda -->
-    <ul class="menu-list py-2 space-y-2 list-none">
+    <!-- Lista de navegação -->
+    <ul class="menu-list py-2 space-y-2 list-none px-0">
       <li>
         <a href="meus-agendamentos.html"
            class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">
@@ -107,7 +109,7 @@
     </ul>
 
     <!-- Botões Tema / Sair -->
-    <div class="menu-footer-btns py-4 px-2 flex space-x-4">
+    <div class="menu-footer-btns py-4 px-0 flex space-x-4">
       <!-- Botão Tema -->
       <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
         <!-- Ícone Sol -->
@@ -142,6 +144,7 @@
     </div>
   </nav>
 </header>
+
 
   <!-- Quick Access (botões flutuantes no topo) -->
   <div
