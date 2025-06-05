@@ -1,282 +1,357 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
-  <!-- 1) Meta viewport para deixar a página responsiva -->
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel de Administração</title>
 
-  <!-- 2) Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-
-  <!-- 3) Seu CSS personalizado (opcionalmente você pode adicionar regras extras para mobile) -->
-  <link rel="stylesheet" href="/assets/css/admin.css" />
-</head>
-
-<body class="bg-gray-100">
-  <!-- Proteção de rota (apenas admin) -->
+  <!-- Tailwind + Bootstrap CSS (ou apenas Bootstrap caso prefira) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <script>
-    const storedAdminUser = localStorage.getItem('admin_user');
-    const storedAdminToken = localStorage.getItem('admin_token');
-    if (!storedAdminUser || !storedAdminToken) {
-      alert('Sessão do Admin expirada. Faça login novamente.');
-      window.location.replace('/login.html');
-    } else {
-      try {
-        const userObj = JSON.parse(storedAdminUser);
-        if (userObj.role !== 'admin') {
-          window.location.replace('/');
-        }
-      } catch {
-        localStorage.removeItem('admin_user');
-        localStorage.removeItem('admin_token');
-        window.location.replace('/login.html');
-      }
-    }
-
-    const BASE_API = window.location.hostname.includes('localhost')
-      ? 'http://localhost:10000'
-      : 'https://coordena-backend.onrender.com';
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <script>
+    // Aplica imediatamente o tema salvo (evita flash)
+    const _theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.remove('light');
+    if (_theme === 'dark') document.documentElement.classList.add('dark');
   </script>
 
-  <!-- Container-fluid para ocupar toda a largura em telas pequenas -->
-  <div class="container-fluid py-4 px-2 px-md-4">
-    <!-- ======= Cabeçalho Azul Responsivo ======= -->
-    <div
-      class="bg-primary text-white rounded-3 p-3 p-md-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
-    >
-      <div class="w-100 w-md-auto">
-        <h1 class="h4 mb-1"><i class="fas fa-user-shield me-2"></i>Painel de Administração</h1>
-        <p class="mb-0 small">Gerencie solicitações de usuários e reservas</p>
+  <!-- Auth e Api já devem estar disponíveis -->
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <div class="container-fluid p-0">
+
+    <!-- Navbar ou Header do Admin -->
+    <nav class="navbar bg-blue-600 text-white">
+      <div class="container-fluid px-4">
+        <span class="navbar-brand mb-0 h1">Painel de Administração</span>
       </div>
+    </nav>
 
-      <!-- Botão Logout -->
-      <button id="admin-logout-btn" class="btn btn-outline-light me-2">
-        <i class="fas fa-sign-out-alt me-1"></i> Logout
-      </button>
+    <!-- Abas de navegação do Admin -->
+    <ul class="nav nav-tabs mt-4 px-4" id="adminTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          id="tab-usuarios"
+          data-bs-toggle="tab"
+          data-bs-target="#pane-usuarios"
+          type="button"
+          role="tab"
+          aria-controls="pane-usuarios"
+          aria-selected="true"
+        >
+          Usuários Pendentes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="tab-reservas-pendentes"
+          data-bs-toggle="tab"
+          data-bs-target="#pane-reservas-pendentes"
+          type="button"
+          role="tab"
+          aria-controls="pane-reservas-pendentes"
+          aria-selected="false"
+        >
+          Reservas Pendentes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="tab-reservas-ativas"
+          data-bs-toggle="tab"
+          data-bs-target="#pane-reservas-ativas"
+          type="button"
+          role="tab"
+          aria-controls="pane-reservas-ativas"
+          aria-selected="false"
+        >
+          Reservas Ativas
+        </button>
+      </li>
+      <!-- Nova Aba: Ocupação -->
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="tab-ocupacao"
+          data-bs-toggle="tab"
+          data-bs-target="#pane-ocupacao"
+          type="button"
+          role="tab"
+          aria-controls="pane-ocupacao"
+          aria-selected="false"
+        >
+          Ocupação
+        </button>
+      </li>
+    </ul>
 
-      <!-- NOVO: Botão “Ativar Notificações” -->
-      <button id="btn-ativar-notificacoes" class="btn btn-outline-light">
-        <i class="fas fa-bell"></i> Ativar Notificações
-      </button>
-    </div>
-    <!-- ========================================= -->
+    <!-- Conteúdo das abas -->
+    <div class="tab-content px-4 pt-4" id="adminTabContent">
 
-    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas / Histórico de Usuários -->
-    <div class="overflow-auto mb-3">
-      <ul class="nav nav-tabs flex-nowrap" id="adminTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link active"
-            id="usuarios-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#usuarios"
-            type="button"
-            role="tab"
-            aria-controls="usuarios"
-            aria-selected="true"
-          >
-            <i class="fas fa-user"></i> Usuários Pendentes
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="reservas-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#reservas"
-            type="button"
-            role="tab"
-            aria-controls="reservas"
-            aria-selected="false"
-          >
-            <i class="fas fa-calendar-alt"></i> Reservas Pendentes
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="ativas-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#ativas"
-            type="button"
-            role="tab"
-            aria-controls="ativas"
-            aria-selected="false"
-          >
-            <i class="fas fa-check-circle"></i> Reservas Ativas
-          </button>
-        </li>
-        <!-- === NOVA ABA: Histórico de Usuários === -->
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="historico-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#historico"
-            type="button"
-            role="tab"
-            aria-controls="historico"
-            aria-selected="false"
-          >
-            <i class="fas fa-history"></i> Histórico de Usuários
-          </button>
-        </li>
-      </ul>
-    </div>
-
-    <div class="tab-content" id="adminTabContent">
-      <!-- ================== ABA 1: Usuários Pendentes ================== -->
-      <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-        <div class="row mb-3 gx-2">
-          <!-- Campo de busca ocupa toda a largura em mobile (col-12), depois col-md-8 -->
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-usuarios"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar usuário por nome ou email..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
-            </div>
-          </div>
-          <!-- Filtro de ordenação ocupa col-12 em mobile, depois col-md-4 -->
-          <div class="col-12 col-md-4">
-            <select id="ordenacao-usuarios" class="form-select w-100">
-              <option value="createdAt">Ordem de Chegada</option>
-              <option value="name">Nome (A-Z)</option>
-              <option value="email">Email (A-Z)</option>
-            </select>
-          </div>
-        </div>
+      <!-- Pane Usuários Pendentes -->
+      <div
+        class="tab-pane fade show active"
+        id="pane-usuarios"
+        role="tabpanel"
+        aria-labelledby="tab-usuarios"
+      >
+        <!-- ... seu código de Usuários Pendentes ... -->
         <div id="lista-pendentes-usuarios"></div>
       </div>
 
-      <!-- =============== ABA 2: Reservas Pendentes ================= -->
-      <div class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
-        <div class="row mb-3 gx-2">
-          <!-- Campo de busca ocupa col-12 em mobile, depois col-md-8 -->
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-reservas"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar reserva por lab ou requisitante..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
-            </div>
-          </div>
-          <!-- Filtros de data + ordenação ocupa col-12 em mobile, depois col-md-4 -->
-          <div class="col-12 col-md-4">
-            <input
-              type="date"
-              id="filtro-data-reservas"
-              class="form-control mb-2 w-100"
-              placeholder="Data"
-            />
-            <select id="ordenacao-reservas" class="form-select w-100">
-              <option value="date">Data</option>
-              <option value="responsible">Requisitante (A-Z)</option>
-            </select>
-          </div>
-        </div>
+      <!-- Pane Reservas Pendentes -->
+      <div
+        class="tab-pane fade"
+        id="pane-reservas-pendentes"
+        role="tabpanel"
+        aria-labelledby="tab-reservas-pendentes"
+      >
+        <!-- ... seu código de Reservas Pendentes ... -->
         <div id="lista-pendentes-reservas"></div>
       </div>
 
-      <!-- ================ ABA 3: Reservas Ativas ==================== -->
-      <div class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
-        <div class="row mb-3 gx-2">
-          <!-- Campo de busca mobile: col-12, depois col-md-8 -->
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-ativas"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar lab ou requisitante nas aprovadas..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
-            </div>
-          </div>
-          <!-- Filtro de data mobile: col-12, depois col-md-4 -->
-          <div class="col-12 col-md-4">
-            <input
-              type="date"
-              id="filtro-data-ativas"
-              class="form-control mb-2 w-100"
-              placeholder="Data"
-            />
-          </div>
-        </div>
-        <!-- Lista de cards para as Reservas Ativas -->
-        <div id="lista-ativas" class="row g-3"></div>
+      <!-- Pane Reservas Ativas -->
+      <div
+        class="tab-pane fade"
+        id="pane-reservas-ativas"
+        role="tabpanel"
+        aria-labelledby="tab-reservas-ativas"
+      >
+        <!-- ... seu código de Reservas Ativas ... -->
+        <div id="lista-ativas"></div>
       </div>
 
-      <!-- =========== ABA 4 (nova): Histórico de Usuários ============ -->
-      <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
-        <div class="row mb-3 gx-2">
-          <!-- Você pode manter a busca/filtros aqui também, se quiser -->
-          <div class="col-12">
-            <h5 class="mb-3"><i class="fas fa-history me-2"></i> Histórico de Usuários</h5>
-            <!-- Exemplo de filtro de data (opcional) -->
-            <div class="mb-3">
-              <input
-                type="date"
-                id="filtro-data-historico"
-                class="form-control w-100"
-                placeholder="Selecionar período..."
-              />
-            </div>
-          </div>
+      <!-- **Pane Ocupação (nova)** -->
+      <div
+        class="tab-pane fade"
+        id="pane-ocupacao"
+        role="tabpanel"
+        aria-labelledby="tab-ocupacao"
+      >
+        <!-- Date Picker para selecionar a data -->
+        <div class="d-flex justify-content-end mb-3">
+          <label for="occupancy-date-admin" class="me-2 text-gray-700 dark:text-gray-300">
+            Data:
+          </label>
+          <input
+            type="date"
+            id="occupancy-date-admin"
+            class="form-control form-control-sm w-auto"
+          />
         </div>
-        <!-- Container onde você colocará, via JS, a lista ou tabela de histórico -->
-        <div id="lista-historico-usuarios">
-          <!-- Exemplo de texto enquanto não popula via JavaScript -->
-          <p class="text-muted">Aqui aparecerá o histórico de usuários (ex: usuários já aprovados, rejeitados ou removidos).</p>
+
+        <!-- Tabela de Ocupação -->
+        <div class="overflow-auto border rounded">
+          <table id="occupancy-table-admin" class="table table-sm table-bordered mb-0"></table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast de notificação (canto inferior direito) -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-    <div
-      id="toastNovoCadastro"
-      class="toast align-items-center text-white bg-dark border-0"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-    >
-      <div class="d-flex">
-        <div class="toast-body" id="meuToastBody"></div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          data-bs-dismiss="toast"
-          aria-label="Fechar"
-        ></button>
-      </div>
-    </div>
-  </div>
+  <!-- Rodapé simples -->
+  <footer class="text-center text-sm text-gray-600 dark:text-gray-400 py-4">
+    Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
+  </footer>
 
-  <!-- Bootstrap Bundle JS (inclui Popper) -->
+  <!-- Bootstrap JS (para as abas funcionarem) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Seu JS principal (contém toda a lógica de calendário + notificações) -->
-  <script src="/assets/js/main.js"></script>
-</body>
 
+  <!-- main.js (contém Api, CalendarModule, FormModule, DetailModule, buildOccupancyTable, etc.) -->
+  <script src="../assets/js/main.js"></script>
+
+  <!-- Script específico para inicializar a aba de “Ocupação” -->
+  <script>
+    onReady(async () => {
+      // 1) Carrega fixedSlots globalmente (para usar na tabela)
+      try {
+        window.fixedSlots = await Api.fetchFixedSchedules();
+      } catch (err) {
+        console.error("Falha ao buscar fixedSchedules no admin:", err);
+        window.fixedSlots = [];
+      }
+
+      // 2) Inicializa o date‐picker para hoje
+      const dateInputAdmin = document.getElementById("occupancy-date-admin");
+      dateInputAdmin.value = new Date().toISOString().slice(0, 10);
+
+      // 3) Quando a aba “Ocupação” for ativada, chama a função de buildOccupancyTable
+      const tabOcupacao = document.getElementById("tab-ocupacao");
+      tabOcupacao.addEventListener("shown.bs.tab", () => {
+        safeBuildOccupancyTableAdmin(dateInputAdmin.value);
+      });
+
+      // 4) Quando a data mudar, refaz a tabela
+      dateInputAdmin.addEventListener("change", () => {
+        safeBuildOccupancyTableAdmin(dateInputAdmin.value);
+      });
+
+      // 5) Se a aba “Ocupação” já estiver selecionada na carga inicial, renderiza imediatamente
+      const activeTabId = document.querySelector(".nav-link.active")?.id;
+      if (activeTabId === "tab-ocupacao") {
+        safeBuildOccupancyTableAdmin(dateInputAdmin.value);
+      }
+    });
+
+    /**
+     * Uma cópia de buildOccupancyTable / safeBuildOccupancyTable, mas adaptada
+     * para usar IDs “-admin” (occupancy-date-admin, occupancy-table-admin).
+     */
+    async function safeBuildOccupancyTableAdmin(filterDate) {
+      try {
+        await buildOccupancyTableAdmin(filterDate);
+      } catch (err) {
+        console.error("Erro na tabela de ocupação (admin):", err);
+      }
+    }
+
+    async function buildOccupancyTableAdmin(filterDate) {
+      const table = document.getElementById("occupancy-table-admin");
+      if (!table) {
+        console.error("#occupancy-table-admin não encontrado");
+        return;
+      }
+      table.innerHTML = "";
+
+      // 1) Pega todas as reservas aprovadas via CalendarModule.getEvents()
+      const allEvents = CalendarModule.getEvents();
+      // 2) Utiliza a data selecionada (ou hoje, se não houver)
+      const dateStr = filterDate || new Date().toISOString().slice(0, 10);
+      const [Y, M, D] = dateStr.split("-").map(Number);
+      const weekday = new Date(Y, M - 1, D).getDay();
+
+      // 3) Filtra os eventos do dia
+      const dayEvents = allEvents.filter((e) => e.date === dateStr);
+
+      // 4) Filtra as “fixed slots” do dia
+      const fixedTodaySlots = window.fixedSlots.filter(
+        (s) => s.dayOfWeek === weekday
+      );
+
+      // 5) Cria os intervalos de 50 minutos (08:00 às 22:00)
+      const toDateObj = (Y, M, D, hm) => {
+        const [h, m] = hm.split(":").map(Number);
+        return new Date(Y, M - 1, D, h, m);
+      };
+
+      const padHM = (d) =>
+        `${String(d.getHours()).padStart(2, "0")}:${String(d
+          .getMinutes()
+          .padStart(2, "0"))}`;
+
+      const slotStart = toDateObj(Y, M, D, "08:00");
+      const slotEnd = toDateObj(Y, M, D, "22:00");
+      const timeRanges = [];
+      let cursor = new Date(slotStart);
+      while (cursor < slotEnd) {
+        const next = new Date(cursor);
+        next.setMinutes(cursor.getMinutes() + 50);
+        timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
+        cursor = next;
+      }
+
+      // 6) Descobre todas as salas envolvidas (reservas + fixed slots)
+      const labs = Array.from(
+        new Set([
+          ...fixedTodaySlots.map((s) => s.lab),
+          ...dayEvents.map((e) => e.sala || e.resource),
+        ])
+      );
+      if (!timeRanges.length || !labs.length) {
+        table.innerHTML = `
+          <tr>
+            <td class="p-4 text-center text-white" colspan="${
+              timeRanges.length + 1
+            }">
+              Sem dados para exibir
+            </td>
+          </tr>`;
+        return;
+      }
+
+      // 7) Monta o THEAD
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr class="bg-gray-800 text-white sticky-top">
+          <th class="px-2 py-1 border text-left">Sala / Horário</th>
+          ${timeRanges
+            .map(
+              (r) =>
+                `<th class="px-2 py-1 border text-center text-sm">${r}</th>`
+            )
+            .join("")}
+        </tr>`;
+      table.appendChild(thead);
+
+      // 8) Monta o TBODY
+      const tbody = document.createElement("tbody");
+      labs.forEach((lab) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="px-2 py-1 border font-semibold bg-gray-900 text-white">${lab}</td>`;
+
+        timeRanges.forEach((range) => {
+          const [start, end] = range.split("-");
+          const cellStart = toDateObj(Y, M, D, start);
+          const cellEnd = toDateObj(Y, M, D, end);
+
+          // 8a) Verifica se há uma reserva aprovada nesse intervalo
+          const hasReservation = dayEvents.some((ev) => {
+            if ((ev.sala || ev.resource) !== lab) return false;
+            const evStart = toDateObj(Y, M, D, ev.start);
+            const evEnd = toDateObj(Y, M, D, ev.end);
+            return evStart < cellEnd && evEnd > cellStart;
+          });
+
+          // 8b) Verifica se esse intervalo está em Fixed Slots
+          const fixed = fixedTodaySlots.find((fs) => {
+            if (fs.lab !== lab) return false;
+            const fsStart = toDateObj(Y, M, D, fs.startTime);
+            const fsEnd = toDateObj(Y, M, D, fs.endTime);
+            return fsStart < cellEnd && fsEnd > cellStart;
+          });
+
+          let style = "",
+            label = "";
+          if (hasReservation) {
+            // reserva aprovada = vermelho / “ocupado”
+            style = "background-color: rgba(220,38,38,0.8);";
+            label = "ocupado";
+          } else if (fixed) {
+            // horário fixo: cor conforme turno
+            const turnoColors = {
+              Matutino: "rgba(59,130,246,0.8)",
+              Vespertino: "rgba(234,179,8,0.8)",
+              Noturno: "rgba(220,38,38,0.8)",
+            };
+            const corDoTurno = turnoColors[fixed.turno] || "rgba(107,114,128,0.5)";
+            style = `background-color: ${corDoTurno};`;
+            label = fixed.turno;
+          } else {
+            // livre = verde
+            style = "background-color: rgba(16,185,129,0.8);";
+            label = "livre";
+          }
+
+          tr.innerHTML += `
+            <td class="px-2 py-1 border text-white text-center text-xs" style="${style}">
+              ${label}
+            </td>`;
+        });
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    }
+  </script>
+</body>
 </html>
