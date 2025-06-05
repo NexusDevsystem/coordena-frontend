@@ -216,6 +216,7 @@ body {
   transform: rotate(-45deg);
 }
 
+/* Container do nav (menu) */
 .offcanvas-menu nav {
   position: fixed;
   top: 0;
@@ -230,6 +231,11 @@ body {
   transition: left 0.3s ease;
   z-index: 10000; /* fica acima de todo conteúdo */
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
+
+  /* Esconde rolamento horizontal */
+  overflow-x: hidden;
+  /* Permite rolagem vertical apenas */
+  overflow-y: auto;
 }
 
 .offcanvas-menu input[type="checkbox"]:checked ~ nav {
@@ -283,10 +289,13 @@ body {
 /* lista de links */
 .offcanvas-menu .menu-list {
   flex: 1;
-  overflow-y: auto;
   margin-top: 2rem;
   list-style: none;
   counter-reset: nav-link;
+
+  /* Permite somente scroll vertical dentro da lista */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .offcanvas-menu .menu-list li {
@@ -315,6 +324,7 @@ body {
   color: #5c7cfa;
 }
 
+/* Remove contador automático de número após cada <a> */
 .offcanvas-menu .menu-list li a::after {
   content: none !important;
 }
