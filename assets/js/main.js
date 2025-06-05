@@ -796,48 +796,62 @@ onReady(async () => {
   solicitarPermissaoNotificacao();
 
   // === 2) Verifica se é página protegida e, se sim, redireciona ao login caso não haja token ===
-  // Definimos que as páginas protegidas são aquelas que contêm:
-  //  • um elemento #calendar (tabela de reservas)
-  //  • ou #agendamento-form (formulário de agendar)
-  //  • ou #reservations-container (container de “Meus Agendamentos”)
   const protectedIds = ['calendar', 'agendamento-form', 'reservations-container'];
   const isProtected = protectedIds.some(id => document.getElementById(id));
 
-  // EM VEZ DE window.user.token, usamos Auth.getToken()
   const userToken = Auth.getToken();
   if (isProtected && !userToken) {
-    // Função auxiliar para redirecionar ao login conforme ambiente
     const redirectToLogin = () => {
       const host = window.location.hostname;
-
-      // 1) Em produção (ex: coordenaplus.com.br), login.html está na raiz pública
       if (host.includes('coordenaplus.com.br')) {
         window.location.href = '/login.html';
         return;
       }
-
-      // 2) Em desenvolvimento (localhost), usamos /pages/login.html
       const path = window.location.pathname;
       if (path.includes('/pages/')) {
-        // Se já estamos dentro de /pages/, subimos uma pasta e procuramos login.html
         window.location.href = '../pages/login.html';
       } else {
-        // Se estamos na raiz local (ex: http://localhost:5500/index.html), descemos para /pages/login.html
         window.location.href = 'pages/login.html';
       }
     };
-
     redirectToLogin();
     return;
   }
 
-  // === 3) Preenche nome e e-mail do usuário no menu, se houver ===
+  // === 3) Preenche nome e e-mail do usuário no menu e, no rodapé, nome completo + cargo ===
   const user = window.user;
   if (user) {
-    const nameEl = document.getElementById('menu-user-name');
+    // 3.1) Topo do menu (já existia)
+    const nameEl  = document.getElementById('menu-user-name');
     const emailEl = document.getElementById('menu-user-email');
-    if (nameEl) nameEl.textContent = user.name || '—';
+    if (nameEl)  nameEl.textContent  = user.name  || '—';
     if (emailEl) emailEl.textContent = user.email || '—';
+
+    // 3.2) Rodapé do menu: nome completo
+    const fullNameEl = document.getElementById('menu-user-fullname');
+    if (fullNameEl) {
+      fullNameEl.textContent = user.name || '—';
+    }
+
+    // 3.3) Rodapé do menu: cargo/tradução de user.role
+    let papelLegivel = '';
+    switch (user.role) {
+      case 'admin':
+        papelLegivel = 'Administrador';
+        break;
+      case 'professor':
+        papelLegivel = 'Professor';
+        break;
+      case 'student':
+        papelLegivel = 'Aluno';
+        break;
+      default:
+        papelLegivel = user.role || '';
+    }
+    const roleEl = document.getElementById('menu-user-role');
+    if (roleEl) {
+      roleEl.textContent = papelLegivel;
+    }
   }
 
   // === 4) Inicializa tema ===
@@ -873,15 +887,13 @@ onReady(async () => {
   const menuLogoutBtn = document.getElementById('menu-logout-btn');
   if (menuLogoutBtn) {
     menuLogoutBtn.addEventListener('click', () => {
-      Auth.logout();       // continua limpando token/localStorage, etc.
-      window.user = null;  // removemos a referência local também
+      Auth.logout();       // limpa token/localStorage
+      window.user = null;  // removemos a referência local
 
-      // FORÇAMOS o redirecionamento para ../login.html
-      // (ou seja, sobe uma pasta para chegar à raiz)
+      // Forçamos o redirecionamento para a página de login (subindo uma pasta)
       window.location.href = '../login.html';
     });
   }
-
 
   // === 9) BOTÃO: Ativar Notificações (só aparece se ainda não concedeu permissão) ===
   const btnNotifs = document.getElementById('btn-ativar-notificacoes');
@@ -951,6 +963,7 @@ onReady(async () => {
     // === 16) Chamada inicial para popular a tabela ===
     buildOccupancyTable(dateInput.value);
   }
+});
 
   // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
@@ -1079,8 +1092,6 @@ onReady(async () => {
   document.getElementById('ordenacao-historico-usuarios')?.addEventListener('change', () => {
     carregarHistoricoUsuarios();
   });
-
-});
 // --------------------------------------------------
 // Fim de onReady
 // --------------------------------------------------
