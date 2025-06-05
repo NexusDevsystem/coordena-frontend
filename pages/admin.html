@@ -265,7 +265,7 @@
         </div>
       </div>
 
-      <!-- ========= ABA 5 (nova): Ocupação ========= -->
+      <!-- ========= ABA 5: Ocupação ========= -->
       <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
         <!-- Date‐picker admin para selecionar a data -->
         <div class="row mb-3 gx-2">
@@ -284,7 +284,7 @@
         <div class="overflow-auto border rounded">
           <table
             id="occupancy-table-admin"
-            class="table table-sm table-bordered text-center"
+            class="table table-sm table-bordered text-center mb-0"
           ></table>
         </div>
       </div>
@@ -317,11 +317,11 @@
   <!-- Seu JS principal (contém toda a lógica de calendário + notificações) -->
   <script src="/assets/js/main.js"></script>
 
-  <!-- ↓ Script extra para popular a Aba “Ocupação” sem alterar o estilo existente ↓ -->
+  <!-- ↓ Script extra para popular a Aba “Ocupação” sincronizada com o calendário ↓ -->
   <script>
-    // Garante que só execute após o DOM completo
+    // Garante que o código execute somente após o DOM e os módulos de main.js estarem prontos
     onReady(async () => {
-      // 1) Busca e armazena horários fixos para o admin
+      // 1) Carrega horários fixos para admin
       try {
         window.fixedSlots = await Api.fetchFixedSchedules();
       } catch (err) {
@@ -329,11 +329,11 @@
         window.fixedSlots = [];
       }
 
-      // 2) Define valor inicial do date‐picker como hoje
+      // 2) Ajusta valor inicial do date‐picker para hoje
       const dateInput = document.getElementById("occupancy-date-admin");
       dateInput.value = new Date().toISOString().slice(0, 10);
 
-      // 3) Ao mudar de aba para “Ocupação”, (re)constrói a tabela
+      // 3) Quando a aba “Ocupação” ficar visível, constrói tabela
       const tabOcupacao = document.getElementById("ocupacao-tab");
       tabOcupacao.addEventListener("shown.bs.tab", () => {
         safeBuildOccupancyTableAdmin(dateInput.value);
@@ -344,14 +344,14 @@
         safeBuildOccupancyTableAdmin(dateInput.value);
       });
 
-      // 5) Se a aba Ocupação já estiver ativa ao carregar, constrói de imediato
+      // 5) Se a aba “Ocupação” já estiver ativa ao carregar, constrói imediatamente
       const activeTab = document.querySelector(".nav-link.active")?.id;
       if (activeTab === "ocupacao-tab") {
         safeBuildOccupancyTableAdmin(dateInput.value);
       }
     });
 
-    // Versão protegida de buildOccupancyTable para admin
+    // Wrapper que captura erros sem quebrar a aba
     async function safeBuildOccupancyTableAdmin(filterDate) {
       try {
         await buildOccupancyTableAdmin(filterDate);
@@ -360,30 +360,41 @@
       }
     }
 
+    // Função que constrói a tabela de ocupação, buscando eventos aprovados + horários fixos
     async function buildOccupancyTableAdmin(filterDate) {
       const table = document.getElementById("occupancy-table-admin");
       if (!table) {
         console.error("#occupancy-table-admin não encontrado");
         return;
       }
-      // Limpa qualquer conteúdo anterior
+      // Limpa conteúdo anterior
       table.innerHTML = "";
 
-      // 1) Recupera todos os eventos aprovados (já carregados no CalendarModule)
-      const allEvents = CalendarModule.getEvents();
+      // 1) Busca todas as reservas aprovadas (status = approved) via API
+      let approvedEvents = [];
+      try {
+        approvedEvents = await Api.fetchEvents();
+      } catch (err) {
+        console.error("Erro ao buscar reservas aprovadas para admin:", err);
+      }
 
-      // 2) Define data a filtrar (ou hoje, se não fornecida)
+      // 2) Filtra apenas os aprovados (se backend já retorna só aprovados, essa linha pode ser redundante)
+      approvedEvents = approvedEvents.filter((e) => e.status === "approved");
+
+      // 3) Prepara data a filtrar
       const dateStr = filterDate || new Date().toISOString().slice(0, 10);
       const [Y, M, D] = dateStr.split("-").map(Number);
       const weekday = new Date(Y, M - 1, D).getDay();
 
-      // 3) Filtra apenas eventos desse dia
-      const dayEvents = allEvents.filter((e) => e.date === dateStr);
+      // 4) Filtra eventos desse dia
+      const dayEvents = approvedEvents.filter((e) => e.date === dateStr);
 
-      // 4) Filtra horários fixos desse dia da semana
-      const fixedTodaySlots = window.fixedSlots.filter((s) => s.dayOfWeek === weekday);
+      // 5) Filtra horários fixos desse dia da semana
+      const fixedTodaySlots = window.fixedSlots.filter(
+        (s) => s.dayOfWeek === weekday
+      );
 
-      // 5) Gera intervalos de 50 minutos entre 08:00 e 22:00
+      // 6) Gera intervalos de 50 minutos entre 08:00 e 22:00
       function toDateObj(Y, M, D, hm) {
         const [h, m] = hm.split(":").map(Number);
         return new Date(Y, M - 1, D, h, m);
@@ -407,7 +418,7 @@
         cursor = next;
       }
 
-      // 6) Lista de "salas" (laboratórios) do dia
+      // 7) Determina lista de laboratórios (fixos + reservas)
       const labs = Array.from(
         new Set([
           ...fixedTodaySlots.map((s) => s.lab),
@@ -415,6 +426,7 @@
         ])
       );
 
+      // Se não houver dados, exibe uma linha vazia
       if (!timeRanges.length || !labs.length) {
         const emptyRow = document.createElement("tr");
         const td = document.createElement("td");
@@ -426,16 +438,15 @@
         return;
       }
 
-      // 7) Monta o <thead>
+      // 8) Monta thead (coluna “Sala/Horário” + intervalos)
       const thead = document.createElement("thead");
       const trHead = document.createElement("tr");
-      trHead.className = "table-dark";
-      // Cabeçalho da primeira coluna
+      trHead.className = "table-secondary";
       const thFirst = document.createElement("th");
       thFirst.scope = "col";
       thFirst.textContent = "Sala / Horário";
       trHead.appendChild(thFirst);
-      // Cabeçalho de cada intervalo
+
       timeRanges.forEach((r) => {
         const th = document.createElement("th");
         th.scope = "col";
@@ -447,23 +458,24 @@
       thead.appendChild(trHead);
       table.appendChild(thead);
 
-      // 8) Monta o <tbody>
+      // 9) Monta tbody: uma linha por cada laboratório
       const tbody = document.createElement("tbody");
       labs.forEach((lab) => {
         const tr = document.createElement("tr");
-        // Coluna fixa com o nome do laboratório
+
+        // Primeira célula: nome do laboratório
         const tdLab = document.createElement("td");
-        tdLab.className = "fw-semibold";
+        tdLab.className = "fw-semibold align-middle";
         tdLab.textContent = lab;
         tr.appendChild(tdLab);
 
-        // Para cada intervalo de horário, determina estilo e label
+        // Para cada intervalo, verifica reserva aprovada ou horário fixo
         timeRanges.forEach((range) => {
           const [start, end] = range.split("-");
           const cellStart = toDateObj(Y, M, D, start);
           const cellEnd = toDateObj(Y, M, D, end);
 
-          // Verifica se há uma reserva aprovada nesse intervalo
+          // Verifica se há reserva aprovada no intervalo
           const hasReservation = dayEvents.some((ev) => {
             if ((ev.sala || ev.resource) !== lab) return false;
             const evStart = toDateObj(Y, M, D, ev.start);
@@ -471,8 +483,8 @@
             return evStart < cellEnd && evEnd > cellStart;
           });
 
-          // Verifica se está em um horário fixo
-          const fixed = fixedTodaySlots.find((fs) => {
+          // Verifica se faz parte de horário fixo
+          const fixedSlot = fixedTodaySlots.find((fs) => {
             if (fs.lab !== lab) return false;
             const fsStart = toDateObj(Y, M, D, fs.startTime);
             const fsEnd = toDateObj(Y, M, D, fs.endTime);
@@ -483,24 +495,23 @@
           let bgColor = "";
           let label = "";
           if (hasReservation) {
-            bgColor = "rgba(220,38,38,0.8)";
+            bgColor = "rgba(220,38,38,0.8)"; // vermelho
             label = "ocupado";
-          } else if (fixed) {
+          } else if (fixedSlot) {
             const turnoColors = {
               Matutino: "rgba(59,130,246,0.8)",
               Vespertino: "rgba(234,179,8,0.8)",
-              Noturno: "rgba(220,38,38,0.8)",
+              Noturno: "rgba(220,38,38,0.8)"
             };
-            const corDoTurno = turnoColors[fixed.turno] || "rgba(107,114,128,0.5)";
-            bgColor = corDoTurno;
-            label = fixed.turno;
+            bgColor = turnoColors[fixedSlot.turno] || "rgba(107,114,128,0.5)";
+            label = fixedSlot.turno;
           } else {
-            bgColor = "rgba(16,185,129,0.8)";
+            bgColor = "rgba(16,185,129,0.8)"; // verde
             label = "livre";
           }
 
           const td = document.createElement("td");
-          td.className = "text-white text-nowrap";
+          td.className = "text-white text-nowrap align-middle";
           td.style.backgroundColor = bgColor;
           td.style.fontSize = "0.7rem";
           td.textContent = label;
