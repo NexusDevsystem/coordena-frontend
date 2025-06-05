@@ -65,7 +65,7 @@
     </div>
     <!-- ========================================= -->
 
-    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas / Histórico de Usuários -->
+    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas / Histórico de Usuários / Ocupação -->
     <div class="overflow-auto mb-3">
       <ul class="nav nav-tabs flex-nowrap" id="adminTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -123,6 +123,21 @@
             aria-selected="false"
           >
             <i class="fas fa-history"></i> Histórico de Usuários
+          </button>
+        </li>
+        <!-- === NOVA ABA: Ocupação === -->
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="ocupacao-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#ocupacao"
+            type="button"
+            role="tab"
+            aria-controls="ocupacao"
+            aria-selected="false"
+          >
+            <i class="fas fa-th-large"></i> Ocupação
           </button>
         </li>
       </ul>
@@ -226,7 +241,7 @@
         <div id="lista-ativas" class="row g-3"></div>
       </div>
 
-      <!-- =========== ABA 4 (nova): Histórico de Usuários ============ -->
+      <!-- =========== ABA 4: Histórico de Usuários ============ -->
       <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
         <div class="row mb-3 gx-2">
           <!-- Você pode manter a busca/filtros aqui também, se quiser -->
@@ -247,6 +262,30 @@
         <div id="lista-historico-usuarios">
           <!-- Exemplo de texto enquanto não popula via JavaScript -->
           <p class="text-muted">Aqui aparecerá o histórico de usuários (ex: usuários já aprovados, rejeitados ou removidos).</p>
+        </div>
+      </div>
+
+      <!-- ========= ABA 5 (nova): Ocupação ========= -->
+      <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
+        <!-- Date‐picker admin para selecionar a data -->
+        <div class="row mb-3 gx-2">
+          <div class="col-12 col-md-4">
+            <label for="occupancy-date-admin" class="form-label">Data de Consulta:</label>
+            <input
+              type="date"
+              id="occupancy-date-admin"
+              class="form-control"
+              value=""
+            />
+          </div>
+        </div>
+
+        <!-- Tabela de ocupação: será preenchida dinamicamente -->
+        <div class="overflow-auto border rounded">
+          <table
+            id="occupancy-table-admin"
+            class="table table-sm table-bordered text-center"
+          ></table>
         </div>
       </div>
     </div>
@@ -277,6 +316,202 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Seu JS principal (contém toda a lógica de calendário + notificações) -->
   <script src="/assets/js/main.js"></script>
+
+  <!-- ↓ Script extra para popular a Aba “Ocupação” sem alterar o estilo existente ↓ -->
+  <script>
+    // Garante que só execute após o DOM completo
+    onReady(async () => {
+      // 1) Busca e armazena horários fixos para o admin
+      try {
+        window.fixedSlots = await Api.fetchFixedSchedules();
+      } catch (err) {
+        console.error("Falha ao buscar fixedSchedules no admin:", err);
+        window.fixedSlots = [];
+      }
+
+      // 2) Define valor inicial do date‐picker como hoje
+      const dateInput = document.getElementById("occupancy-date-admin");
+      dateInput.value = new Date().toISOString().slice(0, 10);
+
+      // 3) Ao mudar de aba para “Ocupação”, (re)constrói a tabela
+      const tabOcupacao = document.getElementById("ocupacao-tab");
+      tabOcupacao.addEventListener("shown.bs.tab", () => {
+        safeBuildOccupancyTableAdmin(dateInput.value);
+      });
+
+      // 4) Ao alterar a data, reconstrói a tabela
+      dateInput.addEventListener("change", () => {
+        safeBuildOccupancyTableAdmin(dateInput.value);
+      });
+
+      // 5) Se a aba Ocupação já estiver ativa ao carregar, constrói de imediato
+      const activeTab = document.querySelector(".nav-link.active")?.id;
+      if (activeTab === "ocupacao-tab") {
+        safeBuildOccupancyTableAdmin(dateInput.value);
+      }
+    });
+
+    // Versão protegida de buildOccupancyTable para admin
+    async function safeBuildOccupancyTableAdmin(filterDate) {
+      try {
+        await buildOccupancyTableAdmin(filterDate);
+      } catch (err) {
+        console.error("Erro na tabela de ocupação (admin):", err);
+      }
+    }
+
+    async function buildOccupancyTableAdmin(filterDate) {
+      const table = document.getElementById("occupancy-table-admin");
+      if (!table) {
+        console.error("#occupancy-table-admin não encontrado");
+        return;
+      }
+      // Limpa qualquer conteúdo anterior
+      table.innerHTML = "";
+
+      // 1) Recupera todos os eventos aprovados (já carregados no CalendarModule)
+      const allEvents = CalendarModule.getEvents();
+
+      // 2) Define data a filtrar (ou hoje, se não fornecida)
+      const dateStr = filterDate || new Date().toISOString().slice(0, 10);
+      const [Y, M, D] = dateStr.split("-").map(Number);
+      const weekday = new Date(Y, M - 1, D).getDay();
+
+      // 3) Filtra apenas eventos desse dia
+      const dayEvents = allEvents.filter((e) => e.date === dateStr);
+
+      // 4) Filtra horários fixos desse dia da semana
+      const fixedTodaySlots = window.fixedSlots.filter((s) => s.dayOfWeek === weekday);
+
+      // 5) Gera intervalos de 50 minutos entre 08:00 e 22:00
+      function toDateObj(Y, M, D, hm) {
+        const [h, m] = hm.split(":").map(Number);
+        return new Date(Y, M - 1, D, h, m);
+      }
+      function padHM(d) {
+        return (
+          String(d.getHours()).padStart(2, "0") +
+          ":" +
+          String(d.getMinutes()).padStart(2, "0")
+        );
+      }
+
+      const slotStart = toDateObj(Y, M, D, "08:00");
+      const slotEnd = toDateObj(Y, M, D, "22:00");
+      const timeRanges = [];
+      let cursor = new Date(slotStart);
+      while (cursor < slotEnd) {
+        const next = new Date(cursor);
+        next.setMinutes(cursor.getMinutes() + 50);
+        timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
+        cursor = next;
+      }
+
+      // 6) Lista de "salas" (laboratórios) do dia
+      const labs = Array.from(
+        new Set([
+          ...fixedTodaySlots.map((s) => s.lab),
+          ...dayEvents.map((e) => e.sala || e.resource),
+        ])
+      );
+
+      if (!timeRanges.length || !labs.length) {
+        const emptyRow = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = timeRanges.length + 1;
+        td.className = "text-center py-3 text-muted";
+        td.textContent = "Sem dados para exibir";
+        emptyRow.appendChild(td);
+        table.appendChild(emptyRow);
+        return;
+      }
+
+      // 7) Monta o <thead>
+      const thead = document.createElement("thead");
+      const trHead = document.createElement("tr");
+      trHead.className = "table-dark";
+      // Cabeçalho da primeira coluna
+      const thFirst = document.createElement("th");
+      thFirst.scope = "col";
+      thFirst.textContent = "Sala / Horário";
+      trHead.appendChild(thFirst);
+      // Cabeçalho de cada intervalo
+      timeRanges.forEach((r) => {
+        const th = document.createElement("th");
+        th.scope = "col";
+        th.className = "text-center text-nowrap";
+        th.style.fontSize = "0.75rem";
+        th.textContent = r;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+      table.appendChild(thead);
+
+      // 8) Monta o <tbody>
+      const tbody = document.createElement("tbody");
+      labs.forEach((lab) => {
+        const tr = document.createElement("tr");
+        // Coluna fixa com o nome do laboratório
+        const tdLab = document.createElement("td");
+        tdLab.className = "fw-semibold";
+        tdLab.textContent = lab;
+        tr.appendChild(tdLab);
+
+        // Para cada intervalo de horário, determina estilo e label
+        timeRanges.forEach((range) => {
+          const [start, end] = range.split("-");
+          const cellStart = toDateObj(Y, M, D, start);
+          const cellEnd = toDateObj(Y, M, D, end);
+
+          // Verifica se há uma reserva aprovada nesse intervalo
+          const hasReservation = dayEvents.some((ev) => {
+            if ((ev.sala || ev.resource) !== lab) return false;
+            const evStart = toDateObj(Y, M, D, ev.start);
+            const evEnd = toDateObj(Y, M, D, ev.end);
+            return evStart < cellEnd && evEnd > cellStart;
+          });
+
+          // Verifica se está em um horário fixo
+          const fixed = fixedTodaySlots.find((fs) => {
+            if (fs.lab !== lab) return false;
+            const fsStart = toDateObj(Y, M, D, fs.startTime);
+            const fsEnd = toDateObj(Y, M, D, fs.endTime);
+            return fsStart < cellEnd && fsEnd > cellStart;
+          });
+
+          // Define cor e texto
+          let bgColor = "";
+          let label = "";
+          if (hasReservation) {
+            bgColor = "rgba(220,38,38,0.8)";
+            label = "ocupado";
+          } else if (fixed) {
+            const turnoColors = {
+              Matutino: "rgba(59,130,246,0.8)",
+              Vespertino: "rgba(234,179,8,0.8)",
+              Noturno: "rgba(220,38,38,0.8)",
+            };
+            const corDoTurno = turnoColors[fixed.turno] || "rgba(107,114,128,0.5)";
+            bgColor = corDoTurno;
+            label = fixed.turno;
+          } else {
+            bgColor = "rgba(16,185,129,0.8)";
+            label = "livre";
+          }
+
+          const td = document.createElement("td");
+          td.className = "text-white text-nowrap";
+          td.style.backgroundColor = bgColor;
+          td.style.fontSize = "0.7rem";
+          td.textContent = label;
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    }
+  </script>
 </body>
 
 </html>
