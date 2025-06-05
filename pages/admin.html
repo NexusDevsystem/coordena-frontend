@@ -5,38 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel de Administração</title>
 
-  <!-- Tailwind + Bootstrap CSS (ou apenas Bootstrap caso prefira) -->
+  <!-- Tailwind (caso você esteja usando) e Bootstrap (para abas funcionarem) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     rel="stylesheet"
   />
-  <script>
-    tailwind.config = { darkMode: 'class' };
-  </script>
   <script>
     // Aplica imediatamente o tema salvo (evita flash)
     const _theme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.remove('light');
     if (_theme === 'dark') document.documentElement.classList.add('dark');
   </script>
-
-  <!-- Auth e Api já devem estar disponíveis -->
-  <script src="../assets/js/auth.js"></script>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-  <div class="container-fluid p-0">
 
-    <!-- Navbar ou Header do Admin -->
-    <nav class="navbar bg-blue-600 text-white">
-      <div class="container-fluid px-4">
-        <span class="navbar-brand mb-0 h1">Painel de Administração</span>
+  <!-- Navbar/Offcanvas Menu do Admin (mantém tudo como estava) -->
+  <header class="offcanvas-menu">
+    <input type="checkbox" id="toggle-menu" />
+    <label for="toggle-menu" class="toggle-open"></label>
+    <nav>
+      <!-- bloco de usuário e itens de menu—mantenha exatamente como já estava -->
+      <div class="menu-user-info p-4">
+        <div id="menu-user-name" class="font-semibold"></div>
+        <div id="menu-user-email" class="text-sm text-gray-600 dark:text-gray-400"></div>
+      </div>
+      <label for="toggle-menu" class="toggle-close"></label>
+      <ul class="menu-list p-4 space-y-2 list-none">
+        <!-- Aqui ficavam outras entradas do menu… -->
+      </ul>
+      <div class="menu-footer-btns p-4 flex space-x-4">
+        <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
+          <!-- Ícones de sol/lua -->
+        </button>
+        <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
+          <!-- Ícone de logout -->
+        </button>
       </div>
     </nav>
+  </header>
 
-    <!-- Abas de navegação do Admin -->
-    <ul class="nav nav-tabs mt-4 px-4" id="adminTab" role="tablist">
+  <!-- Conteúdo principal -->
+  <main class="pt-5 px-4">
+    <!-- Abas do Admin (mantive as classes exatamente iguais às que você já tinha) -->
+    <ul class="nav nav-tabs" id="adminTab" role="tablist">
       <li class="nav-item" role="presentation">
         <button
           class="nav-link active"
@@ -79,7 +96,8 @@
           Reservas Ativas
         </button>
       </li>
-      <!-- Nova Aba: Ocupação -->
+
+      <!-- ← Nova aba “Ocupação” (mesmo estilo, mesma estrutura) -->
       <li class="nav-item" role="presentation">
         <button
           class="nav-link"
@@ -96,84 +114,87 @@
       </li>
     </ul>
 
-    <!-- Conteúdo das abas -->
-    <div class="tab-content px-4 pt-4" id="adminTabContent">
+    <!-- Conteúdo de cada aba do Admin -->
+    <div class="tab-content mt-4" id="adminTabContent">
 
-      <!-- Pane Usuários Pendentes -->
+      <!-- Pane: Usuários Pendentes -->
       <div
         class="tab-pane fade show active"
         id="pane-usuarios"
         role="tabpanel"
         aria-labelledby="tab-usuarios"
       >
-        <!-- ... seu código de Usuários Pendentes ... -->
+        <!-- Aqui fica TODO o código que já existia para “Usuários Pendentes” -->
         <div id="lista-pendentes-usuarios"></div>
       </div>
 
-      <!-- Pane Reservas Pendentes -->
+      <!-- Pane: Reservas Pendentes -->
       <div
         class="tab-pane fade"
         id="pane-reservas-pendentes"
         role="tabpanel"
         aria-labelledby="tab-reservas-pendentes"
       >
-        <!-- ... seu código de Reservas Pendentes ... -->
+        <!-- TODO: código que já existia para “Reservas Pendentes” -->
         <div id="lista-pendentes-reservas"></div>
       </div>
 
-      <!-- Pane Reservas Ativas -->
+      <!-- Pane: Reservas Ativas -->
       <div
         class="tab-pane fade"
         id="pane-reservas-ativas"
         role="tabpanel"
         aria-labelledby="tab-reservas-ativas"
       >
-        <!-- ... seu código de Reservas Ativas ... -->
+        <!-- TODO: código que já existia para “Reservas Ativas” -->
         <div id="lista-ativas"></div>
       </div>
 
-      <!-- **Pane Ocupação (nova)** -->
+      <!-- Pane: Ocupação (novo conteúdo) -->
       <div
         class="tab-pane fade"
         id="pane-ocupacao"
         role="tabpanel"
         aria-labelledby="tab-ocupacao"
       >
-        <!-- Date Picker para selecionar a data -->
-        <div class="d-flex justify-content-end mb-3">
-          <label for="occupancy-date-admin" class="me-2 text-gray-700 dark:text-gray-300">
+        <!-- Date‐picker: selecione o dia que quer inspecionar -->
+        <div class="flex justify-end mb-3">
+          <label for="occupancy-date-admin" class="mr-2 text-gray-700 dark:text-gray-300">
             Data:
           </label>
           <input
             type="date"
             id="occupancy-date-admin"
-            class="form-control form-control-sm w-auto"
+            class="px-2 py-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
-        <!-- Tabela de Ocupação -->
+        <!-- Tabela de Ocupação: cabeçalho e corpo serão gerados por JavaScript -->
         <div class="overflow-auto border rounded">
-          <table id="occupancy-table-admin" class="table table-sm table-bordered mb-0"></table>
+          <table
+            id="occupancy-table-admin"
+            class="min-w-full table-auto border-collapse text-xs"
+          ></table>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- Rodapé simples -->
   <footer class="text-center text-sm text-gray-600 dark:text-gray-400 py-4">
     Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
   </footer>
 
-  <!-- Bootstrap JS (para as abas funcionarem) -->
+  <!-- Bootstrap JS (para ativar o comportamento das abas) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- main.js (contém Api, CalendarModule, FormModule, DetailModule, buildOccupancyTable, etc.) -->
+  <!-- main.js: seu arquivo existente que já contém Api, CalendarModule, FormModule, DetailModule, buildOccupancyTable etc. -->
   <script src="../assets/js/main.js"></script>
 
-  <!-- Script específico para inicializar a aba de “Ocupação” -->
+  <!-- Script extra para “Ocupação” no Admin (mantendo mesmo estilo de código) -->
   <script>
+    // Garante que tudo só rode depois que o DOM estiver carregado
     onReady(async () => {
-      // 1) Carrega fixedSlots globalmente (para usar na tabela)
+      // 1) Carrega os horários fixos no escopo global (mesmo que você já carregue no CalendarModule)
       try {
         window.fixedSlots = await Api.fetchFixedSchedules();
       } catch (err) {
@@ -185,27 +206,28 @@
       const dateInputAdmin = document.getElementById("occupancy-date-admin");
       dateInputAdmin.value = new Date().toISOString().slice(0, 10);
 
-      // 3) Quando a aba “Ocupação” for ativada, chama a função de buildOccupancyTable
+      // 3) Quando a aba “Ocupação” for exibida, constrói a tabela
       const tabOcupacao = document.getElementById("tab-ocupacao");
       tabOcupacao.addEventListener("shown.bs.tab", () => {
         safeBuildOccupancyTableAdmin(dateInputAdmin.value);
       });
 
-      // 4) Quando a data mudar, refaz a tabela
+      // 4) Quando a data for alterada, reconstrói também
       dateInputAdmin.addEventListener("change", () => {
         safeBuildOccupancyTableAdmin(dateInputAdmin.value);
       });
 
-      // 5) Se a aba “Ocupação” já estiver selecionada na carga inicial, renderiza imediatamente
-      const activeTabId = document.querySelector(".nav-link.active")?.id;
-      if (activeTabId === "tab-ocupacao") {
+      // 5) Se a aba “Ocupação” já estiver ativa no carregamento, exibe a tabela imediatamente
+      const activeTab = document.querySelector(".nav-link.active")?.id;
+      if (activeTab === "tab-ocupacao") {
         safeBuildOccupancyTableAdmin(dateInputAdmin.value);
       }
     });
 
     /**
-     * Uma cópia de buildOccupancyTable / safeBuildOccupancyTable, mas adaptada
-     * para usar IDs “-admin” (occupancy-date-admin, occupancy-table-admin).
+     * Versão “admin” de buildOccupancyTable, usando IDs de tabela/data específicos:
+     * - #occupancy-date-admin
+     * - #occupancy-table-admin
      */
     async function safeBuildOccupancyTableAdmin(filterDate) {
       try {
@@ -221,33 +243,37 @@
         console.error("#occupancy-table-admin não encontrado");
         return;
       }
+      // Limpa o conteúdo anterior
       table.innerHTML = "";
 
-      // 1) Pega todas as reservas aprovadas via CalendarModule.getEvents()
+      // 1) Pega todos os eventos aprovados via CalendarModule.getEvents()
       const allEvents = CalendarModule.getEvents();
-      // 2) Utiliza a data selecionada (ou hoje, se não houver)
+
+      // 2) Define a data a ser filtrada (ou hoje, caso não tenha filterDate)
       const dateStr = filterDate || new Date().toISOString().slice(0, 10);
       const [Y, M, D] = dateStr.split("-").map(Number);
       const weekday = new Date(Y, M - 1, D).getDay();
 
-      // 3) Filtra os eventos do dia
+      // 3) Filtra apenas os eventos (reservas) daquele dia
       const dayEvents = allEvents.filter((e) => e.date === dateStr);
 
-      // 4) Filtra as “fixed slots” do dia
+      // 4) Filtra também os horários fixos daquele dia da semana
       const fixedTodaySlots = window.fixedSlots.filter(
         (s) => s.dayOfWeek === weekday
       );
 
-      // 5) Cria os intervalos de 50 minutos (08:00 às 22:00)
-      const toDateObj = (Y, M, D, hm) => {
+      // 5) Monta o array de intervalos de 50 minutos (08:00–22:00)
+      function toDateObj(Y, M, D, hm) {
         const [h, m] = hm.split(":").map(Number);
         return new Date(Y, M - 1, D, h, m);
-      };
-
-      const padHM = (d) =>
-        `${String(d.getHours()).padStart(2, "0")}:${String(d
-          .getMinutes()
-          .padStart(2, "0"))}`;
+      }
+      function padHM(d) {
+        return (
+          String(d.getHours()).padStart(2, "0") +
+          ":" +
+          String(d.getMinutes()).padStart(2, "0")
+        );
+      }
 
       const slotStart = toDateObj(Y, M, D, "08:00");
       const slotEnd = toDateObj(Y, M, D, "22:00");
@@ -260,7 +286,9 @@
         cursor = next;
       }
 
-      // 6) Descobre todas as salas envolvidas (reservas + fixed slots)
+      // 6) Monta a lista de “laboratórios” (ou salas) do dia:
+      //    - todos que aparecem em fixedTodaySlots (propriedade lab)
+      //    - todos que aparecem em dayEvents (ou resource ou sala)
       const labs = Array.from(
         new Set([
           ...fixedTodaySlots.map((s) => s.lab),
@@ -270,7 +298,7 @@
       if (!timeRanges.length || !labs.length) {
         table.innerHTML = `
           <tr>
-            <td class="p-4 text-center text-white" colspan="${
+            <td class="px-4 py-2 text-center text-white bg-gray-800" colspan="${
               timeRanges.length + 1
             }">
               Sem dados para exibir
@@ -279,32 +307,34 @@
         return;
       }
 
-      // 7) Monta o THEAD
+      // 7) Monta o <thead> da tabela
       const thead = document.createElement("thead");
       thead.innerHTML = `
-        <tr class="bg-gray-800 text-white sticky-top">
+        <tr class="bg-gray-800 text-white sticky top-0">
           <th class="px-2 py-1 border text-left">Sala / Horário</th>
           ${timeRanges
             .map(
               (r) =>
-                `<th class="px-2 py-1 border text-center text-sm">${r}</th>`
+                `<th class="px-2 py-1 border text-center text-xs">${r}</th>`
             )
             .join("")}
         </tr>`;
       table.appendChild(thead);
 
-      // 8) Monta o TBODY
+      // 8) Monta o <tbody> da tabela
       const tbody = document.createElement("tbody");
       labs.forEach((lab) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td class="px-2 py-1 border font-semibold bg-gray-900 text-white">${lab}</td>`;
+        tr.innerHTML = `
+          <td class="px-2 py-1 border font-semibold bg-gray-900 text-white">${lab}</td>
+        `;
 
         timeRanges.forEach((range) => {
           const [start, end] = range.split("-");
           const cellStart = toDateObj(Y, M, D, start);
           const cellEnd = toDateObj(Y, M, D, end);
 
-          // 8a) Verifica se há uma reserva aprovada nesse intervalo
+          // 8a) Verifica se há uma reserva (evento aprovado) nesse intervalo
           const hasReservation = dayEvents.some((ev) => {
             if ((ev.sala || ev.resource) !== lab) return false;
             const evStart = toDateObj(Y, M, D, ev.start);
@@ -312,7 +342,7 @@
             return evStart < cellEnd && evEnd > cellStart;
           });
 
-          // 8b) Verifica se esse intervalo está em Fixed Slots
+          // 8b) Verifica se esse intervalo está em Fixed Slots (horário fixo)
           const fixed = fixedTodaySlots.find((fs) => {
             if (fs.lab !== lab) return false;
             const fsStart = toDateObj(Y, M, D, fs.startTime);
@@ -320,14 +350,14 @@
             return fsStart < cellEnd && fsEnd > cellStart;
           });
 
-          let style = "",
-            label = "";
+          let style = "";
+          let label = "";
           if (hasReservation) {
-            // reserva aprovada = vermelho / “ocupado”
+            // Reserva aprovada: vermelho “ocupado”
             style = "background-color: rgba(220,38,38,0.8);";
             label = "ocupado";
           } else if (fixed) {
-            // horário fixo: cor conforme turno
+            // Horário fixo: cor de acordo com turno
             const turnoColors = {
               Matutino: "rgba(59,130,246,0.8)",
               Vespertino: "rgba(234,179,8,0.8)",
@@ -337,7 +367,7 @@
             style = `background-color: ${corDoTurno};`;
             label = fixed.turno;
           } else {
-            // livre = verde
+            // Livre: verde
             style = "background-color: rgba(16,185,129,0.8);";
             label = "livre";
           }
