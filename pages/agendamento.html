@@ -78,27 +78,27 @@
   <!-- Off-Canvas Menu -->
 <header class="offcanvas-menu">
   <input type="checkbox" id="toggle-menu" />
-
-  <!-- Ícone hambúrguer / X -->
   <label for="toggle-menu" class="toggle-open"></label>
 
   <nav class="bg-gray-900 h-full">
-    <!-- Usuário logado (centralizado horizontalmente) -->
+    <!-- Usuário logado (centralizado) -->
     <div class="menu-user-info py-4 text-center">
-      <!-- Nome do usuário -->
       <div id="menu-user-name"
-           class="text-2xl font-bold text-gray-100 leading-tight"></div>
-      <!-- E-mail do usuário (quebra de linha se precisar) -->
+           class="text-2xl font-bold text-gray-100 leading-tight">
+        <!-- Aqui vai “João Magno” -->
+      </div>
+      <!-- Remova `break-words` para quebras somente em pontos/autorizados -->
       <div id="menu-user-email"
-           class="mt-1 text-sm text-gray-400 break-words px-2"></div>
+           class="mt-1 text-sm text-gray-400 px-2 whitespace-normal">
+        <!-- Aqui vai “202302450921@professor.estacio.br” -->
+      </div>
     </div>
 
-    <!-- Botão de fechar (X) -->
     <label for="toggle-menu" class="toggle-close"></label>
 
-    <!-- Lista de navegação: apenas “Meus Agendamentos” -->
+    <!-- Apenas “Meus Agendamentos” no menu -->
     <ul class="menu-list p-4 space-y-2 list-none">
-      <li class="list-none">
+      <li>
         <a href="meus-agendamentos.html"
            class="block text-lg font-medium text-gray-100 hover:text-blue-400">
           Meus Agendamentos
@@ -108,9 +108,7 @@
 
     <!-- Botões Tema / Sair -->
     <div class="menu-footer-btns p-4 flex justify-center space-x-4">
-      <!-- Botão Tema -->
       <button id="menu-theme-btn" class="footer-btn" aria-label="Alternar tema">
-        <!-- Ícone Sol -->
         <svg xmlns="http://www.w3.org/2000/svg"
              class="icon icon-sun h-6 w-6 text-gray-100"
              viewBox="0 0 24 24" fill="none"
@@ -126,17 +124,8 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
         </svg>
-        <!-- Ícone Lua -->
-        <svg xmlns="http://www.w3.org/2000/svg"
-             class="icon icon-moon h-6 w-6 text-gray-100"
-             viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" />
-        </svg>
       </button>
 
-      <!-- Botão Logout -->
       <button id="menu-logout-btn" class="footer-btn logout" aria-label="Sair">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="icon icon-logout h-6 w-6 text-red-500"
@@ -151,9 +140,6 @@
     </div>
   </nav>
 </header>
-
-
-
 
   <!-- Quick Access (botões flutuantes no topo) -->
   <div
