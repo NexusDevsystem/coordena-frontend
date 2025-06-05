@@ -365,5 +365,30 @@
 
   <!-- Por fim, importe o JS consolidado que contém todo o FormModule, CalendarModule etc. -->
   <script src="../assets/js/main.js"></script>
+  <!-- ===========================
+       Ajuste do botão de Logout
+       =========================== -->
+  <script>
+    // 1) Seleciona o botão de logout no menu off-canvas
+    const menuLogoutBtn = document.getElementById('menu-logout-btn');
+
+    if (menuLogoutBtn) {
+      menuLogoutBtn.addEventListener('click', () => {
+        // 2) Limpa as credenciais (Auth.logout já remove token/localStorage, se estiver definido assim)
+        Auth.logout();
+        window.user = null;
+
+        /*
+          3) Redireciona para a página de login correta.
+             Considerando que este arquivo está em /pages/agendamento.html e
+             que o login.html está em /pages/login.html, subimos uma pasta (“..”) para ingressar em “/pages/”.
+             Assim, evita-se “/pages/pages/login.html”.
+        */
+        window.location.href = '../login.html';
+      });
+    }
+  </script>
+</body>
+</html>
 </body>
 </html>
