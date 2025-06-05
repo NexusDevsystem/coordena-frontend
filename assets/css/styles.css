@@ -316,7 +316,7 @@ body {
 }
 
 .offcanvas-menu .menu-list li a::after {
-  content: " 0" counter(nav-link);
+  content: none !important;
 }
 
 .offcanvas-menu .menu-footer-btns {
