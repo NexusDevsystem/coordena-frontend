@@ -82,7 +82,14 @@
   <!-- Ícone hambúrguer / X -->
   <label for="toggle-menu" class="toggle-open"></label>
 
-  <nav class="flex flex-col h-full">
+  <!-- 
+    Aplicamos no <nav> as classes:
+      • bg-gray-900 bg-opacity-50       => fundo semitransparente
+      • backdrop-blur-lg                => desfoque (frosted glass)
+      • border border-gray-800          => borda sutil (opcional, define contorno)
+      • text-white                      => texto legível em cima do fundo escuro
+  -->
+  <nav class="flex flex-col h-full bg-gray-900 bg-opacity-50 backdrop-blur-lg border border-gray-800 text-white">
 
     <!-- LOGO no topo do menu -->
     <div class="pt-12 pb-3">
@@ -101,7 +108,7 @@
       <li>
         <a
           href="meus-agendamentos.html"
-          class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
+          class="block text-lg font-medium text-gray-100 hover:text-blue-400"
         >
           Meus Agendamentos
         </a>
@@ -111,14 +118,14 @@
     <!-- ******************************************************* -->
     <!-- Bloco Inferior: Apenas Nome Completo, Cargo, Ícone de Tema e Logout -->
     <div class="mt-auto px-4 pb-6">
-      <div class="flex items-center justify-between bg-gray-800 rounded-lg p-3">
+      <div class="flex items-center justify-between bg-gray-800 bg-opacity-75 rounded-lg p-3">
         <!-- Nome completo e cargo (lado esquerdo) -->
         <div class="flex flex-col">
           <div id="menu-user-fullname" class="text-gray-100 font-medium">
-            <!-- Exemplo: “João Magno” (vai ser preenchido em JS) -->
+            <!-- “João Magno” será preenchido por JS -->
           </div>
           <div id="menu-user-role" class="text-gray-400 text-sm">
-            <!-- Exemplo: “Professor” ou “Administrador” (vai ser preenchido em JS) -->
+            <!-- “Professor” ou “Administrador” será preenchido por JS -->
           </div>
         </div>
 
@@ -139,7 +146,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <!-- Ícone de Sol (quando estiver em modo claro) -->
+              <!-- Ícone de Sol (quando em modo claro) -->
               <circle cx="12" cy="12" r="5" class="icon-sun" />
               <line x1="12" y1="1" x2="12" y2="3" class="icon-sun" />
               <line x1="12" y1="21" x2="12" y2="23" class="icon-sun" />
@@ -149,7 +156,7 @@
               <line x1="21" y1="12" x2="23" y2="12" class="icon-sun" />
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" class="icon-sun" />
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" class="icon-sun" />
-              <!-- Ícone de Lua (quando estiver em modo escuro) -->
+              <!-- Ícone de Lua (quando em modo escuro) -->
               <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" class="icon-moon" />
             </svg>
           </button>
@@ -178,8 +185,10 @@
       </div>
     </div>
     <!-- ******************************************************* -->
+
   </nav>
 </header>
+
 
   <!-- Quick Access (botões flutuantes no topo) -->
   <div
