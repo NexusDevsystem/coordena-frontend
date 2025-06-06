@@ -50,9 +50,7 @@
   <!-- Ícone hambúrguer / X -->
   <label for="toggle-menu" class="toggle-open"></label>
 
-  <!-- Nav com efeito “vidro fosco” -->
-  <nav class="flex flex-col h-full bg-gray-900 bg-opacity-50 backdrop-blur-lg border border-gray-800 text-white">
-
+  <nav class="flex flex-col h-full">
     <!-- LOGO no topo do menu -->
     <div class="pt-12 pb-3">
       <img
@@ -65,27 +63,30 @@
     <!-- Botão de fechar (X) -->
     <label for="toggle-menu" class="toggle-close"></label>
 
-    <!-- Lista de navegação: mantém as suas opções “Teste” -->
+    <!-- Lista de navegação -->
     <ul class="menu-list py-2 space-y-2 list-none px-0">
-      <li><a href="#home"      class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
-      <li><a href="#user"      class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
-      <li><a href="#contact"   class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
-      <li><a href="#map"       class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
-      <li><a href="#settings"  class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
-      <li><a href="#search"    class="block text-lg font-medium hover:text-blue-400">Teste</a></li>
+      <li>
+        <a
+          href="meus-agendamentos.html"
+          class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
+        >
+          Meus Agendamentos
+        </a>
+      </li>
     </ul>
 
     <!-- ******************************************************* -->
-    <!-- Bloco Inferior: Nome Completo, Cargo, Ícone de Tema e Logout -->
+    <!-- Bloco Inferior: Apenas Nome Completo, Cargo, Ícone de Tema e Logout -->
     <div class="mt-auto px-4 pb-6">
-      <div class="flex items-center justify-between bg-gray-800 bg-opacity-75 rounded-lg p-3">
+      <div class="flex items-center justify-between bg-gray-800 rounded-lg p-3">
         <!-- Nome completo e cargo (lado esquerdo) -->
         <div class="flex flex-col">
+          <!-- Estes dois IDs precisam existir para que o JS insira nome e cargo -->
           <div id="menu-user-fullname" class="text-gray-100 font-medium">
-            <!-- Aqui o JS irá injetar, ex: “João Magno” -->
+            <!-- Exemplo: “João Magno” será preenchido via JS -->
           </div>
           <div id="menu-user-role" class="text-gray-400 text-sm">
-            <!-- Aqui o JS irá injetar, ex: “Professor” ou “Administrador” -->
+            <!-- Exemplo: “Professor” será preenchido via JS -->
           </div>
         </div>
 
@@ -106,7 +107,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <!-- Ícone de Sol (modo claro) -->
+              <!-- Ícone de Sol / Lua -->
               <circle cx="12" cy="12" r="5" class="icon-sun" />
               <line x1="12" y1="1" x2="12" y2="3" class="icon-sun" />
               <line x1="12" y1="21" x2="12" y2="23" class="icon-sun" />
@@ -116,7 +117,6 @@
               <line x1="21" y1="12" x2="23" y2="12" class="icon-sun" />
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" class="icon-sun" />
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" class="icon-sun" />
-              <!-- Ícone de Lua (modo escuro) -->
               <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" class="icon-moon" />
             </svg>
           </button>
@@ -145,7 +145,6 @@
       </div>
     </div>
     <!-- ******************************************************* -->
-
   </nav>
 </header>
 
