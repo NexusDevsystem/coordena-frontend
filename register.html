@@ -218,7 +218,7 @@
         // após cadastro, exibe popup e redireciona ao clicar em OK
         showPopup(
           'Cadastro enviado! Aguardando aprovação em até 24h.',
-          () => window.location.href = 'login.html'
+          () => window.location.href = '/login.html'
         );
       } catch (err) {
         showPopup(err.message);
