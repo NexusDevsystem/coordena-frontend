@@ -1772,3 +1772,123 @@ onReady(async () => {
     window.location.replace('/login.html');
   });
 })();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ─── POPUP-MODAL PARA CADASTRO ────────────────────────────────────────────────
+const popupModal = document.getElementById('popup-modal');
+const popupText  = document.getElementById('popup-text');
+const popupOk    = document.getElementById('popup-ok');
+let _onPopupOk   = null;
+function showPopup(msg, onOk) {
+  popupText.textContent = msg;
+  _onPopupOk = onOk || null;
+  popupModal.classList.remove('opacity-0','pointer-events-none');
+}
+popupOk.addEventListener('click', () => {
+  popupModal.classList.add('opacity-0','pointer-events-none');
+  if (_onPopupOk) _onPopupOk();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ─── CONTROLES DE TEMA (se não já estiver no ThemeToggle) ───────────────────
+{
+  const btn2  = document.getElementById('theme-toggle');
+  const root2 = document.documentElement;
+  if (localStorage.getItem('theme') === 'dark') root2.classList.add('dark');
+  btn2?.addEventListener('click', () => {
+    root2.classList.toggle('dark');
+    localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ─── REGISTRO DE USUÁRIO ─────────────────────────────────────────────────────
+onReady(() => {
+  const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
+  const form = document.getElementById('register-form');
+  if (!form) return;
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name      = document.getElementById('name').value.trim();
+    const matricula = document.getElementById('matricula').value.trim();
+    const email     = document.getElementById('email').value.trim().toLowerCase();
+    const pwd       = document.getElementById('password').value;
+    const pwd2      = document.getElementById('password2').value;
+
+    if (!estacioRegex.test(email)) {
+      return showPopup(
+        'Use um e-mail institucional válido:\n' +
+        '- Aluno: @alunos.estacio.br\n' +
+        '- Professor: @professor.estacio.br'
+      );
+    }
+    if (pwd !== pwd2) {
+      return showPopup('As senhas não coincidem');
+    }
+
+    try {
+      await Auth.register({ name, email, password: pwd, matricula });
+      showPopup(
+        '✅ Cadastro enviado! Aguardando aprovação em até 24h.',
+        () => window.location.href = '/login.html'
+      );
+    } catch (err) {
+      showPopup(err.message);
+    }
+  });
+
+  // ─── “Olhinhos” de mostrar/esconder senha ───────────────────────────────────
+  document.querySelectorAll('button.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inp = btn.closest('.form-group').querySelector('input');
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.querySelector('i').classList.replace('fa-eye-slash','fa-eye');
+      } else {
+        inp.type = 'password';
+        btn.querySelector('i').classList.replace('fa-eye','fa-eye-slash');
+      }
+    });
+  });
+
+  // ─── VALIDAÇÃO EM TEMPO REAL DOS CRITÉRIOS DE SENHA ──────────────────────────
+  const commonPasswords = [ '123456','password','12345678','qwerty','abc123', /*…*/ ];
+  const cMin    = document.getElementById('c-min-length');
+  const cCase   = document.getElementById('c-uppercase-lowercase');
+  const cNumSym = document.getElementById('c-number-symbol');
+  const cNoMail = document.getElementById('c-no-email');
+  const cCommon = document.getElementById('c-not-common');
+
+  document.getElementById('password')?.addEventListener('input', () => {
+    const pwd = document.getElementById('password').value;
+    const user = (document.getElementById('email')?.value||'').split('@')[0];
+
+    // 1) >=8 chars
+    if (pwd.length>=8) cMin.classList.replace('text-red-500','text-green-500');
+    else cMin.classList.replace('text-green-500','text-red-500');
+
+    // 2) upper & lower
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) cCase.classList.replace('text-red-500','text-green-500');
+    else cCase.classList.replace('text-green-500','text-red-500');
+
+    // 3) number or symbol
+    if (/\d/.test(pwd) || /[!@#$%^&*(),.?":{}|<>]/.test(pwd)) cNumSym.classList.replace('text-red-500','text-green-500');
+    else cNumSym.classList.replace('text-green-500','text-red-500');
+
+    // 4) não contenha parte do email
+    if (user && pwd.toLowerCase().includes(user.toLowerCase())) {
+      cNoMail.classList.replace('text-green-500','text-red-500');
+    } else {
+      cNoMail.classList.replace('text-red-500','text-green-500');
+    }
+
+    // 5) não seja senha comum
+    if (commonPasswords.includes(pwd.toLowerCase())) {
+      cCommon.classList.replace('text-green-500','text-red-500');
+    } else {
+      cCommon.classList.replace('text-red-500','text-green-500');
+    }
+  });
+});
