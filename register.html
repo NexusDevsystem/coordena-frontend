@@ -29,9 +29,6 @@
     }
   </script>
   <link rel="stylesheet" href="assets/css/styles.css" />
-
-  <!-- Auth library (deve vir antes do nosso script de registro) -->
-  <script src="assets/js/auth.js"></script>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
 
@@ -102,10 +99,6 @@
         >
           <i class="fa-solid fa-eye-slash"></i>
         </button>
-        <!-- Critérios de senha (igual ao exemplo anterior) -->
-        <ul id="passwordCriteria" class="mt-2 text-sm space-y-1">
-          <!-- ... seus ítens de critério ... -->
-        </ul>
       </div>
 
       <!-- Confirmar Senha -->
@@ -145,7 +138,7 @@
     </form>
   </div>
 
-  <!-- Popup Modal (igual ao login) -->
+  <!-- Popup Modal -->
   <div id="popup-modal"
        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 pointer-events-none transition-opacity">
     <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full text-center">
@@ -157,201 +150,7 @@
     </div>
   </div>
 
-  <!-- Dark/Light Toggle -->
-  <button id="theme-toggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
-               m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7 m0 12.02l.7-.7M17.66 6.34l.7-.7 M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
-
-  <script>
-    // --- Modal helpers ---
-    const popupModal = document.getElementById('popup-modal');
-    const popupText  = document.getElementById('popup-text');
-    const popupOk    = document.getElementById('popup-ok');
-    let _onPopupOk   = null;
-    function showPopup(msg, onOk) {
-      popupText.textContent = msg;
-      _onPopupOk = onOk || null;
-      popupModal.classList.remove('opacity-0','pointer-events-none');
-    }
-    popupOk.addEventListener('click', () => {
-      popupModal.classList.add('opacity-0','pointer-events-none');
-      if (_onPopupOk) _onPopupOk();
-    });
-
-    // --- Tema dark/light ---
-    const btn2 = document.getElementById('theme-toggle');
-    const root2 = document.documentElement;
-    const saved2 = localStorage.getItem('theme') || 'light';
-    if (saved2 === 'dark') root2.classList.add('dark');
-    btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark');
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-    });
-
-    // --- Registro ---
-    const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
-    document.getElementById('register-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const name      = document.getElementById('name').value.trim();
-      const matricula = document.getElementById('matricula').value.trim();
-      const email     = document.getElementById('email').value.trim().toLowerCase();
-      const pwd       = document.getElementById('password').value;
-      const pwd2      = document.getElementById('password2').value;
-
-      if (!estacioRegex.test(email)) {
-        return showPopup(
-          'Use um e-mail institucional válido:\n' +
-          '- Aluno: @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br'
-        );
-      }
-      if (pwd !== pwd2) {
-        return showPopup('As senhas não coincidem');
-      }
-
-      try {
-        await Auth.register({ name, email, password: pwd, matricula });
-        // após cadastro, exibe popup e redireciona ao clicar em OK
-        showPopup(
-          'Cadastro enviado! Aguardando aprovação em até 24h.',
-          () => window.location.href = '/login.html'
-        );
-      } catch (err) {
-        showPopup(err.message);
-      }
-    });
-
-    // --------------------------------------------------
-    // Toggle “olhinho” para mostrar/ocultar senha
-    // --------------------------------------------------
-    function initTogglePassword() {
-      document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
-        toggleBtn.addEventListener('click', () => {
-          // Procura o <input> “irmão” mais próximo dentro da mesma .form-group
-          const formGroup = toggleBtn.closest('.form-group');
-          if (!formGroup) return;
-
-          // Pode ser type="password" ou type="text"
-          const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
-          if (!inputSenha) return;
-
-          if (inputSenha.type === 'password') {
-            // Mostra a senha
-            inputSenha.type = 'text';
-            toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
-            toggleBtn.querySelector('i').classList.add('fa-eye');
-          } else {
-            // Esconde a senha
-            inputSenha.type = 'password';
-            toggleBtn.querySelector('i').classList.remove('fa-eye');
-            toggleBtn.querySelector('i').classList.add('fa-eye-slash');
-          }
-        });
-      });
-    }
-
-    // --------------------------------------------------
-    // Validação em tempo real dos critérios de senha
-    // --------------------------------------------------
-    const criteriaMinLength       = document.getElementById('c-min-length');
-    const criteriaUpperLower      = document.getElementById('c-uppercase-lowercase');
-    const criteriaNumberSymbol    = document.getElementById('c-number-symbol');
-    const criteriaNoEmail         = document.getElementById('c-no-email');
-    const criteriaNotCommon       = document.getElementById('c-not-common');
-
-    // Lista de senhas muito comuns (exemplo resumido)
-    const commonPasswords = [
-      '123456', 'password', '12345678', 'qwerty', 'abc123',
-      '123456789', '111111', '1234567', 'iloveyou', 'adobe123',
-      '123123', 'admin', '1234567890', 'letmein', 'photoshop',
-      '1234', 'monkey', 'shadow', 'sunshine', '12345'
-      // … você pode estender esta lista conforme necessário
-    ];
-
-    document.getElementById('password')?.addEventListener('input', () => {
-      const senha     = document.getElementById('password').value;
-      const userEmail = document.getElementById('email')?.value.toLowerCase() || '';
-
-      // 1) MÍNIMO de 8 caracteres
-      if (senha.length >= 8) {
-        criteriaMinLength.classList.remove('text-red-500');
-        criteriaMinLength.classList.add('text-green-500');
-        criteriaMinLength.querySelector('i').classList.remove('fa-times');
-        criteriaMinLength.querySelector('i').classList.add('fa-check');
-      } else {
-        criteriaMinLength.classList.remove('text-green-500');
-        criteriaMinLength.classList.add('text-red-500');
-        criteriaMinLength.querySelector('i').classList.remove('fa-check');
-        criteriaMinLength.querySelector('i').classList.add('fa-times');
-      }
-
-      // 2) Pelo menos uma letra minúscula e uma maiúscula
-      const hasLowercase = /[a-z]/.test(senha);
-      const hasUppercase = /[A-Z]/.test(senha);
-      if (hasLowercase && hasUppercase) {
-        criteriaUpperLower.classList.remove('text-red-500');
-        criteriaUpperLower.classList.add('text-green-500');
-        criteriaUpperLower.querySelector('i').classList.remove('fa-times');
-        criteriaUpperLower.querySelector('i').classList.add('fa-check');
-      } else {
-        criteriaUpperLower.classList.remove('text-green-500');
-        criteriaUpperLower.classList.add('text-red-500');
-        criteriaUpperLower.querySelector('i').classList.remove('fa-check');
-        criteriaUpperLower.querySelector('i').classList.add('fa-times');
-      }
-
-      // 3) Pelo menos um número ou um símbolo
-      const hasNumber = /[0-9]/.test(senha);
-      const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(senha);
-      if (hasNumber || hasSymbol) {
-        criteriaNumberSymbol.classList.remove('text-red-500');
-        criteriaNumberSymbol.classList.add('text-green-500');
-        criteriaNumberSymbol.querySelector('i').classList.remove('fa-times');
-        criteriaNumberSymbol.querySelector('i').classList.add('fa-check');
-      } else {
-        criteriaNumberSymbol.classList.remove('text-green-500');
-        criteriaNumberSymbol.classList.add('text-red-500');
-        criteriaNumberSymbol.querySelector('i').classList.remove('fa-check');
-        criteriaNumberSymbol.querySelector('i').classList.add('fa-times');
-      }
-
-      // 4) Não incluir parte do e-mail (antes do @)
-      const lowerSenha = senha.toLowerCase();
-      const nomeUsuario = userEmail.split('@')[0] || '';
-      if (nomeUsuario && lowerSenha.includes(nomeUsuario)) {
-        criteriaNoEmail.classList.remove('text-green-500');
-        criteriaNoEmail.classList.add('text-red-500');
-        criteriaNoEmail.querySelector('i').classList.remove('fa-check');
-        criteriaNoEmail.querySelector('i').classList.add('fa-times');
-      } else {
-        criteriaNoEmail.classList.remove('text-red-500');
-        criteriaNoEmail.classList.add('text-green-500');
-        criteriaNoEmail.querySelector('i').classList.remove('fa-times');
-        criteriaNoEmail.querySelector('i').classList.add('fa-check');
-      }
-
-      // 5) NÃO ser uma senha muito comum
-      if (commonPasswords.includes(senha.toLowerCase())) {
-        // Se for comum, exibe em vermelho com “X”
-        criteriaNotCommon.classList.remove('text-green-500');
-        criteriaNotCommon.classList.add('text-red-500');
-        criteriaNotCommon.querySelector('i').classList.remove('fa-check', 'fa-circle');
-        criteriaNotCommon.querySelector('i').classList.add('fa-times');
-      } else {
-        // Senha não está na lista de comuns → exibe em verde com “check”
-        criteriaNotCommon.classList.remove('text-red-500', 'text-gray-500');
-        criteriaNotCommon.classList.add('text-green-500');
-        criteriaNotCommon.querySelector('i').classList.remove('fa-times', 'fa-circle');
-        criteriaNotCommon.querySelector('i').classList.add('fa-check');
-      }
-    });
-
-    // Chama a função de toggle de olho
-    initTogglePassword();
-  </script>
+  <!-- Scripts -->
+  <script src="assets/js/main.js" defer></script>
 </body>
 </html>
