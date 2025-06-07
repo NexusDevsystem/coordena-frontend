@@ -133,53 +133,48 @@ const Auth = (() => {
   // → Se cadastrado, redireciona o usuário para login.html
   // --------------------------------------------------
   async function register(data) {
-    console.log('[Auth.register] API endpoint:', `${API}/register`);
-    console.log('[Auth.register] Payload →', data);
+  console.log('[Auth.register] API endpoint:', `${API}/register`);
+  console.log('[Auth.register] Payload →', data);
 
-    let res;
-    try {
-      res = await fetch(`${API}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-    } catch (fetchErr) {
-      console.error('[Auth.register] Erro no fetch:', fetchErr);
-      throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
-    }
-
-    console.log('[Auth.register] Status HTTP da resposta:', res.status);
-    if (!res.ok) {
-      let errText = 'Erro no cadastro.';
-      try {
-        const errJson = await res.json();
-        console.error('[Auth.register] JSON de erro recebido:', errJson);
-        if (errJson.error) {
-          errText = errJson.error;
-        } else if (errJson.message) {
-          errText = errJson.message;
-        }
-      } catch (jsonErr) {
-        console.warn('[Auth.register] Não foi possível ler JSON de erro:', jsonErr);
-      }
-      throw new Error(errText);
-    }
-
-    // Parse do JSON de confirmação bem-sucedida
-    let result;
-    try {
-      result = await res.json();
-    } catch (jsonErr) {
-      console.error('[Auth.register] Erro ao fazer parse do JSON de sucesso:', jsonErr);
-      throw new Error('Resposta inválida do servidor.');
-    }
-
-    console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
-
-    // Redireciona para a página de login após cadastro
-    window.location.assign('pages/login.html');
-    return result;
+  let res;
+  try {
+    res = await fetch(`${API}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (fetchErr) {
+    console.error('[Auth.register] Erro no fetch:', fetchErr);
+    throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
   }
+
+  console.log('[Auth.register] Status HTTP da resposta:', res.status);
+  if (!res.ok) {
+    let errText = 'Erro no cadastro.';
+    try {
+      const errJson = await res.json();
+      console.error('[Auth.register] JSON de erro recebido:', errJson);
+      if (errJson.error) errText = errJson.error;
+      else if (errJson.message) errText = errJson.message;
+    } catch { /* ignora */ }
+    throw new Error(errText);
+  }
+
+  let result;
+  try {
+    result = await res.json();
+  } catch (jsonErr) {
+    console.error('[Auth.register] Erro ao fazer parse do JSON de sucesso:', jsonErr);
+    throw new Error('Resposta inválida do servidor.');
+  }
+
+  console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
+
+  // **REMOVA ou COMENTE** esta linha:
+  // window.location.assign('pages/login.html');
+
+  return result;
+}
 
   // --------------------------------------------------
   // FUNÇÃO: logout(role)
