@@ -375,7 +375,6 @@ const FormModule = (() => {
       resource: f.recurso.value,
       sala: f.salaContainer.classList.contains('hidden') ? '' : f.sala.value,
       type: f.type.value,
-      // Backend ignora este campo e substitui por req.user.name
       responsible: f.resp.value,
       department: f.dept.value,
       materia: f.materia.value,
@@ -387,6 +386,39 @@ const FormModule = (() => {
         : `${f.type.value} - ${f.sala.value}`
     };
 
+    // --- validação contra horários fixos ---
+    // 1) dia da semana (0=domingo…6=sábado)
+    const weekday = new Date(payload.date).getDay();
+
+    let fixedSlots = [];
+    try {
+      fixedSlots = await Api.fetchFixedSchedules();
+    } catch (err) {
+      console.error('Falha ao buscar horários fixos:', err);
+      // se preferir abortar quando não há validação:
+      // return alert('Erro ao validar horários fixos. Tente novamente mais tarde.');
+    }
+
+    // converte "HH:MM" → minutos
+    const toMin = str => {
+      const [h, m] = str.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const startMin = toMin(payload.start);
+    const endMin = toMin(payload.end);
+
+    const clash = fixedSlots.some(slot => {
+      if (slot.dayOfWeek !== weekday) return false;
+      const slotStart = toMin(slot.startTime);
+      const slotEnd = toMin(slot.endTime);
+      return startMin < slotEnd && endMin > slotStart;
+    });
+
+    if (clash) {
+      return alert('⛔ Não é possível agendar neste período: já existe aula fixa.');
+    }
+    // --- fim da validação ---
+
     try {
       if (currentId) {
         const updated = await Api.updateEvent(currentId, payload);
@@ -395,8 +427,7 @@ const FormModule = (() => {
         await Api.createEvent(payload);
         alert('✅ Reserva criada! Aguardando aprovação do administrador.');
       }
-      const dateValue = f.data.value;
-      safeBuildOccupancyTable(dateValue);
+      safeBuildOccupancyTable(f.data.value);
       close();
     } catch (err) {
       alert('Erro ao criar/atualizar reserva: ' + err.message);
@@ -404,10 +435,7 @@ const FormModule = (() => {
   }
 
   function init() {
-    // Só continua se realmente existir o formulário na página
-    if (!document.getElementById('agendamento-form')) {
-      return;
-    }
+    if (!document.getElementById('agendamento-form')) return;
 
     cacheSelectors();
 
@@ -822,9 +850,9 @@ onReady(async () => {
   const user = window.user;
   if (user) {
     // 3.1) Topo do menu (já existia)
-    const nameEl  = document.getElementById('menu-user-name');
+    const nameEl = document.getElementById('menu-user-name');
     const emailEl = document.getElementById('menu-user-email');
-    if (nameEl)  nameEl.textContent  = user.name  || '—';
+    if (nameEl) nameEl.textContent = user.name || '—';
     if (emailEl) emailEl.textContent = user.email || '—';
 
     // 3.2) Rodapé do menu: nome completo
@@ -965,87 +993,87 @@ onReady(async () => {
   }
 });
 
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  // Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
-    toggleBtn.addEventListener('click', () => {
-      const formGroup = toggleBtn.closest('.form-group');
-      if (!formGroup) return;
+// –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+// Toggle do “olhinho” para exibir/ocultar senha (campos #password e #password2)
+// –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+document.querySelectorAll('button.toggle-password').forEach(toggleBtn => {
+  toggleBtn.addEventListener('click', () => {
+    const formGroup = toggleBtn.closest('.form-group');
+    if (!formGroup) return;
 
-      const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
-      if (!inputSenha) return;
+    const inputSenha = formGroup.querySelector('input[type="password"], input[type="text"]');
+    if (!inputSenha) return;
 
-      if (inputSenha.type === 'password') {
-        inputSenha.type = 'text';
-        toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
-        toggleBtn.querySelector('i').classList.add('fa-eye');
-      } else {
-        inputSenha.type = 'password';
-        toggleBtn.querySelector('i').classList.remove('fa-eye');
-        toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+    if (inputSenha.type === 'password') {
+      inputSenha.type = 'text';
+      toggleBtn.querySelector('i').classList.remove('fa-eye-slash');
+      toggleBtn.querySelector('i').classList.add('fa-eye');
+    } else {
+      inputSenha.type = 'password';
+      toggleBtn.querySelector('i').classList.remove('fa-eye');
+      toggleBtn.querySelector('i').classList.add('fa-eye-slash');
+    }
+  });
+});
+
+// –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+// NOVO: Sessão “Histórico de Usuários” (Admin)
+// –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+// Função que busca e renderiza todos os usuários com status “approved” ou “rejected”
+async function carregarHistoricoUsuarios() {
+  const container = document.getElementById('lista-historico-usuarios');
+  if (!container) return console.error('#lista-historico-usuarios não encontrado');
+
+  container.innerHTML = '<p class="text-center py-4">Carregando histórico...</p>';
+
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BASE_API}/api/admin/users-history`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
-  });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const historico = await res.json();
 
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  // NOVO: Sessão “Histórico de Usuários” (Admin)
-  // –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-
-  // Função que busca e renderiza todos os usuários com status “approved” ou “rejected”
-  async function carregarHistoricoUsuarios() {
-    const container = document.getElementById('lista-historico-usuarios');
-    if (!container) return console.error('#lista-historico-usuarios não encontrado');
-
-    container.innerHTML = '<p class="text-center py-4">Carregando histórico...</p>';
-
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${BASE_API}/api/admin/users-history`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const historico = await res.json();
-
-      if (!historico.length) {
-        container.innerHTML = `
+    if (!historico.length) {
+      container.innerHTML = `
           <div class="text-center py-5 text-muted">
             <i class="fas fa-user-clock fa-3x mb-3"></i>
             <h5>Nenhum usuário aprovado ou rejeitado ainda</h5>
             <p>Ainda não há histórico de usuários.</p>
           </div>
         `;
-        return;
+      return;
+    }
+
+    // filtros de busca e ordenação
+    const termoBusca = document.getElementById('busca-historico-usuarios')?.value.trim().toLowerCase() || '';
+    const ordenacao = document.getElementById('ordenacao-historico-usuarios')?.value || 'updatedAt';
+
+    let filtrados = historico.filter(u => {
+      const texto = (u.name + ' ' + u.email).toLowerCase();
+      return texto.includes(termoBusca);
+    });
+
+    filtrados.sort((a, b) => {
+      if (ordenacao === 'updatedAt') {
+        return new Date(b.updatedAt) - new Date(a.updatedAt);
       }
+      if (ordenacao === 'name' || ordenacao === 'email') {
+        return (a[ordenacao] || '').localeCompare(b[ordenacao] || '');
+      }
+      if (ordenacao === 'status') {
+        return (a.status || '').localeCompare(b.status || '');
+      }
+      return 0;
+    });
 
-      // filtros de busca e ordenação
-      const termoBusca = document.getElementById('busca-historico-usuarios')?.value.trim().toLowerCase() || '';
-      const ordenacao = document.getElementById('ordenacao-historico-usuarios')?.value || 'updatedAt';
-
-      let filtrados = historico.filter(u => {
-        const texto = (u.name + ' ' + u.email).toLowerCase();
-        return texto.includes(termoBusca);
-      });
-
-      filtrados.sort((a, b) => {
-        if (ordenacao === 'updatedAt') {
-          return new Date(b.updatedAt) - new Date(a.updatedAt);
-        }
-        if (ordenacao === 'name' || ordenacao === 'email') {
-          return (a[ordenacao] || '').localeCompare(b[ordenacao] || '');
-        }
-        if (ordenacao === 'status') {
-          return (a.status || '').localeCompare(b.status || '');
-        }
-        return 0;
-      });
-
-      let html = '<div class="row gx-3 gy-4">';
-      filtrados.forEach(u => {
-        html += `
+    let html = '<div class="row gx-3 gy-4">';
+    filtrados.forEach(u => {
+      html += `
           <div class="col-12 col-md-6 col-lg-4">
             <div class="card shadow-sm h-100">
               <div class="card-body">
@@ -1054,8 +1082,8 @@ onReady(async () => {
                 <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
                 <p class="card-text mb-2"><small>Status:
                   ${u.status === 'approved'
-            ? '<span class="badge bg-success">Aprovado</span>'
-            : '<span class="badge bg-danger">Rejeitado</span>'}
+          ? '<span class="badge bg-success">Aprovado</span>'
+          : '<span class="badge bg-danger">Rejeitado</span>'}
                 </small></p>
                 <p class="card-text text-muted small">
                   Data de cadastro: ${new Date(u.createdAt).toLocaleDateString('pt-BR')}<br>
@@ -1065,33 +1093,33 @@ onReady(async () => {
             </div>
           </div>
         `;
-      });
-      html += '</div>';
-      container.innerHTML = html;
+    });
+    html += '</div>';
+    container.innerHTML = html;
 
-    } catch (err) {
-      console.error('Falha ao carregar histórico de usuários:', err);
-      container.innerHTML = `
+  } catch (err) {
+    console.error('Falha ao carregar histórico de usuários:', err);
+    container.innerHTML = `
         <div class="text-center py-5 text-danger">
           <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
           <p>Não foi possível carregar o histórico de usuários.</p>
         </div>
       `;
-    }
   }
+}
 
-  // Quando a aba “Histórico de Usuários” for exibida, disparamos a função
-  document.getElementById('historico-tab')?.addEventListener('shown.bs.tab', () => {
-    carregarHistoricoUsuarios();
-  });
+// Quando a aba “Histórico de Usuários” for exibida, disparamos a função
+document.getElementById('historico-tab')?.addEventListener('shown.bs.tab', () => {
+  carregarHistoricoUsuarios();
+});
 
-  // Também ligamos os filtros de busca e ordenação dentro da aba
-  document.getElementById('busca-historico-usuarios')?.addEventListener('input', () => {
-    carregarHistoricoUsuarios();
-  });
-  document.getElementById('ordenacao-historico-usuarios')?.addEventListener('change', () => {
-    carregarHistoricoUsuarios();
-  });
+// Também ligamos os filtros de busca e ordenação dentro da aba
+document.getElementById('busca-historico-usuarios')?.addEventListener('input', () => {
+  carregarHistoricoUsuarios();
+});
+document.getElementById('ordenacao-historico-usuarios')?.addEventListener('change', () => {
+  carregarHistoricoUsuarios();
+});
 // --------------------------------------------------
 // Fim de onReady
 // --------------------------------------------------
@@ -1776,23 +1804,23 @@ onReady(async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // ─── POPUP-MODAL PARA CADASTRO ────────────────────────────────────────────────
 const popupModal = document.getElementById('popup-modal');
-const popupText  = document.getElementById('popup-text');
-const popupOk    = document.getElementById('popup-ok');
-let _onPopupOk   = null;
+const popupText = document.getElementById('popup-text');
+const popupOk = document.getElementById('popup-ok');
+let _onPopupOk = null;
 function showPopup(msg, onOk) {
   popupText.textContent = msg;
   _onPopupOk = onOk || null;
-  popupModal.classList.remove('opacity-0','pointer-events-none');
+  popupModal.classList.remove('opacity-0', 'pointer-events-none');
 }
 popupOk.addEventListener('click', () => {
-  popupModal.classList.add('opacity-0','pointer-events-none');
+  popupModal.classList.add('opacity-0', 'pointer-events-none');
   if (_onPopupOk) _onPopupOk();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ─── CONTROLES DE TEMA (se não já estiver no ThemeToggle) ───────────────────
 {
-  const btn2  = document.getElementById('theme-toggle');
+  const btn2 = document.getElementById('theme-toggle');
   const root2 = document.documentElement;
   if (localStorage.getItem('theme') === 'dark') root2.classList.add('dark');
   btn2?.addEventListener('click', () => {
@@ -1810,11 +1838,11 @@ onReady(() => {
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const name      = document.getElementById('name').value.trim();
+    const name = document.getElementById('name').value.trim();
     const matricula = document.getElementById('matricula').value.trim();
-    const email     = document.getElementById('email').value.trim().toLowerCase();
-    const pwd       = document.getElementById('password').value;
-    const pwd2      = document.getElementById('password2').value;
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const pwd = document.getElementById('password').value;
+    const pwd2 = document.getElementById('password2').value;
 
     if (!estacioRegex.test(email)) {
       return showPopup(
@@ -1845,50 +1873,50 @@ onReady(() => {
       if (!inp) return;
       if (inp.type === 'password') {
         inp.type = 'text';
-        btn.querySelector('i').classList.replace('fa-eye-slash','fa-eye');
+        btn.querySelector('i').classList.replace('fa-eye-slash', 'fa-eye');
       } else {
         inp.type = 'password';
-        btn.querySelector('i').classList.replace('fa-eye','fa-eye-slash');
+        btn.querySelector('i').classList.replace('fa-eye', 'fa-eye-slash');
       }
     });
   });
 
   // ─── VALIDAÇÃO EM TEMPO REAL DOS CRITÉRIOS DE SENHA ──────────────────────────
-  const commonPasswords = [ '123456','password','12345678','qwerty','abc123', /*…*/ ];
-  const cMin    = document.getElementById('c-min-length');
-  const cCase   = document.getElementById('c-uppercase-lowercase');
+  const commonPasswords = ['123456', 'password', '12345678', 'qwerty', 'abc123', /*…*/];
+  const cMin = document.getElementById('c-min-length');
+  const cCase = document.getElementById('c-uppercase-lowercase');
   const cNumSym = document.getElementById('c-number-symbol');
   const cNoMail = document.getElementById('c-no-email');
   const cCommon = document.getElementById('c-not-common');
 
   document.getElementById('password')?.addEventListener('input', () => {
     const pwd = document.getElementById('password').value;
-    const user = (document.getElementById('email')?.value||'').split('@')[0];
+    const user = (document.getElementById('email')?.value || '').split('@')[0];
 
     // 1) >=8 chars
-    if (pwd.length>=8) cMin.classList.replace('text-red-500','text-green-500');
-    else cMin.classList.replace('text-green-500','text-red-500');
+    if (pwd.length >= 8) cMin.classList.replace('text-red-500', 'text-green-500');
+    else cMin.classList.replace('text-green-500', 'text-red-500');
 
     // 2) upper & lower
-    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) cCase.classList.replace('text-red-500','text-green-500');
-    else cCase.classList.replace('text-green-500','text-red-500');
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) cCase.classList.replace('text-red-500', 'text-green-500');
+    else cCase.classList.replace('text-green-500', 'text-red-500');
 
     // 3) number or symbol
-    if (/\d/.test(pwd) || /[!@#$%^&*(),.?":{}|<>]/.test(pwd)) cNumSym.classList.replace('text-red-500','text-green-500');
-    else cNumSym.classList.replace('text-green-500','text-red-500');
+    if (/\d/.test(pwd) || /[!@#$%^&*(),.?":{}|<>]/.test(pwd)) cNumSym.classList.replace('text-red-500', 'text-green-500');
+    else cNumSym.classList.replace('text-green-500', 'text-red-500');
 
     // 4) não contenha parte do email
     if (user && pwd.toLowerCase().includes(user.toLowerCase())) {
-      cNoMail.classList.replace('text-green-500','text-red-500');
+      cNoMail.classList.replace('text-green-500', 'text-red-500');
     } else {
-      cNoMail.classList.replace('text-red-500','text-green-500');
+      cNoMail.classList.replace('text-red-500', 'text-green-500');
     }
 
     // 5) não seja senha comum
     if (commonPasswords.includes(pwd.toLowerCase())) {
-      cCommon.classList.replace('text-green-500','text-red-500');
+      cCommon.classList.replace('text-green-500', 'text-red-500');
     } else {
-      cCommon.classList.replace('text-red-500','text-green-500');
+      cCommon.classList.replace('text-red-500', 'text-green-500');
     }
   });
 });
