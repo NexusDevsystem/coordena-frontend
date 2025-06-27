@@ -44,16 +44,11 @@ const Auth = (() => {
     }
   }
 
+
   // --------------------------------------------------
   // FUNÇÃO: login(email, password)
-  // → Faz POST /api/auth/login → { _id, name, email, role, status, token }
-  // → Se status 403 ou 401, joga um Error com a mensagem do backend
-  // → Se OK, salva token+user e redireciona de acordo com a role
   // --------------------------------------------------
   async function login(email, password) {
-    console.log('[Auth.login] API endpoint:', `${API}/login`);
-    console.log('[Auth.login] Payload →', { email, password });
-
     let res;
     try {
       res = await fetch(`${API}/login`, {
@@ -62,48 +57,22 @@ const Auth = (() => {
         body: JSON.stringify({ email, password }),
       });
     } catch (fetchErr) {
-      console.error('[Auth.login] Erro no fetch:', fetchErr);
       throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
     }
 
-    console.log('[Auth.login] Status HTTP da resposta:', res.status);
     if (!res.ok) {
-      // Lê JSON de erro, se possível
       let errText = 'Credenciais inválidas.';
       try {
         const errJson = await res.json();
-        console.log('[Auth.login] JSON de erro recebido:', errJson);
-        if (errJson.error) {
-          errText = errJson.error;
-        } else if (errJson.message) {
-          errText = errJson.message;
-        }
-      } catch (jsonErr) {
-        console.warn('[Auth.login] Não foi possível ler JSON de erro:', jsonErr);
-      }
+        errText = errJson.error || errJson.message || errText;
+      } catch {}
       throw new Error(errText);
     }
 
-    // Se OK, parseia o JSON de sucesso
-    let data;
-    try {
-      data = await res.json();
-    } catch (jsonParseErr) {
-      console.error('[Auth.login] Erro ao fazer parse do JSON de sucesso:', jsonParseErr);
-      throw new Error('Resposta inválida do servidor.');
-    }
-
-    console.log('[Auth.login] Login bem-sucedido. Dados recebidos:', data);
-
-    // → AQUI ESTÁ A MUDANÇA MAIS IMPORTANTE:
-    // O backend agora retorna um objeto achatado, ex:
-    // { _id: "...", name: "...", email: "...", role: "professor", status: "approved", token: "..." }
-    //
-    // Extraímos o token diretamente, e construímos um objeto “userObj” para salvar no localStorage.
+    const data = await res.json();
     const token = data.token;
-    const role  = data.role; // <-- pegamos do objeto retornado
+    const role  = data.role;
 
-    // Reconstruímos um “userObj” sem o campo “token”
     const userObj = {
       _id:    data._id,
       name:   data.name,
@@ -112,11 +81,9 @@ const Auth = (() => {
       status: data.status
     };
 
-    // 1) Salva token + user no localStorage, separando por role
     saveTokenForRole(role, token);
     saveUserForRole(role, userObj);
 
-    // 2) Redireciona conforme a role
     if (role === 'admin') {
       window.location.assign('pages/admin.html');
     } else {
@@ -126,60 +93,68 @@ const Auth = (() => {
     return token;
   }
 
+
   // --------------------------------------------------
-  // FUNÇÃO: register({ name, email, password })
-  // → Faz POST /api/auth/register
-  // → Se status != 2xx, joga Error com mensagem do backend
-  // → Se cadastrado, redireciona o usuário para login.html
+  // FUNÇÃO: register({ name, email, password, matricula })
+  // → não redireciona mais automaticamente
   // --------------------------------------------------
   async function register(data) {
-  console.log('[Auth.register] API endpoint:', `${API}/register`);
-  console.log('[Auth.register] Payload →', data);
-
-  let res;
-  try {
-    res = await fetch(`${API}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-  } catch (fetchErr) {
-    console.error('[Auth.register] Erro no fetch:', fetchErr);
-    throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
-  }
-
-  console.log('[Auth.register] Status HTTP da resposta:', res.status);
-  if (!res.ok) {
-    let errText = 'Erro no cadastro.';
+    let res;
     try {
-      const errJson = await res.json();
-      console.error('[Auth.register] JSON de erro recebido:', errJson);
-      if (errJson.error) errText = errJson.error;
-      else if (errJson.message) errText = errJson.message;
-    } catch { /* ignora */ }
-    throw new Error(errText);
+      res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (fetchErr) {
+      throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
+    }
+
+    if (!res.ok) {
+      let errText = 'Erro no cadastro.';
+      try {
+        const errJson = await res.json();
+        errText = errJson.error || errJson.message || errText;
+      } catch {}
+      throw new Error(errText);
+    }
+
+    const result = await res.json();
+    return result;
   }
 
-  let result;
-  try {
-    result = await res.json();
-  } catch (jsonErr) {
-    console.error('[Auth.register] Erro ao fazer parse do JSON de sucesso:', jsonErr);
-    throw new Error('Resposta inválida do servidor.');
+
+  // --------------------------------------------------
+  // FUNÇÃO: forgotPassword(email)
+  // → POST /forgot-password
+  // --------------------------------------------------
+  async function forgotPassword(email) {
+    let res;
+    try {
+      res = await fetch(`${API}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+    } catch (fetchErr) {
+      throw new Error('Não foi possível conectar ao servidor.');
+    }
+
+    if (!res.ok) {
+      let errText = 'Erro ao solicitar recuperação de senha.';
+      try {
+        const errJson = await res.json();
+        errText = errJson.error || errJson.message || errText;
+      } catch {}
+      throw new Error(errText);
+    }
+
+    return await res.json();
   }
 
-  console.log('[Auth.register] Cadastro bem-sucedido. JSON recebido:', result);
-
-  // **REMOVA ou COMENTE** esta linha:
-  // window.location.assign('pages/login.html');
-
-  return result;
-}
 
   // --------------------------------------------------
   // FUNÇÃO: logout(role)
-  // → Remove token + user do localStorage para a role passada
-  // → Redireciona para pages/login.html
   // --------------------------------------------------
   function logout(role = 'user') {
     if (role === 'admin') {
@@ -193,7 +168,7 @@ const Auth = (() => {
   }
 
   // --------------------------------------------------
-  // FUNÇÕES DE CONSULTA (expor o user e token no front)
+  // Consulta
   // --------------------------------------------------
   function getCurrentUser(role = 'user') {
     return getUserForRole(role);
@@ -203,8 +178,15 @@ const Auth = (() => {
     return getTokenForRole(role);
   }
 
-  return { login, register, logout, getCurrentUser, getToken };
+  return {
+    login,
+    register,
+    forgotPassword,
+    logout,
+    getCurrentUser,
+    getToken
+  };
 })();
 
-// Expõe as funções globalmente para as páginas HTML
+// expõe globalmente
 window.Auth = Auth;

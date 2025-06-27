@@ -51,7 +51,8 @@
           <input type="checkbox" class="form-checkbox h-4 w-4 text-primary transition" />
           <span class="ml-2">Lembrar-me</span>
         </label>
-        <a href="#" class="text-primary hover:underline">Esqueceu a senha?</a>
+        <!-- adicionei id="forgot-link" -->
+        <a href="#" id="forgot-link" class="text-primary hover:underline">Esqueceu a senha?</a>
       </div>
       <div>
         <button type="submit"
@@ -66,7 +67,7 @@
     </form>
   </div>
 
-  <!-- Popup Modal -->
+  <!-- Popup Modal (erros & sucessos) -->
   <div id="popup-modal"
        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 pointer-events-none transition-opacity">
     <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full text-center">
@@ -93,8 +94,9 @@
   </button>
 
   <!-- Scripts -->
-  <!-- 1) Auth.js com Auth.login() -->
+  <!-- 1) Auth.js com Auth.login() e Auth.forgotPassword() -->
   <script src="assets/js/auth.js" defer></script>
+
   <script>
     // Modal helpers
     const popupModal = document.getElementById('popup-modal');
@@ -133,7 +135,20 @@
       }
       try {
         await Auth.login(email, document.getElementById('password').value);
-        // Auth.login redireciona internamente
+        // se bem-sucedido, Auth.login já redireciona
+      } catch (err) {
+        showPopup(err.message);
+      }
+    });
+
+    // 4) Forgot Password
+    document.getElementById('forgot-link').addEventListener('click', async e => {
+      e.preventDefault();
+      const email = prompt('Digite seu e-mail institucional para recuperação de senha:');
+      if (!email) return;
+      try {
+        await Auth.forgotPassword(email.trim().toLowerCase());
+        showPopup('✅ E-mail de recuperação enviado! Verifique sua caixa de entrada.');
       } catch (err) {
         showPopup(err.message);
       }
