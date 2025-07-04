@@ -1808,49 +1808,29 @@ onReady(() => {
   if (!form) return;
 
   form.addEventListener('submit', async e => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // captura somente os campos que existem no formulário
-    const name               = document.getElementById('name').value.trim();
-    const registration       = document.getElementById('matricula').value.trim();
-    const institutionalEmail = document.getElementById('email').value.trim().toLowerCase();
-    const personalEmail      = document.getElementById('personalEmail').value.trim().toLowerCase();
-    const password           = document.getElementById('password').value;
-    const password2          = document.getElementById('password2').value;
+  const name               = document.getElementById('name').value.trim();
+  const registration       = document.getElementById('matricula').value.trim();    // ou 'registration' se mudar o id
+  const institutionalEmail = document.getElementById('institutionalEmail').value.trim().toLowerCase();
+  const personalEmail      = document.getElementById('personalEmail').value.trim().toLowerCase();
+  const password           = document.getElementById('password').value;
+  const password2          = document.getElementById('password2').value;
 
-    // valida e-mail institucional
-    if (!estacioRegex.test(institutionalEmail)) {
-      return showPopup(
-        'Use um e-mail institucional válido:\n' +
-        '- Aluno: @alunos.estacio.br\n' +
-        '- Professor: @professor.estacio.br'
-      );
-    }
-    // validação de senhas
-    if (password !== password2) {
-      return showPopup('As senhas não coincidem');
-    }
+  if (password !== password2) {
+    return showPopup('As senhas não coincidem');
+  }
 
-    try {
-      // dispara a requisição com exatamente o que o backend espera
-      const matricula = document.getElementById('matricula').value.trim();
-// …
-await Auth.register({
-  name,
-  registration: matricula,   // <— envia a matrícula como “registration”
-  institutionalEmail,
-  personalEmail,
-  password
+  const payload = { name, registration, institutionalEmail, personalEmail, password };
+  console.log('👀 payload de registro:', payload);
+  try {
+    await Auth.register(payload);
+    showPopup('✅ Cadastro enviado!', () => window.location.href = '/login.html');
+  } catch (err) {
+    showPopup(err.message);
+  }
 });
 
-      showPopup(
-        '✅ Cadastro enviado! Aguardando aprovação em até 24h.',
-        () => window.location.href = '/login.html'
-      );
-    } catch (err) {
-      showPopup(err.message);
-    }
-  });
 });
 
 
