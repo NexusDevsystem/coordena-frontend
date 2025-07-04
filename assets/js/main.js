@@ -1833,13 +1833,15 @@ onReady(() => {
 
     try {
       // dispara a requisição com exatamente o que o backend espera
-      await Auth.register({
-        name,
-        registration,
-        institutionalEmail,
-        personalEmail,
-        password
-      });
+      const matricula = document.getElementById('matricula').value.trim();
+// …
+await Auth.register({
+  name,
+  registration: matricula,   // <— envia a matrícula como “registration”
+  institutionalEmail,
+  personalEmail,
+  password
+});
 
       showPopup(
         '✅ Cadastro enviado! Aguardando aprovação em até 24h.',
