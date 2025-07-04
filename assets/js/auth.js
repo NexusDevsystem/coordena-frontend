@@ -6,10 +6,7 @@ const Auth = (() => {
     ? 'http://localhost:10000/api/auth'
     : 'https://coordena-backend.onrender.com/api/auth';
 
-  // --------------------------------------------------
-  // Helpers para armazenar token + user no localStorage,
-  // em chaves distintas para “admin” e para “user”
-  // --------------------------------------------------
+  // Helpers para armazenar token + user no localStorage
   function saveTokenForRole(role, token) {
     if (role === 'admin') {
       localStorage.setItem('admin_token', token);
@@ -44,19 +41,16 @@ const Auth = (() => {
     }
   }
 
-
-  // --------------------------------------------------
-  // FUNÇÃO: login(email, password)
-  // --------------------------------------------------
+  // FUNÇÃO: login(institutionalEmail, password)
   async function login(email, password) {
     let res;
     try {
       res = await fetch(`${API}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ institutionalEmail: email, password }),
       });
-    } catch (fetchErr) {
+    } catch {
       throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
     }
 
@@ -74,11 +68,12 @@ const Auth = (() => {
     const role  = data.role;
 
     const userObj = {
-      _id:    data._id,
-      name:   data.name,
-      email:  data.email,
-      role:   data.role,
-      status: data.status
+      _id:               data._id,
+      name:              data.name,
+      institutionalEmail:data.institutionalEmail,
+      personalEmail:     data.personalEmail,
+      role:              data.role,
+      status:            data.status
     };
 
     saveTokenForRole(role, token);
@@ -93,11 +88,7 @@ const Auth = (() => {
     return token;
   }
 
-
-  // --------------------------------------------------
-  // FUNÇÃO: register({ name, email, password, matricula })
-  // → não redireciona mais automaticamente
-  // --------------------------------------------------
+  // FUNÇÃO: register({ name, registration, institutionalEmail, personalEmail, password })
   async function register(data) {
     let res;
     try {
@@ -106,7 +97,7 @@ const Auth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-    } catch (fetchErr) {
+    } catch {
       throw new Error('Falha ao conectar com o servidor. Verifique sua conexão de rede.');
     }
 
@@ -119,15 +110,10 @@ const Auth = (() => {
       throw new Error(errText);
     }
 
-    const result = await res.json();
-    return result;
+    return await res.json();
   }
 
-
-  // --------------------------------------------------
   // FUNÇÃO: forgotPassword(email)
-  // → POST /forgot-password
-  // --------------------------------------------------
   async function forgotPassword(email) {
     let res;
     try {
@@ -136,7 +122,7 @@ const Auth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-    } catch (fetchErr) {
+    } catch {
       throw new Error('Não foi possível conectar ao servidor.');
     }
 
@@ -152,10 +138,7 @@ const Auth = (() => {
     return await res.json();
   }
 
-
-  // --------------------------------------------------
   // FUNÇÃO: logout(role)
-  // --------------------------------------------------
   function logout(role = 'user') {
     if (role === 'admin') {
       localStorage.removeItem('admin_token');
@@ -167,9 +150,6 @@ const Auth = (() => {
     window.location.assign('pages/login.html');
   }
 
-  // --------------------------------------------------
-  // Consulta
-  // --------------------------------------------------
   function getCurrentUser(role = 'user') {
     return getUserForRole(role);
   }
