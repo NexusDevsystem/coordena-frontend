@@ -1852,6 +1852,7 @@ onReady(() => {
 });
 
 
+
   // ─── “Olhinhos” de mostrar/esconder senha ───────────────────────────────────
   document.querySelectorAll('button.toggle-password').forEach(btn => {
     btn.addEventListener('click', () => {
