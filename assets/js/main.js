@@ -1801,8 +1801,7 @@ popupOk.addEventListener('click', () => {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─── REGISTRO DE USUÁRIO ─────────────────────────────────────────────────────
+// ─── REGISTRO DE USUÁRIO ─────────────────────────────────────────────
 onReady(() => {
   const estacioRegex = /^[\w.%+-]+@(alunos|professor)\.estacio\.br$/i;
   const form = document.getElementById('register-form');
@@ -1810,25 +1809,38 @@ onReady(() => {
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const name      = document.getElementById('name').value.trim();
-    const matricula = document.getElementById('matricula').value.trim();
-    const email     = document.getElementById('email').value.trim().toLowerCase();
-    const pwd       = document.getElementById('password').value;
-    const pwd2      = document.getElementById('password2').value;
 
-    if (!estacioRegex.test(email)) {
+    // captura somente os campos que existem no formulário
+    const name               = document.getElementById('name').value.trim();
+    const registration       = document.getElementById('matricula').value.trim();
+    const institutionalEmail = document.getElementById('email').value.trim().toLowerCase();
+    const personalEmail      = document.getElementById('personalEmail').value.trim().toLowerCase();
+    const password           = document.getElementById('password').value;
+    const password2          = document.getElementById('password2').value;
+
+    // valida e-mail institucional
+    if (!estacioRegex.test(institutionalEmail)) {
       return showPopup(
         'Use um e-mail institucional válido:\n' +
         '- Aluno: @alunos.estacio.br\n' +
         '- Professor: @professor.estacio.br'
       );
     }
-    if (pwd !== pwd2) {
+    // validação de senhas
+    if (password !== password2) {
       return showPopup('As senhas não coincidem');
     }
 
     try {
-      await Auth.register({ name, email, password: pwd, matricula });
+      // dispara a requisição com exatamente o que o backend espera
+      await Auth.register({
+        name,
+        registration,
+        institutionalEmail,
+        personalEmail,
+        password
+      });
+
       showPopup(
         '✅ Cadastro enviado! Aguardando aprovação em até 24h.',
         () => window.location.href = '/login.html'
@@ -1837,6 +1849,8 @@ onReady(() => {
       showPopup(err.message);
     }
   });
+});
+
 
   // ─── “Olhinhos” de mostrar/esconder senha ───────────────────────────────────
   document.querySelectorAll('button.toggle-password').forEach(btn => {
@@ -1891,4 +1905,4 @@ onReady(() => {
       cCommon.classList.replace('text-red-500','text-green-500');
     }
   });
-});
+
