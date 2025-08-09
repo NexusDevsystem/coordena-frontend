@@ -97,47 +97,56 @@
   <script src="assets/js/auth.js" defer></script>
   <script>
     // Modal helpers
-    const popupModal = document.getElementById('popup-modal');
-    const popupText  = document.getElementById('popup-text');
-    const popupOk    = document.getElementById('popup-ok');
-    function showPopup(msg) {
-      popupText.textContent = msg;
-      popupModal.classList.remove('opacity-0','pointer-events-none');
+  const popupModal = document.getElementById('popup-modal');
+  const popupText  = document.getElementById('popup-text');
+  const popupOk    = document.getElementById('popup-ok');
+  function showPopup(msg) {
+    popupText.textContent = msg;
+    popupModal.classList.remove('opacity-0','pointer-events-none');
+  }
+  popupOk.addEventListener('click', () => {
+    popupModal.classList.add('opacity-0','pointer-events-none');
+  });
+
+  // 2) Tema dark/light
+  const btn2 = document.getElementById('theme-toggle');
+  const root2 = document.documentElement;
+  const saved2 = localStorage.getItem('theme') || 'light';
+  if (saved2 === 'dark') root2.classList.add('dark');
+  btn2.addEventListener('click', () => {
+    root2.classList.toggle('dark');
+    localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
+  });
+
+  // 3) Login (permite ADMIN sem "@")
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const rawIdentifier = document.getElementById('email').value.trim();
+    const identifier = rawIdentifier.toLowerCase();
+    const password = document.getElementById('password').value;
+
+    const isAdminUser = identifier === 'admin';
+    const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
+
+    // só valida e-mail institucional se NÃO for o admin puro
+    if (!isAdminUser && !estacioRegex.test(identifier)) {
+      return showPopup(
+        'Use um e-mail institucional válido:\n' +
+        '- Aluno: @alunos.estacio.br\n' +
+        '- Professor: @professor.estacio.br\n' +
+        '- Admin: @admin.estacio.br\n\n' +
+        'Dica: para o administrador, você também pode digitar apenas "admin".'
+      );
     }
-    popupOk.addEventListener('click', () => {
-      popupModal.classList.add('opacity-0','pointer-events-none');
-    });
 
-    // 2) Tema dark/light
-    const btn2 = document.getElementById('theme-toggle');
-    const root2 = document.documentElement;
-    const saved2 = localStorage.getItem('theme') || 'light';
-    if (saved2 === 'dark') root2.classList.add('dark');
-    btn2.addEventListener('click', () => {
-      root2.classList.toggle('dark');
-      localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-    });
-
-    // 3) Login
-    document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
-      if (!estacioRegex.test(email)) {
-        return showPopup(
-          'Use um e-mail institucional válido:\n' +
-          '- Aluno: @alunos.estacio.br\n' +
-          '- Professor: @professor.estacio.br\n' +
-          '- Admin: @admin.estacio.br'
-        );
-      }
-      try {
-        await Auth.login(email, document.getElementById('password').value);
-        // Auth.login redireciona internamente
-      } catch (err) {
-        showPopup(err.message);
-      }
-    });
+    try {
+      // Envia o identificador como está; o backend aceita email OU username
+      await Auth.login(identifier, password); // Auth.login redireciona internamente
+    } catch (err) {
+      showPopup(err.message || 'Falha no login.');
+    }
+  });
   </script>
 </body>
 </html>
