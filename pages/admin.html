@@ -1,50 +1,88 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
-  <!-- 1) Meta viewport para deixar a página responsiva -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>Painel de Administração</title>
 
-  <!-- 2) Bootstrap 5 CSS -->
+  <!-- Bootstrap / Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-  <!-- 3) Seu CSS personalizado (opcionalmente você pode adicionar regras extras para mobile) -->
+  <!-- CSS do admin -->
   <link rel="stylesheet" href="/assets/css/admin.css" />
 </head>
 
 <body class="bg-gray-100">
-  <!-- Proteção de rota (apenas admin) -->
+
+  <!-- Proteção de rota (apenas admin) + shim de token -->
   <script>
-    const storedAdminUser = localStorage.getItem('admin_user');
-    const storedAdminToken = localStorage.getItem('admin_token');
-    if (!storedAdminUser || !storedAdminToken) {
-      alert('Sessão do Admin expirada. Faça login novamente.');
-      window.location.replace('/login.html');
-    } else {
-      try {
-        const userObj = JSON.parse(storedAdminUser);
-        if (userObj.role !== 'admin') {
-          window.location.replace('/');
-        }
-      } catch {
-        localStorage.removeItem('admin_user');
-        localStorage.removeItem('admin_token');
-        window.location.replace('/login.html');
-      }
+    // Lê usuário/token priorizando chaves de admin
+    const rawAdminUser = localStorage.getItem('admin_user') || localStorage.getItem('user');
+    const adminToken   = localStorage.getItem('admin_token') || localStorage.getItem('token');
+
+    const LOGIN_PATH = '/pages/login.html';
+    const HOME_PATH  = '/index.html';
+
+    // Sem sessão → login
+    if (!rawAdminUser || !adminToken) {
+      alert('Sessão expirada. Faça login novamente.');
+      window.location.replace(LOGIN_PATH);
     }
 
+    // Valida objeto user e papel admin
+    let adminUser;
+    try {
+      adminUser = JSON.parse(rawAdminUser || '{}');
+    } catch {
+      localStorage.removeItem('admin_user');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      window.location.replace(LOGIN_PATH);
+    }
+
+    if (!adminUser || adminUser.role !== 'admin') {
+      window.location.replace(HOME_PATH);
+    }
+
+    // SHIM: espelha em chaves genéricas para módulos legados (main.js/Api)
+    localStorage.setItem('token', adminToken);
+    localStorage.setItem('user', JSON.stringify(adminUser));
+
+    // Base da API (global)
     const BASE_API = window.location.hostname.includes('localhost')
       ? 'http://localhost:10000'
       : 'https://coordena-backend.onrender.com';
+    window.API_BASE = BASE_API;
+
+    // Fetch helper com Authorization
+    window.api = async function(path, options = {}) {
+      const res = await fetch(`${BASE_API}${path}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+          'Authorization': `Bearer ${adminToken}`
+        }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert('Sem permissão ou token inválido. Faça login novamente.');
+        localStorage.removeItem('admin_user');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.replace(LOGIN_PATH);
+        throw new Error('Unauthorized');
+      }
+      return res;
+    };
   </script>
 
-  <!-- Container-fluid para ocupar toda a largura em telas pequenas -->
+  <!-- Container -->
   <div class="container-fluid py-4 px-2 px-md-4">
-    <!-- ======= Cabeçalho Azul Responsivo ======= -->
+    <!-- Cabeçalho -->
     <div
       class="bg-primary text-white rounded-3 p-3 p-md-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
     >
@@ -53,90 +91,40 @@
         <p class="mb-0 small">Gerencie solicitações de usuários e reservas</p>
       </div>
 
-      <!-- Botão Logout -->
       <button id="admin-logout-btn" class="btn btn-outline-light me-2">
         <i class="fas fa-sign-out-alt me-1"></i> Logout
       </button>
 
-      <!-- NOVO: Botão “Ativar Notificações” -->
       <button id="btn-ativar-notificacoes" class="btn btn-outline-light">
         <i class="fas fa-bell"></i> Ativar Notificações
       </button>
     </div>
-    <!-- ========================================= -->
 
-    <!-- Nav‐tabs: Usuários Pendentes / Reservas Pendentes / Reservas Ativas / Histórico de Usuários / Ocupação -->
+    <!-- Abas -->
     <div class="overflow-auto mb-3">
       <ul class="nav nav-tabs flex-nowrap" id="adminTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link active"
-            id="usuarios-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#usuarios"
-            type="button"
-            role="tab"
-            aria-controls="usuarios"
-            aria-selected="true"
-          >
+          <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" aria-controls="usuarios" aria-selected="true">
             <i class="fas fa-user"></i> Usuários Pendentes
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="reservas-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#reservas"
-            type="button"
-            role="tab"
-            aria-controls="reservas"
-            aria-selected="false"
-          >
+          <button class="nav-link" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" aria-controls="reservas" aria-selected="false">
             <i class="fas fa-calendar-alt"></i> Reservas Pendentes
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="ativas-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#ativas"
-            type="button"
-            role="tab"
-            aria-controls="ativas"
-            aria-selected="false"
-          >
+          <button class="nav-link" id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" aria-controls="ativas" aria-selected="false">
             <i class="fas fa-check-circle"></i> Reservas Ativas
           </button>
         </li>
-        <!-- === NOVA ABA: Histórico de Usuários === -->
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="historico-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#historico"
-            type="button"
-            role="tab"
-            aria-controls="historico"
-            aria-selected="false"
-          >
+          <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" aria-controls="historico" aria-selected="false">
             <i class="fas fa-history"></i> Histórico de Usuários
           </button>
         </li>
-        <!-- === NOVA ABA: Ocupação === -->
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            id="ocupacao-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#ocupacao"
-            type="button"
-            role="tab"
-            aria-controls="ocupacao"
-            aria-selected="false"
-          >
+          <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
             <i class="fas fa-th-large"></i> Ocupação
           </button>
         </li>
@@ -144,25 +132,15 @@
     </div>
 
     <div class="tab-content" id="adminTabContent">
-      <!-- ================== ABA 1: Usuários Pendentes ================== -->
+      <!-- ABA 1: Usuários Pendentes -->
       <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
         <div class="row mb-3 gx-2">
-          <!-- Campo de busca ocupa toda a largura em mobile (col-12), depois col-md-8 -->
           <div class="col-12 col-md-8">
             <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-usuarios"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar usuário por nome ou email..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
+              <input type="text" id="busca-usuarios" class="form-control ps-4 w-100" placeholder="Buscar usuário por nome ou email..." />
+              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
             </div>
           </div>
-          <!-- Filtro de ordenação ocupa col-12 em mobile, depois col-md-4 -->
           <div class="col-12 col-md-4">
             <select id="ordenacao-usuarios" class="form-select w-100">
               <option value="createdAt">Ordem de Chegada</option>
@@ -174,32 +152,17 @@
         <div id="lista-pendentes-usuarios"></div>
       </div>
 
-      <!-- =============== ABA 2: Reservas Pendentes ================= -->
+      <!-- ABA 2: Reservas Pendentes -->
       <div class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
         <div class="row mb-3 gx-2">
-          <!-- Campo de busca ocupa col-12 em mobile, depois col-md-8 -->
           <div class="col-12 col-md-8">
             <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-reservas"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar reserva por lab ou requisitante..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
+              <input type="text" id="busca-reservas" class="form-control ps-4 w-100" placeholder="Buscar reserva por lab ou requisitante..." />
+              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
             </div>
           </div>
-          <!-- Filtros de data + ordenação ocupa col-12 em mobile, depois col-md-4 -->
           <div class="col-12 col-md-4">
-            <input
-              type="date"
-              id="filtro-data-reservas"
-              class="form-control mb-2 w-100"
-              placeholder="Data"
-            />
+            <input type="date" id="filtro-data-reservas" class="form-control mb-2 w-100" placeholder="Data" />
             <select id="ordenacao-reservas" class="form-select w-100">
               <option value="date">Data</option>
               <option value="responsible">Requisitante (A-Z)</option>
@@ -209,119 +172,72 @@
         <div id="lista-pendentes-reservas"></div>
       </div>
 
-      <!-- ================ ABA 3: Reservas Ativas ==================== -->
+      <!-- ABA 3: Reservas Ativas -->
       <div class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
         <div class="row mb-3 gx-2">
-          <!-- Campo de busca mobile: col-12, depois col-md-8 -->
           <div class="col-12 col-md-8">
             <div class="search-box position-relative">
-              <input
-                type="text"
-                id="busca-ativas"
-                class="form-control ps-4 w-100"
-                placeholder="Buscar lab ou requisitante nas aprovadas..."
-              />
-              <i
-                class="fas fa-search position-absolute"
-                style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"
-              ></i>
+              <input type="text" id="busca-ativas" class="form-control ps-4 w-100" placeholder="Buscar lab ou requisitante nas aprovadas..." />
+              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
             </div>
           </div>
-          <!-- Filtro de data mobile: col-12, depois col-md-4 -->
           <div class="col-12 col-md-4">
-            <input
-              type="date"
-              id="filtro-data-ativas"
-              class="form-control mb-2 w-100"
-              placeholder="Data"
-            />
+            <input type="date" id="filtro-data-ativas" class="form-control mb-2 w-100" placeholder="Data" />
           </div>
         </div>
-        <!-- Lista de cards para as Reservas Ativas -->
         <div id="lista-ativas" class="row g-3"></div>
       </div>
 
-      <!-- =========== ABA 4: Histórico de Usuários ============ -->
+      <!-- ABA 4: Histórico -->
       <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
         <div class="row mb-3 gx-2">
-          <!-- Você pode manter a busca/filtros aqui também, se quiser -->
           <div class="col-12">
             <h5 class="mb-3"><i class="fas fa-history me-2"></i> Histórico de Usuários</h5>
-            <!-- Exemplo de filtro de data (opcional) -->
             <div class="mb-3">
-              <input
-                type="date"
-                id="filtro-data-historico"
-                class="form-control w-100"
-                placeholder="Selecionar período..."
-              />
+              <input type="date" id="filtro-data-historico" class="form-control w-100" placeholder="Selecionar período..." />
             </div>
           </div>
         </div>
-        <!-- Container onde você colocará, via JS, a lista ou tabela de histórico -->
         <div id="lista-historico-usuarios">
-          <!-- Exemplo de texto enquanto não popula via JavaScript -->
           <p class="text-muted">Aqui aparecerá o histórico de usuários (ex: usuários já aprovados, rejeitados ou removidos).</p>
         </div>
       </div>
 
-      <!-- ========= ABA 5: Ocupação ========= -->
+      <!-- ABA 5: Ocupação -->
       <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
-        <!-- Date‐picker admin para selecionar a data -->
         <div class="row mb-3 gx-2">
           <div class="col-12 col-md-4">
             <label for="occupancy-date-admin" class="form-label">Data de Consulta:</label>
-            <input
-              type="date"
-              id="occupancy-date-admin"
-              class="form-control"
-              value=""
-            />
+            <input type="date" id="occupancy-date-admin" class="form-control" value="" />
           </div>
         </div>
 
-        <!-- Tabela de ocupação: será preenchida dinamicamente -->
         <div class="overflow-auto border rounded">
-          <table
-            id="occupancy-table-admin"
-            class="table table-sm table-bordered text-center mb-0"
-          ></table>
+          <table id="occupancy-table-admin" class="table table-sm table-bordered text-center mb-0"></table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast de notificação (canto inferior direito) -->
+  <!-- Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-    <div
-      id="toastNovoCadastro"
-      class="toast align-items-center text-white bg-dark border-0"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-    >
+    <div id="toastNovoCadastro" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
         <div class="toast-body" id="meuToastBody"></div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          data-bs-dismiss="toast"
-          aria-label="Fechar"
-        ></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
       </div>
     </div>
   </div>
 
-  <!-- Bootstrap Bundle JS (inclui Popper) -->
+  <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Seu JS principal (contém toda a lógica de calendário + notificações) -->
   <script src="/assets/js/main.js"></script>
 
-  <!-- ↓ Script extra para popular a Aba “Ocupação” sincronizada com o calendário ↓ -->
+  <!-- Script da aba Ocupação (usa Api de main.js e token já espelhado) -->
   <script>
-    // Garante que o código execute somente após o DOM e os módulos de main.js estarem prontos
+    // Executa quando main.js estiver pronto
     onReady(async () => {
-      // 1) Carrega horários fixos para admin
+      // Carrega horários fixos
       try {
         window.fixedSlots = await Api.fetchFixedSchedules();
       } catch (err) {
@@ -329,29 +245,24 @@
         window.fixedSlots = [];
       }
 
-      // 2) Ajusta valor inicial do date‐picker para hoje
       const dateInput = document.getElementById("occupancy-date-admin");
       dateInput.value = new Date().toISOString().slice(0, 10);
 
-      // 3) Quando a aba “Ocupação” ficar visível, constrói tabela
       const tabOcupacao = document.getElementById("ocupacao-tab");
       tabOcupacao.addEventListener("shown.bs.tab", () => {
         safeBuildOccupancyTableAdmin(dateInput.value);
       });
 
-      // 4) Ao alterar a data, reconstrói a tabela
       dateInput.addEventListener("change", () => {
         safeBuildOccupancyTableAdmin(dateInput.value);
       });
 
-      // 5) Se a aba “Ocupação” já estiver ativa ao carregar, constrói imediatamente
       const activeTab = document.querySelector(".nav-link.active")?.id;
       if (activeTab === "ocupacao-tab") {
         safeBuildOccupancyTableAdmin(dateInput.value);
       }
     });
 
-    // Wrapper que captura erros sem quebrar a aba
     async function safeBuildOccupancyTableAdmin(filterDate) {
       try {
         await buildOccupancyTableAdmin(filterDate);
@@ -360,55 +271,43 @@
       }
     }
 
-    // Função que constrói a tabela de ocupação, buscando eventos aprovados + horários fixos
     async function buildOccupancyTableAdmin(filterDate) {
       const table = document.getElementById("occupancy-table-admin");
-      if (!table) {
-        console.error("#occupancy-table-admin não encontrado");
-        return;
-      }
-      // Limpa conteúdo anterior
+      if (!table) return console.error("#occupancy-table-admin não encontrado");
       table.innerHTML = "";
 
-      // 1) Busca todas as reservas aprovadas (status = approved) via API
+      // 1) Busca eventos aprovados
       let approvedEvents = [];
       try {
         approvedEvents = await Api.fetchEvents();
       } catch (err) {
         console.error("Erro ao buscar reservas aprovadas para admin:", err);
       }
+      approvedEvents = approvedEvents.filter(e => e.status === "approved");
 
-      // 2) Filtra apenas os aprovados (se backend já retorna só aprovados, essa linha pode ser redundante)
-      approvedEvents = approvedEvents.filter((e) => e.status === "approved");
-
-      // 3) Prepara data a filtrar
+      // 2) Data alvo
       const dateStr = filterDate || new Date().toISOString().slice(0, 10);
       const [Y, M, D] = dateStr.split("-").map(Number);
       const weekday = new Date(Y, M - 1, D).getDay();
 
-      // 4) Filtra eventos desse dia
-      const dayEvents = approvedEvents.filter((e) => e.date === dateStr);
+      // 3) Filtra do dia
+      const dayEvents = approvedEvents.filter(e => e.date === dateStr);
 
-      // 5) Filtra horários fixos desse dia da semana
-      const fixedTodaySlots = window.fixedSlots.filter(
-        (s) => s.dayOfWeek === weekday
-      );
+      // 4) Slots fixos do dia
+      const fixedTodaySlots = (window.fixedSlots || []).filter(s => s.dayOfWeek === weekday);
 
-      // 6) Gera intervalos de 50 minutos entre 08:00 e 22:00
+      // Helpers de hora
       function toDateObj(Y, M, D, hm) {
         const [h, m] = hm.split(":").map(Number);
         return new Date(Y, M - 1, D, h, m);
       }
       function padHM(d) {
-        return (
-          String(d.getHours()).padStart(2, "0") +
-          ":" +
-          String(d.getMinutes()).padStart(2, "0")
-        );
+        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
       }
 
+      // 5) Intervalos 50min (08:00–22:00)
       const slotStart = toDateObj(Y, M, D, "08:00");
-      const slotEnd = toDateObj(Y, M, D, "22:00");
+      const slotEnd   = toDateObj(Y, M, D, "22:00");
       const timeRanges = [];
       let cursor = new Date(slotStart);
       while (cursor < slotEnd) {
@@ -418,15 +317,12 @@
         cursor = next;
       }
 
-      // 7) Determina lista de laboratórios (fixos + reservas)
-      const labs = Array.from(
-        new Set([
-          ...fixedTodaySlots.map((s) => s.lab),
-          ...dayEvents.map((e) => e.sala || e.resource),
-        ])
-      );
+      // 6) Labs envolvidos
+      const labs = Array.from(new Set([
+        ...fixedTodaySlots.map(s => s.lab),
+        ...dayEvents.map(e => e.sala || e.resource),
+      ]));
 
-      // Se não houver dados, exibe uma linha vazia
       if (!timeRanges.length || !labs.length) {
         const emptyRow = document.createElement("tr");
         const td = document.createElement("td");
@@ -438,7 +334,7 @@
         return;
       }
 
-      // 8) Monta thead (coluna “Sala/Horário” + intervalos)
+      // 7) Thead
       const thead = document.createElement("thead");
       const trHead = document.createElement("tr");
       trHead.className = "table-secondary";
@@ -446,8 +342,7 @@
       thFirst.scope = "col";
       thFirst.textContent = "Sala / Horário";
       trHead.appendChild(thFirst);
-
-      timeRanges.forEach((r) => {
+      timeRanges.forEach(r => {
         const th = document.createElement("th");
         th.scope = "col";
         th.className = "text-center text-nowrap";
@@ -458,56 +353,50 @@
       thead.appendChild(trHead);
       table.appendChild(thead);
 
-      // 9) Monta tbody: uma linha por cada laboratório
+      // 8) Tbody
       const tbody = document.createElement("tbody");
-      labs.forEach((lab) => {
+      labs.forEach(lab => {
         const tr = document.createElement("tr");
 
-        // Primeira célula: nome do laboratório
         const tdLab = document.createElement("td");
         tdLab.className = "fw-semibold align-middle";
         tdLab.textContent = lab;
         tr.appendChild(tdLab);
 
-        // Para cada intervalo, verifica reserva aprovada ou horário fixo
-        timeRanges.forEach((range) => {
+        timeRanges.forEach(range => {
           const [start, end] = range.split("-");
           const cellStart = toDateObj(Y, M, D, start);
-          const cellEnd = toDateObj(Y, M, D, end);
+          const cellEnd   = toDateObj(Y, M, D, end);
 
-          // Verifica se há reserva aprovada no intervalo
-          const hasReservation = dayEvents.some((ev) => {
+          const hasReservation = dayEvents.some(ev => {
             if ((ev.sala || ev.resource) !== lab) return false;
             const evStart = toDateObj(Y, M, D, ev.start);
-            const evEnd = toDateObj(Y, M, D, ev.end);
+            const evEnd   = toDateObj(Y, M, D, ev.end);
             return evStart < cellEnd && evEnd > cellStart;
           });
 
-          // Verifica se faz parte de horário fixo
-          const fixedSlot = fixedTodaySlots.find((fs) => {
+          const fixedSlot = fixedTodaySlots.find(fs => {
             if (fs.lab !== lab) return false;
             const fsStart = toDateObj(Y, M, D, fs.startTime);
-            const fsEnd = toDateObj(Y, M, D, fs.endTime);
+            const fsEnd   = toDateObj(Y, M, D, fs.endTime);
             return fsStart < cellEnd && fsEnd > cellStart;
           });
 
-          // Define cor e texto
-          let bgColor = "";
-          let label = "";
+          let bgColor = "", label = "";
           if (hasReservation) {
-            bgColor = "rgba(220,38,38,0.8)"; // vermelho
-            label = "ocupado";
+            bgColor = "rgba(220,38,38,0.8)"; // ocupado (vermelho)
+            label   = "ocupado";
           } else if (fixedSlot) {
             const turnoColors = {
-              Matutino: "rgba(59,130,246,0.8)",
-              Vespertino: "rgba(234,179,8,0.8)",
-              Noturno: "rgba(220,38,38,0.8)"
+              Matutino:  "rgba(59,130,246,0.8)",
+              Vespertino:"rgba(234,179,8,0.8)",
+              Noturno:   "rgba(220,38,38,0.8)"
             };
             bgColor = turnoColors[fixedSlot.turno] || "rgba(107,114,128,0.5)";
-            label = fixedSlot.turno;
+            label   = fixedSlot.turno;
           } else {
-            bgColor = "rgba(16,185,129,0.8)"; // verde
-            label = "livre";
+            bgColor = "rgba(16,185,129,0.8)"; // livre (verde)
+            label   = "livre";
           }
 
           const td = document.createElement("td");
@@ -524,5 +413,4 @@
     }
   </script>
 </body>
-
 </html>
