@@ -1,13 +1,12 @@
 // assets/js/auth.js
-
 const Auth = (() => {
-  // Usa localhost em dev ou backend em produção
+  // Base da API
   const API = window.location.hostname.includes("localhost")
     ? "http://localhost:10000/api/auth"
     : "https://coordena-backend.onrender.com/api/auth";
 
   // --------------------------
-  // Helpers de storage por role
+  // Storage helpers por role
   // --------------------------
   function saveTokenForRole(role, token) {
     if (role === "admin") localStorage.setItem("admin_token", token);
@@ -30,32 +29,27 @@ const Auth = (() => {
     const key = role === "admin" ? "admin_user" : "user";
     const str = localStorage.getItem(key);
     if (!str) return null;
-    try {
-      return JSON.parse(str);
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(str); } catch { return null; }
   }
 
   // --------------------------------------------------
-  // LOGIN: apenas por e-mail institucional
-  // Backend já ajusta role=admin quando email for admin@admin.estacio.br
+  // LOGIN (por e-mail por padrão; aceita username se quiser)
   // --------------------------------------------------
-  async function login(email, password) {
-    const id = (email || "").trim().toLowerCase();
+  async function login(identifier, password) {
+    const id = (identifier || "").trim();
     const pw = password || "";
-    if (!id || !pw) throw new Error("Preencha e-mail e senha.");
+    if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
-    // validação simples de e-mail (o HTML pode ter validações adicionais)
-    const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    if (!okEmail) throw new Error("Digite um e-mail válido.");
+    // Decide se é e-mail ou username
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
+    const body = isEmail ? { email: id.toLowerCase(), password: pw } : { username: id, password: pw };
 
     let res;
     try {
       res = await fetch(`${API}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: id, password: pw }),
+        body: JSON.stringify(body),
       });
     } catch (err) {
       console.error("[Auth.login] Fetch error:", err);
@@ -70,21 +64,25 @@ const Auth = (() => {
     }
 
     if (!res.ok) {
-      const msg = data?.error || data?.message || "Credenciais inválidas.";
+      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
     const { user, token } = data || {};
     if (!user || !token) throw new Error("Resposta inesperada do servidor.");
 
-    // Salva por role e redireciona
+    // Se quiser bloquear pendente no front:
+    // if (user.status === "pending") {
+    //   throw new Error("Sua conta está pendente de aprovação.");
+    // }
+
     saveTokenForRole(user.role, token);
     saveUserForRole(user.role, user);
 
     if (user.role === "admin") {
-      window.location.assign("/pages/admin.html"); // absoluto
+      window.location.assign("/pages/admin.html");
     } else {
-      window.location.assign("/index.html"); // absoluto
+      window.location.assign("/index.html");
     }
 
     return token;
@@ -92,14 +90,30 @@ const Auth = (() => {
 
   // --------------------------------------------------
   // REGISTER
+  // data: { name, matricula, password, email? }
   // --------------------------------------------------
   async function register(data) {
+    const payload = {
+      name: (data?.name || "").trim(),
+      matricula: (data?.matricula || "").trim(),
+      password: data?.password || "",
+    };
+
+    if (data?.email) payload.email = data.email.trim().toLowerCase();
+
+    if (!payload.name || !payload.matricula || !payload.password) {
+      throw new Error("Preencha nome, matrícula e senha.");
+    }
+    if (payload.password.length < 6) {
+      throw new Error("A senha deve ter pelo menos 6 caracteres.");
+    }
+
     let res;
     try {
       res = await fetch(`${API}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
     } catch (err) {
       console.error("[Auth.register] Fetch error:", err);
@@ -114,11 +128,11 @@ const Auth = (() => {
     }
 
     if (!res.ok) {
-      const msg = result?.error || result?.message || "Erro no cadastro.";
+      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
       throw new Error(msg);
     }
 
-    return result;
+    return result; // { ok, message, user }
   }
 
   // --------------------------------------------------
@@ -135,16 +149,9 @@ const Auth = (() => {
     window.location.assign("/pages/login.html");
   }
 
-  // --------------------------------------------------
-  // GETTERS
-  // --------------------------------------------------
-  function getCurrentUser(role = "user") {
-    return getUserForRole(role);
-  }
-
-  function getToken(role = "user") {
-    return getTokenForRole(role);
-  }
+  // Getters
+  function getCurrentUser(role = "user") { return getUserForRole(role); }
+  function getToken(role = "user") { return getTokenForRole(role); }
 
   return { login, register, logout, getCurrentUser, getToken };
 })();
