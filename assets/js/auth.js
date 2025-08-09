@@ -28,19 +28,20 @@ const Auth = (() => {
 
   function getUserForRole(role) {
     const key = role === 'admin' ? 'admin_user' : 'user';
-    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    const str = localStorage.getItem(key);
+    if (!str) return null;
+    try { return JSON.parse(str); } catch { return null; }
   }
 
-  // --------------------------
-  // LOGIN: identifier ou email
-  // - Se "admin" → username
-  // - Senão → email válido
-  // Resposta esperada do backend: { user: {...}, token }
-  // --------------------------
+  // --------------------------------------------------
+  // LOGIN: identifier (email OU "admin") + password
+  // - Se identifier === "admin" → envia { username, password }
+  // - Caso contrário → valida e envia { email, password }
+  // - Espera resposta { user: {...}, token }
+  // --------------------------------------------------
   async function login(identifier, password) {
     const id = (identifier || '').trim();
     const pw = password || '';
-
     if (!id || !pw) throw new Error('Preencha usuário/e-mail e senha.');
 
     const isAdmin = id.toLowerCase() === 'admin';
@@ -61,7 +62,8 @@ const Auth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-    } catch {
+    } catch (err) {
+      console.error('[Auth.login] Fetch error:', err);
       throw new Error('Falha ao conectar com o servidor.');
     }
 
@@ -80,24 +82,23 @@ const Auth = (() => {
     const { user, token } = data || {};
     if (!user || !token) throw new Error('Resposta inesperada do servidor.');
 
-    // Guarda por role
+    // Salva por role e redireciona
     saveTokenForRole(user.role, token);
     saveUserForRole(user.role, user);
 
-    // Redireciona por role
     if (user.role === 'admin') {
-      // ajuste o path conforme seu projeto
-      window.location.assign('/admin/');
+      // ajuste conforme seu caminho real
+      window.location.assign('pages/admin.html');
     } else {
-      window.location.assign('/');
+      window.location.assign('index.html');
     }
 
     return token;
   }
 
-  // --------------------------
+  // --------------------------------------------------
   // REGISTER
-  // --------------------------
+  // --------------------------------------------------
   async function register(data) {
     let res;
     try {
@@ -106,7 +107,8 @@ const Auth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-    } catch {
+    } catch (err) {
+      console.error('[Auth.register] Fetch error:', err);
       throw new Error('Falha ao conectar com o servidor.');
     }
 
@@ -121,9 +123,9 @@ const Auth = (() => {
     return result;
   }
 
-  // --------------------------
+  // --------------------------------------------------
   // LOGOUT
-  // --------------------------
+  // --------------------------------------------------
   function logout(role = 'user') {
     if (role === 'admin') {
       localStorage.removeItem('admin_token');
@@ -135,9 +137,9 @@ const Auth = (() => {
     window.location.assign('pages/login.html');
   }
 
-  // --------------------------
+  // --------------------------------------------------
   // GETTERS
-  // --------------------------
+  // --------------------------------------------------
   function getCurrentUser(role = 'user') {
     return getUserForRole(role);
   }
