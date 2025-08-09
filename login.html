@@ -118,31 +118,26 @@
     localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
   });
 
-  // 3) Login (permite ADMIN sem "@")
+  // 3) Login — somente e-mail institucional (admin usa admin@admin.estacio.br)
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
 
-    const rawIdentifier = document.getElementById('email').value.trim();
-    const identifier = rawIdentifier.toLowerCase();
+    const email = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
 
-    const isAdminUser = identifier === 'admin';
     const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
 
-    // só valida e-mail institucional se NÃO for o admin puro
-    if (!isAdminUser && !estacioRegex.test(identifier)) {
+    if (!estacioRegex.test(email)) {
       return showPopup(
         'Use um e-mail institucional válido:\n' +
         '- Aluno: @alunos.estacio.br\n' +
         '- Professor: @professor.estacio.br\n' +
-        '- Admin: @admin.estacio.br\n\n' +
-        'Dica: para o administrador, você também pode digitar apenas "admin".'
+        '- Admin: admin@admin.estacio.br'
       );
     }
 
     try {
-      // Envia o identificador como está; o backend aceita email OU username
-      await Auth.login(identifier, password); // Auth.login redireciona internamente
+      await Auth.login(email, password); // Auth.login fará o redirect
     } catch (err) {
       showPopup(err.message || 'Falha no login.');
     }
