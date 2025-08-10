@@ -138,7 +138,6 @@
 
     try {
       await Auth.login(email, password); // Auth.login fará o redirect
-      window.location.href = "/login.html";
     } catch (err) {
       showPopup(err.message || 'Falha no login.');
     }
