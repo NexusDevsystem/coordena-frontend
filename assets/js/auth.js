@@ -210,15 +210,14 @@ const Auth = (() => {
     const u = getUser();
     const t = getToken();
     if (!u || !t) {
-      window.location.assign("/pages/login.html");
+      window.location.assign("/login.html");
       return;
     }
     const serverUser = await me();
     if (!serverUser) {
-      window.location.assign("/pages/login.html");
+      window.location.assign("/login.html");
       return;
     }
-    // atualiza última rota validada
     setLastRoute(location.pathname || "/index.html", serverUser.role);
 
     if (requiredRole && serverUser.role !== requiredRole) {
