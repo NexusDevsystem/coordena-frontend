@@ -54,6 +54,26 @@
         return res;
       };
     })();
+
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      window.location.href = '/login.html';
+    } else {
+      fetch('https://SEU_BACKEND_URL/api/admin/validate', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+        .then(res => {
+          if (!res.ok) {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/login.html';
+          }
+          // Se OK, segue normalmente
+        })
+        .catch(() => {
+          localStorage.removeItem('admin_token');
+          window.location.href = '/login.html';
+        });
+    }
   </script>
 
   <!-- Topbar -->
