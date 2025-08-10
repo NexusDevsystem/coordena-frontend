@@ -22,7 +22,7 @@ const Auth = (() => {
   // ---- Rotas canônicas ----
   const PATH = {
     home: "/index.html",
-    login: "/pages/login.html",
+    login: "login.html",
     admin: "/pages/admin.html",
   };
 
