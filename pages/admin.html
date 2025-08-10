@@ -48,7 +48,7 @@
         if (res.status === 401 || res.status === 403) {
           alert('Sem permissão ou token inválido. Faça login novamente.');
           Auth.logout();
-          window.location.replace(LOGIN_PATH);
+          window.location.href = "/login.html";
           throw new Error('Unauthorized');
         }
         return res;
