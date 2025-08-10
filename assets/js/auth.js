@@ -209,17 +209,32 @@ const Auth = (() => {
 
   // --------------------------------------------------
   // Redireciona admin logado que cair na Home
+  // - tenta via storage e confirma com o backend
   // --------------------------------------------------
-  function redirectIfAdminOnHome() {
+  async function redirectIfAdminOnHome() {
     const path = (location.pathname || "/").toLowerCase();
     const isHome = path === "/" || path.endsWith("/index.html");
     if (!isHome) return;
 
-    const u = getUser();
-    if (u?.role === "admin") {
-      // evita histórico voltar para Home
+    const userLS = getUser();
+    const token = getToken();
+
+    // 1) Fast-path: admin no storage
+    if (userLS?.role === "admin") {
       location.replace("/pages/admin.html");
+      return;
     }
+
+    // 2) Tem token? confirma no backend
+    if (token) {
+      const u = await me(); // atualiza storage se válido
+      if (u?.role === "admin") {
+        location.replace("/pages/admin.html");
+        return;
+      }
+      // se inválido, me() já limpou a sessão
+    }
+    // 3) Sem token válido -> permanece na home pública
   }
 
   // Getters
