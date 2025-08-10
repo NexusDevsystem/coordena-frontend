@@ -16,18 +16,24 @@ const Auth = (() => {
     TOKEN: "token",
     ADMIN_USER: "admin_user",
     ADMIN_TOKEN: "admin_token",
-    LAST_PATH: "last_path",      // <- usamos para lembrar última página segura
+    LAST_PATH: "last_path", // <- usamos para lembrar última página segura
   };
 
   // ---- Rotas canônicas ----
   const PATH = {
     home: "/index.html",
-    login: "login.html",
+    login: "/login.html",
     admin: "/pages/admin.html",
   };
 
   // ---- Helpers de JSON e tempo ----
-  const jparse = (s) => { try { return JSON.parse(s); } catch { return null; } };
+  const jparse = (s) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return null;
+    }
+  };
   const now = () => Date.now();
 
   // ---- Sessão ----
@@ -49,17 +55,30 @@ const Auth = (() => {
     localStorage.removeItem(KEYS.ADMIN_TOKEN);
     // Mantemos LAST_PATH para restaurar pós-login (se quiser resetar, apague aqui)
   }
-  function getUser() { return jparse(localStorage.getItem(KEYS.USER)); }
-  function getToken() { return localStorage.getItem(KEYS.TOKEN) || ""; }
-  function getAdminToken() { return localStorage.getItem(KEYS.ADMIN_TOKEN) || ""; }
-  function isLogged() { return !!getToken(); }
-  function isAdminLogged() { return !!getAdminToken(); }
+  function getUser() {
+    return jparse(localStorage.getItem(KEYS.USER));
+  }
+  function getToken() {
+    return localStorage.getItem(KEYS.TOKEN) || "";
+  }
+  function getAdminToken() {
+    return localStorage.getItem(KEYS.ADMIN_TOKEN) || "";
+  }
+  function isLogged() {
+    return !!getToken();
+  }
+  function isAdminLogged() {
+    return !!getAdminToken();
+  }
 
   // ---- Última página visitada (não salva login) ----
   function remember() {
     const p = (window.location.pathname || "").toLowerCase();
     if (p.endsWith("/pages/login.html") || p.endsWith("/pages/login")) return;
-    localStorage.setItem(KEYS.LAST_PATH, JSON.stringify({ path: window.location.pathname, ts: now() }));
+    localStorage.setItem(
+      KEYS.LAST_PATH,
+      JSON.stringify({ path: window.location.pathname, ts: now() })
+    );
   }
   function getLastPath() {
     const obj = jparse(localStorage.getItem(KEYS.LAST_PATH));
@@ -86,7 +105,9 @@ const Auth = (() => {
     if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const body = isEmail ? { email: id.toLowerCase(), password: pw } : { username: id, password: pw };
+    const body = isEmail
+      ? { email: id.toLowerCase(), password: pw }
+      : { username: id, password: pw };
 
     let res;
     try {
@@ -102,7 +123,8 @@ const Auth = (() => {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
+      const msg =
+        data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
@@ -153,7 +175,8 @@ const Auth = (() => {
 
     const result = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
+      const msg =
+        result?.error || result?.message || `Erro no cadastro (${res.status}).`;
       throw new Error(msg);
     }
     return result;
@@ -208,12 +231,12 @@ const Auth = (() => {
 
     if (pageType === "user") {
       if (userOn || adminOn) return; // ok
-      return go(PATH.login);          // não logado -> login
+      return go(PATH.login); // não logado -> login
     }
 
     if (pageType === "admin") {
-      if (adminOn) return;            // ok
-      return go(PATH.login);          // sem admin_token -> login
+      if (adminOn) return; // ok
+      return go(PATH.login); // sem admin_token -> login
     }
   }
 
@@ -222,7 +245,8 @@ const Auth = (() => {
   // --------------------------------------------------
   function logout() {
     clearSession();
-    go(PATH.login);
+    // redirect ABSOLUTO, sem depender de base path nem página atual
+    window.location.href = `${window.location.origin}/login.html`;
   }
 
   // Expostos
