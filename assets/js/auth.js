@@ -16,7 +16,13 @@ const Auth = (() => {
   };
 
   // ---- Utils ----
-  const jparse = (s) => { try { return JSON.parse(s); } catch { return null; } };
+  const jparse = (s) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return null;
+    }
+  };
   const now = () => Date.now();
 
   function saveSession({ user, token }) {
@@ -39,8 +45,12 @@ const Auth = (() => {
     localStorage.removeItem(KEYS.LAST_ROUTE); // <- limpa também
   }
 
-  function getUser()  { return jparse(localStorage.getItem(KEYS.USER)); }
-  function getToken() { return localStorage.getItem(KEYS.TOKEN) || ""; }
+  function getUser() {
+    return jparse(localStorage.getItem(KEYS.USER));
+  }
+  function getToken() {
+    return localStorage.getItem(KEYS.TOKEN) || "";
+  }
 
   // ---- Última rota visitada (persistente) ----
   function setLastRoute(path, role) {
@@ -62,7 +72,10 @@ const Auth = (() => {
   (function purgeWeirdState() {
     const au = jparse(localStorage.getItem(KEYS.ADMIN_USER));
     const at = localStorage.getItem(KEYS.ADMIN_TOKEN);
-    if ((au && au.role !== "admin") || (at && !localStorage.getItem(KEYS.TOKEN))) {
+    if (
+      (au && au.role !== "admin") ||
+      (at && !localStorage.getItem(KEYS.TOKEN))
+    ) {
       localStorage.removeItem(KEYS.ADMIN_USER);
       localStorage.removeItem(KEYS.ADMIN_TOKEN);
     }
@@ -77,8 +90,9 @@ const Auth = (() => {
     if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const body = isEmail ? { email: id.toLowerCase(), password: pw }
-                         : { username: id, password: pw };
+    const body = isEmail
+      ? { email: id.toLowerCase(), password: pw }
+      : { username: id, password: pw };
 
     let res;
     try {
@@ -93,11 +107,15 @@ const Auth = (() => {
     }
 
     let data;
-    try { data = await res.json(); }
-    catch { throw new Error("Resposta inválida do servidor."); }
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Resposta inválida do servidor.");
+    }
 
     if (!res.ok) {
-      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
+      const msg =
+        data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
@@ -147,11 +165,15 @@ const Auth = (() => {
     }
 
     let result;
-    try { result = await res.json(); }
-    catch { throw new Error("Resposta inválida do servidor."); }
+    try {
+      result = await res.json();
+    } catch {
+      throw new Error("Resposta inválida do servidor.");
+    }
 
     if (!res.ok) {
-      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
+      const msg =
+        result?.error || result?.message || `Erro no cadastro (${res.status}).`;
       throw new Error(msg);
     }
     return result;
@@ -214,51 +236,57 @@ const Auth = (() => {
   }
 
   // --------------------------------------------------
-// Redireciona admin logado que cair na Home
-// -> SOMENTE se houver token e o /me confirmar admin
-// --------------------------------------------------
-async function redirectIfAdminOnHome() {
-  const pathname = (location.pathname || "/").toLowerCase();
-  const isHomePath = pathname === "/" || pathname.endsWith("/index.html");
-  if (!isHomePath) return;
+  // Redireciona admin logado que cair na Home
+  // -> SOMENTE se houver token e o /me confirmar admin
+  // --------------------------------------------------
+  async function redirectIfAdminOnHome() {
+    const pathname = (location.pathname || "/").toLowerCase();
+    const isHomePath = pathname === "/" || pathname.endsWith("/index.html");
+    if (!isHomePath) return;
 
-  // Sem token? mantém Home pública e remove qualquer last_route antigo
-  const token = getToken();
-  if (!token) {
+    const token = getToken();
+    if (!token) {
+      // sem sessão -> home pública
+      localStorage.removeItem(KEYS.LAST_ROUTE);
+      return;
+    }
+
+    try {
+      // valida com o backend; me() re-sincroniza ou limpa storage se inválido
+      const u = await me();
+      if (u?.role === "admin") {
+        setLastRoute("/pages/admin.html", "admin");
+        location.replace("/pages/admin.html");
+        return;
+      }
+    } catch (e) {
+      console.error("[redirectIfAdminOnHome] /me falhou:", e);
+    }
+
+    // não é admin ou token inválido -> permanece na home
     localStorage.removeItem(KEYS.LAST_ROUTE);
-    return;
   }
 
-  // Confirma com o backend (me() re-sincroniza storage ou limpa se inválido)
-  const u = await me();
-
-  if (u?.role === "admin") {
-    setLastRoute("/pages/admin.html", "admin");
-    location.replace("/pages/admin.html");
-    return;
+  // Getters
+  function getCurrentUser() {
+    return getUser();
+  }
+  function getCurrentToken() {
+    return getToken();
   }
 
-  // Não é admin ou token inválido -> fica na Home e limpa last_route
-  localStorage.removeItem(KEYS.LAST_ROUTE);
-}
-
-// Getters
-function getCurrentUser()  { return getUser(); }
-function getCurrentToken() { return getToken(); }
-
-return {
-  login,
-  register,
-  logout,
-  me,
-  guardPage,
-  getCurrentUser,
-  getCurrentToken,
-  redirectIfAdminOnHome, // exportado
-  setLastRoute,          // exporta p/ uso explícito no admin se quiser
-  getLastRoute,
-};
-
+  return {
+    login,
+    register,
+    logout,
+    me,
+    guardPage,
+    getCurrentUser,
+    getCurrentToken,
+    redirectIfAdminOnHome, // exportado
+    setLastRoute, // exporta p/ uso explícito no admin se quiser
+    getLastRoute,
+  };
 })();
 
 window.Auth = Auth;
