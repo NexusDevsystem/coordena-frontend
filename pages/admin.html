@@ -28,16 +28,9 @@
     </script>
     <script>
       (async () => {
-        const LOGIN_PATH = "login.html";
-
-        // Exige sessão válida e role admin
-        await Auth.guardPage("admin");
-
-        // Lembra que a última rota válida é o painel admin
+        // Já temos guard/remember acima. Aqui só preparamos a API e last route.
         Auth.setLastRoute("/pages/admin.html", "admin");
 
-        // Prepara helpers esperados pelo restante do app
-        const adminToken = Auth.getCurrentToken();
         const BASE_API = window.location.hostname.includes("localhost")
           ? "http://localhost:10000"
           : "https://coordena-backend.onrender.com";
@@ -45,44 +38,26 @@
         window.API_BASE = BASE_API;
 
         // Wrapper compatível com código legado que espera window.api
+        // -> Sempre pega o token mais recente, evita usar variável stale
         window.api = async function (path, options = {}) {
+          const token = Auth.getAdminToken(); // pega do storage no momento da chamada
           const res = await fetch(`${BASE_API}${path}`, {
             ...options,
             headers: {
               "Content-Type": "application/json",
               ...(options.headers || {}),
-              Authorization: `Bearer ${adminToken}`,
+              Authorization: `Bearer ${token}`,
             },
           });
+
           if (res.status === 401 || res.status === 403) {
-            alert("Sem permissão ou token inválido. Faça login novamente.");
+            // Token inválido/expirado: encerra sessão e volta pro login
             Auth.logout();
-            window.location.href = "/login.html";
             throw new Error("Unauthorized");
           }
           return res;
         };
       })();
-
-      const token = localStorage.getItem("admin_token");
-      if (!token) {
-        window.location.href = "/login.html";
-      } else {
-        fetch("https://SEU_BACKEND_URL/api/admin/validate", {
-          headers: { Authorization: "Bearer " + token },
-        })
-          .then((res) => {
-            if (!res.ok) {
-              localStorage.removeItem("admin_token");
-              window.location.href = "/login.html";
-            }
-            // Se OK, segue normalmente
-          })
-          .catch(() => {
-            localStorage.removeItem("admin_token");
-            window.location.href = "/login.html";
-          });
-      }
     </script>
 
     <!-- Topbar -->
