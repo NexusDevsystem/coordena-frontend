@@ -15,13 +15,17 @@ const Auth = (() => {
   };
 
   // ---- Utils ----
-  const jparse = (s) => { try { return JSON.parse(s); } catch { return null; } };
+  const jparse = (s) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return null;
+    }
+  };
 
   function saveSession({ user, token }) {
     localStorage.setItem(KEYS.USER, JSON.stringify(user));
     localStorage.setItem(KEYS.TOKEN, token);
-
-    // Somente se for admin, mantém cópia admin_*
     if (user?.role === "admin") {
       localStorage.setItem(KEYS.ADMIN_USER, JSON.stringify(user));
       localStorage.setItem(KEYS.ADMIN_TOKEN, token);
@@ -38,15 +42,21 @@ const Auth = (() => {
     localStorage.removeItem(KEYS.ADMIN_TOKEN);
   }
 
-  function getUser() { return jparse(localStorage.getItem(KEYS.USER)); }
-  function getToken() { return localStorage.getItem(KEYS.TOKEN) || ""; }
+  function getUser() {
+    return jparse(localStorage.getItem(KEYS.USER));
+  }
+  function getToken() {
+    return localStorage.getItem(KEYS.TOKEN) || "";
+  }
 
   // ---- MIGRAÇÃO/limpeza de resíduos que causam login automático ----
   (function purgeWeirdState() {
     const au = jparse(localStorage.getItem(KEYS.ADMIN_USER));
     const at = localStorage.getItem(KEYS.ADMIN_TOKEN);
-    // Se tem admin_* mas não tem token normal, ou role inválida -> limpa
-    if ((au && au.role !== "admin") || (at && !localStorage.getItem(KEYS.TOKEN))) {
+    if (
+      (au && au.role !== "admin") ||
+      (at && !localStorage.getItem(KEYS.TOKEN))
+    ) {
       localStorage.removeItem(KEYS.ADMIN_USER);
       localStorage.removeItem(KEYS.ADMIN_TOKEN);
     }
@@ -61,8 +71,9 @@ const Auth = (() => {
     if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const body = isEmail ? { email: id.toLowerCase(), password: pw }
-                         : { username: id, password: pw };
+    const body = isEmail
+      ? { email: id.toLowerCase(), password: pw }
+      : { username: id, password: pw };
 
     let res;
     try {
@@ -77,23 +88,23 @@ const Auth = (() => {
     }
 
     let data;
-    try { data = await res.json(); }
-    catch { throw new Error("Resposta inválida do servidor."); }
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Resposta inválida do servidor.");
+    }
 
     if (!res.ok) {
-      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
+      const msg =
+        data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
     const { user, token } = data || {};
     if (!user || !token) throw new Error("Resposta inesperada do servidor.");
 
-    // Exemplo para bloquear pendente:
-    // if (user.status === "pending") throw new Error("Sua conta está pendente de aprovação.");
-
     saveSession({ user, token });
 
-    // Redireciona só após login bem-sucedido
     if (user.role === "admin") window.location.assign("/pages/admin.html");
     else window.location.assign("/index.html");
 
@@ -129,18 +140,22 @@ const Auth = (() => {
     }
 
     let result;
-    try { result = await res.json(); }
-    catch { throw new Error("Resposta inválida do servidor."); }
+    try {
+      result = await res.json();
+    } catch {
+      throw new Error("Resposta inválida do servidor.");
+    }
 
     if (!res.ok) {
-      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
+      const msg =
+        result?.error || result?.message || `Erro no cadastro (${res.status}).`;
       throw new Error(msg);
     }
-    return result; // { ok, message, user }
+    return result;
   }
 
   // --------------------------------------------------
-  // /me -> valida sessão no backend (evita “login automático”)
+  // /me -> valida sessão no backend
   // --------------------------------------------------
   async function me() {
     const token = getToken();
@@ -159,31 +174,26 @@ const Auth = (() => {
     const data = await res.json().catch(() => null);
     if (!data?.user) return null;
 
-    // Re-sincroniza storage (caso role/claims tenham mudado)
     saveSession({ user: data.user, token });
     return data.user;
   }
 
   // --------------------------------------------------
   // GUARD de página
-  // - requiredRole: 'admin' para páginas de admin; null para apenas exigir login
   // --------------------------------------------------
   async function guardPage(requiredRole = null) {
     const u = getUser();
     const t = getToken();
     if (!u || !t) {
-      // sem sessão local -> login
       window.location.assign("/pages/login.html");
       return;
     }
-    // Confirma com o backend
     const serverUser = await me();
     if (!serverUser) {
       window.location.assign("/pages/login.html");
       return;
     }
     if (requiredRole && serverUser.role !== requiredRole) {
-      // Sem permissão -> manda pra home pública
       window.location.assign("/index.html");
       return;
     }
@@ -197,11 +207,39 @@ const Auth = (() => {
     window.location.assign("/pages/login.html");
   }
 
-  // Getters (sem role cross)
-  function getCurrentUser() { return getUser(); }
-  function getCurrentToken() { return getToken(); }
+  // --------------------------------------------------
+  // Redireciona admin logado que cair na Home
+  // --------------------------------------------------
+  function redirectIfAdminOnHome() {
+    const path = (location.pathname || "/").toLowerCase();
+    const isHome = path === "/" || path.endsWith("/index.html");
+    if (!isHome) return;
 
-  return { login, register, logout, me, guardPage, getCurrentUser, getCurrentToken };
+    const u = getUser();
+    if (u?.role === "admin") {
+      // evita histórico voltar para Home
+      location.replace("/pages/admin.html");
+    }
+  }
+
+  // Getters
+  function getCurrentUser() {
+    return getUser();
+  }
+  function getCurrentToken() {
+    return getToken();
+  }
+
+  return {
+    login,
+    register,
+    logout,
+    me,
+    guardPage,
+    getCurrentUser,
+    getCurrentToken,
+    redirectIfAdminOnHome, // <- exportado
+  };
 })();
 
 window.Auth = Auth;
