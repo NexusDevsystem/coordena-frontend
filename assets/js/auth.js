@@ -1,30 +1,36 @@
 // ======================================
-// assets/js/auth.js (HARDENED)
+// assets/js/auth.js
+// Fluxo de guarda: 'public' | 'user' | 'admin'
+// - public (login): se logado → volta p/ última página ou padrão
+// - user (home/agendamentos): exige token (user OU admin). Senão → /pages/login.html
+// - admin (painel): exige admin_token. Senão → /pages/login.html
 // ======================================
 const Auth = (() => {
   const API = window.location.hostname.includes("localhost")
     ? "http://localhost:10000/api/auth"
     : "https://coordena-backend.onrender.com/api/auth";
 
-  // ---- Storage keys (sem fallback cruzado) ----
+  // ---- Storage keys (mantidos do projeto) ----
   const KEYS = {
     USER: "user",
     TOKEN: "token",
     ADMIN_USER: "admin_user",
     ADMIN_TOKEN: "admin_token",
-    LAST_ROUTE: "last_route", // <- NOVO
+    LAST_PATH: "last_path",      // <- usamos para lembrar última página segura
   };
 
-  // ---- Utils ----
-  const jparse = (s) => {
-    try {
-      return JSON.parse(s);
-    } catch {
-      return null;
-    }
+  // ---- Rotas canônicas ----
+  const PATH = {
+    home: "/index.html",
+    login: "/pages/login.html",
+    admin: "/pages/admin.html",
   };
+
+  // ---- Helpers de JSON e tempo ----
+  const jparse = (s) => { try { return JSON.parse(s); } catch { return null; } };
   const now = () => Date.now();
 
+  // ---- Sessão ----
   function saveSession({ user, token }) {
     localStorage.setItem(KEYS.USER, JSON.stringify(user));
     localStorage.setItem(KEYS.TOKEN, token);
@@ -36,50 +42,40 @@ const Auth = (() => {
       localStorage.removeItem(KEYS.ADMIN_TOKEN);
     }
   }
-
   function clearSession() {
     localStorage.removeItem(KEYS.USER);
     localStorage.removeItem(KEYS.TOKEN);
     localStorage.removeItem(KEYS.ADMIN_USER);
     localStorage.removeItem(KEYS.ADMIN_TOKEN);
-    localStorage.removeItem(KEYS.LAST_ROUTE); // <- limpa também
+    // Mantemos LAST_PATH para restaurar pós-login (se quiser resetar, apague aqui)
   }
+  function getUser() { return jparse(localStorage.getItem(KEYS.USER)); }
+  function getToken() { return localStorage.getItem(KEYS.TOKEN) || ""; }
+  function getAdminToken() { return localStorage.getItem(KEYS.ADMIN_TOKEN) || ""; }
+  function isLogged() { return !!getToken(); }
+  function isAdminLogged() { return !!getAdminToken(); }
 
-  function getUser() {
-    return jparse(localStorage.getItem(KEYS.USER));
+  // ---- Última página visitada (não salva login) ----
+  function remember() {
+    const p = (window.location.pathname || "").toLowerCase();
+    if (p.endsWith("/pages/login.html") || p.endsWith("/pages/login")) return;
+    localStorage.setItem(KEYS.LAST_PATH, JSON.stringify({ path: window.location.pathname, ts: now() }));
   }
-  function getToken() {
-    return localStorage.getItem(KEYS.TOKEN) || "";
-  }
-
-  // ---- Última rota visitada (persistente) ----
-  function setLastRoute(path, role) {
-    if (!path) return;
-    const data = { path, role: role || getUser()?.role || null, ts: now() };
-    localStorage.setItem(KEYS.LAST_ROUTE, JSON.stringify(data));
-  }
-  function getLastRoute() {
-    const obj = jparse(localStorage.getItem(KEYS.LAST_ROUTE));
-    // (opcional) expirar depois de 7 dias
+  function getLastPath() {
+    const obj = jparse(localStorage.getItem(KEYS.LAST_PATH));
+    if (!obj?.path) return null;
+    // (opcional) expirar em 7 dias
     if (obj?.ts && now() - obj.ts > 7 * 24 * 60 * 60 * 1000) {
-      localStorage.removeItem(KEYS.LAST_ROUTE);
+      localStorage.removeItem(KEYS.LAST_PATH);
       return null;
     }
-    return obj;
+    return obj.path;
   }
 
-  // ---- MIGRAÇÃO/limpeza de resíduos que causam login automático ----
-  (function purgeWeirdState() {
-    const au = jparse(localStorage.getItem(KEYS.ADMIN_USER));
-    const at = localStorage.getItem(KEYS.ADMIN_TOKEN);
-    if (
-      (au && au.role !== "admin") ||
-      (at && !localStorage.getItem(KEYS.TOKEN))
-    ) {
-      localStorage.removeItem(KEYS.ADMIN_USER);
-      localStorage.removeItem(KEYS.ADMIN_TOKEN);
-    }
-  })();
+  // ---- Navegação segura ----
+  function go(to) {
+    if (window.location.pathname !== to) window.location.replace(to);
+  }
 
   // --------------------------------------------------
   // LOGIN (email ou username)
@@ -90,9 +86,7 @@ const Auth = (() => {
     if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const body = isEmail
-      ? { email: id.toLowerCase(), password: pw }
-      : { username: id, password: pw };
+    const body = isEmail ? { email: id.toLowerCase(), password: pw } : { username: id, password: pw };
 
     let res;
     try {
@@ -106,16 +100,9 @@ const Auth = (() => {
       throw new Error("Falha ao conectar com o servidor.");
     }
 
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error("Resposta inválida do servidor.");
-    }
-
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg =
-        data?.error || data?.message || `Falha no login (${res.status}).`;
+      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
@@ -124,13 +111,13 @@ const Auth = (() => {
 
     saveSession({ user, token });
 
-    // marca última rota no momento do login
+    // Pós-login: respeita última página (se não for admin), senão cai no padrão
+    const last = getLastPath();
     if (user.role === "admin") {
-      setLastRoute("/pages/admin.html", "admin");
-      window.location.assign("/pages/admin.html");
+      go(PATH.admin);
     } else {
-      setLastRoute("/index.html", user.role);
-      window.location.assign("/index.html");
+      if (last && !last.endsWith("/pages/admin.html")) go(last);
+      else go(PATH.home);
     }
 
     return token;
@@ -164,23 +151,16 @@ const Auth = (() => {
       throw new Error("Falha ao conectar com o servidor.");
     }
 
-    let result;
-    try {
-      result = await res.json();
-    } catch {
-      throw new Error("Resposta inválida do servidor.");
-    }
-
+    const result = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg =
-        result?.error || result?.message || `Erro no cadastro (${res.status}).`;
+      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
       throw new Error(msg);
     }
     return result;
   }
 
   // --------------------------------------------------
-  // /me -> valida sessão no backend
+  // /me -> valida sessão no backend e re-sincroniza user
   // --------------------------------------------------
   async function me() {
     const token = getToken();
@@ -204,25 +184,36 @@ const Auth = (() => {
   }
 
   // --------------------------------------------------
-  // GUARD de página
+  // GUARD principal por tipo de página
+  // pageType: 'public' | 'user' | 'admin'
   // --------------------------------------------------
-  async function guardPage(requiredRole = null) {
-    const u = getUser();
-    const t = getToken();
-    if (!u || !t) {
-      window.location.assign("/login.html");
-      return;
-    }
-    const serverUser = await me();
-    if (!serverUser) {
-      window.location.assign("/login.html");
-      return;
-    }
-    setLastRoute(location.pathname || "/index.html", serverUser.role);
+  async function guardPage(pageType) {
+    const adminOn = isAdminLogged();
+    const userOn = isLogged();
 
-    if (requiredRole && serverUser.role !== requiredRole) {
-      window.location.assign("/index.html");
-      return;
+    if (pageType === "public") {
+      // Login: se já logado, manda pra última página apropriada
+      if (adminOn) {
+        const last = getLastPath();
+        if (last && last.endsWith("/pages/admin.html")) return go(last);
+        return go(PATH.admin);
+      }
+      if (userOn) {
+        const last = getLastPath();
+        if (last && !last.endsWith("/pages/admin.html")) return go(last);
+        return go(PATH.home);
+      }
+      return; // seguir no login
+    }
+
+    if (pageType === "user") {
+      if (userOn || adminOn) return; // ok
+      return go(PATH.login);          // não logado -> login
+    }
+
+    if (pageType === "admin") {
+      if (adminOn) return;            // ok
+      return go(PATH.login);          // sem admin_token -> login
     }
   }
 
@@ -231,60 +222,21 @@ const Auth = (() => {
   // --------------------------------------------------
   function logout() {
     clearSession();
-    window.location.assign("/pages/login.html");
+    go(PATH.login);
   }
 
-  // --------------------------------------------------
-  // Redireciona admin logado que cair na Home
-  // -> SOMENTE se houver token e o /me confirmar admin
-  // --------------------------------------------------
-  async function redirectIfAdminOnHome() {
-    const pathname = (location.pathname || "/").toLowerCase();
-    const isHomePath = pathname === "/" || pathname.endsWith("/index.html");
-    if (!isHomePath) return;
-
-    const token = getToken();
-    if (!token) {
-      // sem sessão -> home pública
-      localStorage.removeItem(KEYS.LAST_ROUTE);
-      return;
-    }
-
-    try {
-      // valida com o backend; me() re-sincroniza ou limpa storage se inválido
-      const u = await me();
-      if (u?.role === "admin") {
-        setLastRoute("/pages/admin.html", "admin");
-        location.replace("/pages/admin.html");
-        return;
-      }
-    } catch (e) {
-      console.error("[redirectIfAdminOnHome] /me falhou:", e);
-    }
-
-    // não é admin ou token inválido -> permanece na home
-    localStorage.removeItem(KEYS.LAST_ROUTE);
-  }
-
-  // Getters
-  function getCurrentUser() {
-    return getUser();
-  }
-  function getCurrentToken() {
-    return getToken();
-  }
-
+  // Expostos
   return {
     login,
     register,
     logout,
     me,
     guardPage,
-    getCurrentUser,
-    getCurrentToken,
-    redirectIfAdminOnHome, // exportado
-    setLastRoute, // exporta p/ uso explícito no admin se quiser
-    getLastRoute,
+    remember,
+    isLogged,
+    isAdminLogged,
+    getToken,
+    getAdminToken,
   };
 })();
 

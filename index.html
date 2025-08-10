@@ -37,6 +37,7 @@
 
     <!-- Auth logic -->
     <script src="assets/js/auth.js"></script>
+    <script>Auth.guardPage('user'); Auth.remember();</script>
     <script>
       // Home é pública. Se o último estado/sessão indica admin, redireciona.
       Auth.redirectIfAdminOnHome();
@@ -315,6 +316,7 @@
     <!-- Script do menu e ações -->
     <!-- =========================== -->
     <script>
+      
       // Quando a página carrega, preenche rodapé do menu (fullname + role)
       document.addEventListener("DOMContentLoaded", () => {
         if (!window.user) return;

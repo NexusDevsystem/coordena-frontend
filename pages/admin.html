@@ -1,289 +1,440 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Administração – Coordena+</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Painel de Administração – Coordena+</title>
 
-  <!-- Bootstrap / Font Awesome -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Bootstrap / Font Awesome -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
 
-  <!-- CSS do admin (tema Coordena) -->
-  <link rel="stylesheet" href="/assets/css/admin.css" />
-</head>
+    <!-- CSS do admin (tema Coordena) -->
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+  </head>
 
-<body class="bg-surface">
+  <body class="bg-surface">
+    <!-- Proteção de rota (apenas admin) + setup API via Auth -->
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      Auth.guardPage("admin");
+      Auth.remember();
+    </script>
+    <script>
+      (async () => {
+        const LOGIN_PATH = "login.html";
 
-  <!-- Proteção de rota (apenas admin) + setup API via Auth -->
-  <script src="/assets/js/auth.js"></script>
-  <script>
-    (async () => {
-      const LOGIN_PATH = 'login.html';
+        // Exige sessão válida e role admin
+        await Auth.guardPage("admin");
 
-      // Exige sessão válida e role admin
-      await Auth.guardPage('admin');
+        // Lembra que a última rota válida é o painel admin
+        Auth.setLastRoute("/pages/admin.html", "admin");
 
-      // Lembra que a última rota válida é o painel admin
-      Auth.setLastRoute('/pages/admin.html', 'admin');
+        // Prepara helpers esperados pelo restante do app
+        const adminToken = Auth.getCurrentToken();
+        const BASE_API = window.location.hostname.includes("localhost")
+          ? "http://localhost:10000"
+          : "https://coordena-backend.onrender.com";
 
-      // Prepara helpers esperados pelo restante do app
-      const adminToken = Auth.getCurrentToken();
-      const BASE_API = window.location.hostname.includes('localhost')
-        ? 'http://localhost:10000'
-        : 'https://coordena-backend.onrender.com';
+        window.API_BASE = BASE_API;
 
-      window.API_BASE = BASE_API;
-
-      // Wrapper compatível com código legado que espera window.api
-      window.api = async function(path, options = {}) {
-        const res = await fetch(`${BASE_API}${path}`, {
-          ...options,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {}),
-            'Authorization': `Bearer ${adminToken}`
+        // Wrapper compatível com código legado que espera window.api
+        window.api = async function (path, options = {}) {
+          const res = await fetch(`${BASE_API}${path}`, {
+            ...options,
+            headers: {
+              "Content-Type": "application/json",
+              ...(options.headers || {}),
+              Authorization: `Bearer ${adminToken}`,
+            },
+          });
+          if (res.status === 401 || res.status === 403) {
+            alert("Sem permissão ou token inválido. Faça login novamente.");
+            Auth.logout();
+            window.location.href = "/login.html";
+            throw new Error("Unauthorized");
           }
-        });
-        if (res.status === 401 || res.status === 403) {
-          alert('Sem permissão ou token inválido. Faça login novamente.');
-          Auth.logout();
-          window.location.href = "/login.html";
-          throw new Error('Unauthorized');
-        }
-        return res;
-      };
-    })();
+          return res;
+        };
+      })();
 
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      window.location.href = '/login.html';
-    } else {
-      fetch('https://SEU_BACKEND_URL/api/admin/validate', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      })
-        .then(res => {
-          if (!res.ok) {
-            localStorage.removeItem('admin_token');
-            window.location.href = '/login.html';
-          }
-          // Se OK, segue normalmente
+      const token = localStorage.getItem("admin_token");
+      if (!token) {
+        window.location.href = "/login.html";
+      } else {
+        fetch("https://SEU_BACKEND_URL/api/admin/validate", {
+          headers: { Authorization: "Bearer " + token },
         })
-        .catch(() => {
-          localStorage.removeItem('admin_token');
-          window.location.href = '/login.html';
-        });
-    }
-  </script>
-
-  <!-- Topbar -->
-  <header class="topbar shadow-sm">
-    <div class="container-fluid d-flex align-items-center justify-content-between gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <div class="brand-badge">
-          <i class="fa-solid fa-bolt"></i>
-        </div>
-        <div>
-          <h1 class="topbar-title mb-0">Painel de Administração</h1>
-          <p class="topbar-subtitle mb-0">Gerencie solicitações de usuários e reservas</p>
-        </div>
-      </div>
-
-      <div class="d-flex align-items-center gap-2">
-        <button id="btn-ativar-notificacoes" class="btn btn-ghost">
-          <i class="fa-regular fa-bell me-1"></i> Notificações
-        </button>
-        <button id="admin-logout-btn" class="btn btn-primary">
-          <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="container-fluid py-4 px-2 px-md-4">
-
-    <!-- Tabs -->
-    <div class="tabs-wrapper sticky-top">
-      <ul class="nav nav-pills nav-fill gap-2 small fw-semibold" id="adminTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" aria-controls="usuarios" aria-selected="true">
-            <i class="fa-solid fa-user-clock me-1"></i> Usuários Pendentes
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" aria-controls="reservas" aria-selected="false">
-            <i class="fa-solid fa-calendar-check me-1"></i> Reservas Pendentes
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" aria-controls="ativas" aria-selected="false">
-            <i class="fa-solid fa-circle-play me-1"></i> Reservas Ativas
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" aria-controls="historico" aria-selected="false">
-            <i class="fa-solid fa-timeline me-1"></i> Histórico de Usuários
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
-            <i class="fa-solid fa-grid-2 me-1"></i> Ocupação
-          </button>
-        </li>
-      </ul>
-    </div>
-
-    <div class="tab-content" id="adminTabContent">
-
-      <!-- Usuários Pendentes -->
-      <section class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-        <div class="card card-ghost">
-          <div class="card-body">
-            <div class="row g-2 align-items-center mb-3">
-              <div class="col-12 col-md-8">
-                <div class="input-icon">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                  <input type="text" id="busca-usuarios" class="form-control" placeholder="Buscar usuário por nome ou e-mail..." />
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <select id="ordenacao-usuarios" class="form-select">
-                  <option value="createdAt">Ordem de Chegada</option>
-                  <option value="name">Nome (A–Z)</option>
-                  <option value="email">E-mail (A–Z)</option>
-                </select>
-              </div>
-            </div>
-
-            <div id="lista-pendentes-usuarios" class="list-area"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Reservas Pendentes -->
-      <section class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
-        <div class="card card-ghost">
-          <div class="card-body">
-            <div class="row g-2 align-items-center mb-3">
-              <div class="col-12 col-md-8">
-                <div class="input-icon">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                  <input type="text" id="busca-reservas" class="form-control" placeholder="Buscar reserva por sala/lab ou requisitante..." />
-                </div>
-              </div>
-              <div class="col-12 col-md-4 d-flex gap-2">
-                <input type="date" id="filtro-data-reservas" class="form-control" />
-                <select id="ordenacao-reservas" class="form-select">
-                  <option value="date">Data</option>
-                  <option value="responsible">Requisitante (A–Z)</option>
-                </select>
-              </div>
-            </div>
-
-            <div id="lista-pendentes-reservas" class="list-area"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Reservas Ativas -->
-      <section class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
-        <div class="card card-ghost">
-          <div class="card-body">
-            <div class="row g-2 align-items-center mb-3">
-              <div class="col-12 col-md-8">
-                <div class="input-icon">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                  <input type="text" id="busca-ativas" class="form-control" placeholder="Buscar sala/lab ou requisitante..." />
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <input type="date" id="filtro-data-ativas" class="form-control" />
-              </div>
-            </div>
-
-            <div id="lista-ativas" class="row g-3"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Histórico -->
-      <section class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
-        <div class="card card-ghost">
-          <div class="card-body">
-            <h5 class="section-title"><i class="fa-solid fa-history me-2"></i>Histórico de Usuários</h5>
-            <div class="row g-2 mb-3">
-              <div class="col-12 col-md-4">
-                <input type="date" id="filtro-data-historico" class="form-control" />
-              </div>
-            </div>
-            <div id="lista-historico-usuarios" class="text-muted">Aqui aparecerá o histórico de usuários (aprovados/rejeitados).</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Ocupação -->
-      <section class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
-        <div class="card card-ghost">
-          <div class="card-body">
-            <div class="row g-3 mb-3">
-              <div class="col-12 col-md-4">
-                <label for="occupancy-date-admin" class="form-label fw-semibold">Data de Consulta</label>
-                <input type="date" id="occupancy-date-admin" class="form-control" value="" />
-              </div>
-            </div>
-
-            <div class="table-responsive soft-border">
-              <table id="occupancy-table-admin" class="table table-sm table-borderless align-middle text-center mb-0"></table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <!-- Toast -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-    <div id="toastNovoCadastro" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body" id="meuToastBody"></div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/assets/js/main.js"></script>
-
-  <!-- Script Ocupação (usa Api do main.js) -->
-  <script>
-    onReady(async () => {
-      try { window.fixedSlots = await Api.fetchFixedSchedules(); }
-      catch (err) { console.error("Falha ao buscar fixedSchedules no admin:", err); window.fixedSlots = []; }
-
-      const dateInput = document.getElementById("occupancy-date-admin");
-      dateInput.value = new Date().toISOString().slice(0, 10);
-
-      document.getElementById("ocupacao-tab").addEventListener("shown.bs.tab", () => {
-        safeBuildOccupancyTableAdmin(dateInput.value);
-      });
-      dateInput.addEventListener("change", () => safeBuildOccupancyTableAdmin(dateInput.value));
-
-      if (document.querySelector(".nav-link.active")?.id === "ocupacao-tab") {
-        safeBuildOccupancyTableAdmin(dateInput.value);
+          .then((res) => {
+            if (!res.ok) {
+              localStorage.removeItem("admin_token");
+              window.location.href = "/login.html";
+            }
+            // Se OK, segue normalmente
+          })
+          .catch(() => {
+            localStorage.removeItem("admin_token");
+            window.location.href = "/login.html";
+          });
       }
-    });
+    </script>
 
-    async function safeBuildOccupancyTableAdmin(filterDate) {
-      try { await buildOccupancyTableAdmin(filterDate); }
-      catch (err) { console.error("Erro na tabela de ocupação (admin):", err); }
-    }
+    <!-- Topbar -->
+    <header class="topbar shadow-sm">
+      <div
+        class="container-fluid d-flex align-items-center justify-content-between gap-2"
+      >
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-badge">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h1 class="topbar-title mb-0">Painel de Administração</h1>
+            <p class="topbar-subtitle mb-0">
+              Gerencie solicitações de usuários e reservas
+            </p>
+          </div>
+        </div>
 
-    // Wire do botão de logout
-    document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
-      Auth.logout();
-    });
-  </script>
-</body>
+        <div class="d-flex align-items-center gap-2">
+          <button id="btn-ativar-notificacoes" class="btn btn-ghost">
+            <i class="fa-regular fa-bell me-1"></i> Notificações
+          </button>
+          <button id="admin-logout-btn" class="btn btn-primary">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container-fluid py-4 px-2 px-md-4">
+      <!-- Tabs -->
+      <div class="tabs-wrapper sticky-top">
+        <ul
+          class="nav nav-pills nav-fill gap-2 small fw-semibold"
+          id="adminTab"
+          role="tablist"
+        >
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="usuarios-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#usuarios"
+              type="button"
+              role="tab"
+              aria-controls="usuarios"
+              aria-selected="true"
+            >
+              <i class="fa-solid fa-user-clock me-1"></i> Usuários Pendentes
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="reservas-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#reservas"
+              type="button"
+              role="tab"
+              aria-controls="reservas"
+              aria-selected="false"
+            >
+              <i class="fa-solid fa-calendar-check me-1"></i> Reservas Pendentes
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="ativas-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#ativas"
+              type="button"
+              role="tab"
+              aria-controls="ativas"
+              aria-selected="false"
+            >
+              <i class="fa-solid fa-circle-play me-1"></i> Reservas Ativas
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="historico-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#historico"
+              type="button"
+              role="tab"
+              aria-controls="historico"
+              aria-selected="false"
+            >
+              <i class="fa-solid fa-timeline me-1"></i> Histórico de Usuários
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="ocupacao-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#ocupacao"
+              type="button"
+              role="tab"
+              aria-controls="ocupacao"
+              aria-selected="false"
+            >
+              <i class="fa-solid fa-grid-2 me-1"></i> Ocupação
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tab-content" id="adminTabContent">
+        <!-- Usuários Pendentes -->
+        <section
+          class="tab-pane fade show active"
+          id="usuarios"
+          role="tabpanel"
+          aria-labelledby="usuarios-tab"
+        >
+          <div class="card card-ghost">
+            <div class="card-body">
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-12 col-md-8">
+                  <div class="input-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                      type="text"
+                      id="busca-usuarios"
+                      class="form-control"
+                      placeholder="Buscar usuário por nome ou e-mail..."
+                    />
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <select id="ordenacao-usuarios" class="form-select">
+                    <option value="createdAt">Ordem de Chegada</option>
+                    <option value="name">Nome (A–Z)</option>
+                    <option value="email">E-mail (A–Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="lista-pendentes-usuarios" class="list-area"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Reservas Pendentes -->
+        <section
+          class="tab-pane fade"
+          id="reservas"
+          role="tabpanel"
+          aria-labelledby="reservas-tab"
+        >
+          <div class="card card-ghost">
+            <div class="card-body">
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-12 col-md-8">
+                  <div class="input-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                      type="text"
+                      id="busca-reservas"
+                      class="form-control"
+                      placeholder="Buscar reserva por sala/lab ou requisitante..."
+                    />
+                  </div>
+                </div>
+                <div class="col-12 col-md-4 d-flex gap-2">
+                  <input
+                    type="date"
+                    id="filtro-data-reservas"
+                    class="form-control"
+                  />
+                  <select id="ordenacao-reservas" class="form-select">
+                    <option value="date">Data</option>
+                    <option value="responsible">Requisitante (A–Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="lista-pendentes-reservas" class="list-area"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Reservas Ativas -->
+        <section
+          class="tab-pane fade"
+          id="ativas"
+          role="tabpanel"
+          aria-labelledby="ativas-tab"
+        >
+          <div class="card card-ghost">
+            <div class="card-body">
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-12 col-md-8">
+                  <div class="input-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                      type="text"
+                      id="busca-ativas"
+                      class="form-control"
+                      placeholder="Buscar sala/lab ou requisitante..."
+                    />
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <input
+                    type="date"
+                    id="filtro-data-ativas"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+
+              <div id="lista-ativas" class="row g-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Histórico -->
+        <section
+          class="tab-pane fade"
+          id="historico"
+          role="tabpanel"
+          aria-labelledby="historico-tab"
+        >
+          <div class="card card-ghost">
+            <div class="card-body">
+              <h5 class="section-title">
+                <i class="fa-solid fa-history me-2"></i>Histórico de Usuários
+              </h5>
+              <div class="row g-2 mb-3">
+                <div class="col-12 col-md-4">
+                  <input
+                    type="date"
+                    id="filtro-data-historico"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+              <div id="lista-historico-usuarios" class="text-muted">
+                Aqui aparecerá o histórico de usuários (aprovados/rejeitados).
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Ocupação -->
+        <section
+          class="tab-pane fade"
+          id="ocupacao"
+          role="tabpanel"
+          aria-labelledby="ocupacao-tab"
+        >
+          <div class="card card-ghost">
+            <div class="card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-12 col-md-4">
+                  <label
+                    for="occupancy-date-admin"
+                    class="form-label fw-semibold"
+                    >Data de Consulta</label
+                  >
+                  <input
+                    type="date"
+                    id="occupancy-date-admin"
+                    class="form-control"
+                    value=""
+                  />
+                </div>
+              </div>
+
+              <div class="table-responsive soft-border">
+                <table
+                  id="occupancy-table-admin"
+                  class="table table-sm table-borderless align-middle text-center mb-0"
+                ></table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+      <div
+        id="toastNovoCadastro"
+        class="toast align-items-center text-white bg-dark border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body" id="meuToastBody"></div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Fechar"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/main.js"></script>
+
+    <!-- Script Ocupação (usa Api do main.js) -->
+    <script>
+      onReady(async () => {
+        try {
+          window.fixedSlots = await Api.fetchFixedSchedules();
+        } catch (err) {
+          console.error("Falha ao buscar fixedSchedules no admin:", err);
+          window.fixedSlots = [];
+        }
+
+        const dateInput = document.getElementById("occupancy-date-admin");
+        dateInput.value = new Date().toISOString().slice(0, 10);
+
+        document
+          .getElementById("ocupacao-tab")
+          .addEventListener("shown.bs.tab", () => {
+            safeBuildOccupancyTableAdmin(dateInput.value);
+          });
+        dateInput.addEventListener("change", () =>
+          safeBuildOccupancyTableAdmin(dateInput.value)
+        );
+
+        if (document.querySelector(".nav-link.active")?.id === "ocupacao-tab") {
+          safeBuildOccupancyTableAdmin(dateInput.value);
+        }
+      });
+
+      async function safeBuildOccupancyTableAdmin(filterDate) {
+        try {
+          await buildOccupancyTableAdmin(filterDate);
+        } catch (err) {
+          console.error("Erro na tabela de ocupação (admin):", err);
+        }
+      }
+
+      // Wire do botão de logout
+      document
+        .getElementById("admin-logout-btn")
+        ?.addEventListener("click", () => {
+          Auth.logout();
+        });
+    </script>
+  </body>
 </html>

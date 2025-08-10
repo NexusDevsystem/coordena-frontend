@@ -1,147 +1,216 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login – Coordena+</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – Coordena+</title>
 
-  <!-- Tailwind + Dark Mode -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: { DEFAULT: '#2563EB', light: '#60A5FA' }
-          }
-        }
-      }
-    }
-  </script>
-  <link rel="stylesheet" href="assets/css/styles.css" />
-</head>
+    <!-- Tailwind + Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: { DEFAULT: "#2563EB", light: "#60A5FA" },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
 
-<body class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4">
+  <body
+    class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 flex items-center justify-center p-4"
+  >
+    <!-- Background -->
+    <div
+      class="absolute inset-0 bg-[url('assets/img/background.png')] dark:bg-[url('assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"
+    ></div>
 
-  <!-- Background -->
-  <div class="absolute inset-0 bg-[url('assets/img/background.png')] dark:bg-[url('assets/img/backgrounddark.png')] bg-cover bg-center opacity-20"></div>
+    <!-- Card -->
+    <div
+      class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6"
+    >
+      <div class="flex justify-center">
+        <img
+          src="assets/img/logo.png"
+          alt="Coordena+ Logo"
+          class="h-12 w-auto"
+        />
+      </div>
+      <h2
+        class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200"
+      >
+        Entrar no Coordena+
+      </h2>
 
-  <!-- Card -->
-  <div class="relative w-full max-w-md bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-60 backdrop-blur-md rounded-2xl shadow-lg p-8 space-y-6">
-    <div class="flex justify-center">
-      <img src="assets/img/logo.png" alt="Coordena+ Logo" class="h-12 w-auto" />
+      <!-- Form sem action: toda a lógica fica em auth.js -->
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label
+            for="email"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >E-mail institucional</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"
+          />
+        </div>
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Senha</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"
+          />
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label
+            class="inline-flex items-center text-gray-700 dark:text-gray-300"
+          >
+            <input
+              type="checkbox"
+              class="form-checkbox h-4 w-4 text-primary transition"
+            />
+            <span class="ml-2">Lembrar-me</span>
+          </label>
+          <a href="#" class="text-primary hover:underline">Esqueceu a senha?</a>
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition"
+          >
+            Entrar
+          </button>
+        </div>
+        <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+          Não tem conta?
+          <a href="register.html" class="text-primary hover:underline"
+            >Cadastre-se</a
+          >
+        </p>
+      </form>
     </div>
-    <h2 class="text-center text-2xl font-semibold text-gray-800 dark:text-gray-200">Entrar no Coordena+</h2>
 
-    <!-- Form sem action: toda a lógica fica em auth.js -->
-    <form id="login-form" class="space-y-4">
-      <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail institucional</label>
-        <input type="email" id="email" name="email" required
-               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"/>
-      </div>
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-        <input type="password" id="password" name="password" required
-               class="w-full mt-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary transition"/>
-      </div>
-      <div class="flex items-center justify-between text-sm">
-        <label class="inline-flex items-center text-gray-700 dark:text-gray-300">
-          <input type="checkbox" class="form-checkbox h-4 w-4 text-primary transition" />
-          <span class="ml-2">Lembrar-me</span>
-        </label>
-        <a href="#" class="text-primary hover:underline">Esqueceu a senha?</a>
-      </div>
-      <div>
-        <button type="submit"
-                class="w-full py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-md shadow hover:scale-105 transform transition">
-          Entrar
+    <!-- Popup Modal -->
+    <div
+      id="popup-modal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 pointer-events-none transition-opacity"
+    >
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full text-center"
+      >
+        <p id="popup-text" class="mb-4 text-gray-900 dark:text-gray-100"></p>
+        <button
+          id="popup-ok"
+          class="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-light transition"
+        >
+          OK
         </button>
       </div>
-      <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-        Não tem conta?
-        <a href="register.html" class="text-primary hover:underline">Cadastre-se</a>
-      </p>
-    </form>
-  </div>
-
-  <!-- Popup Modal -->
-  <div id="popup-modal"
-       class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 pointer-events-none transition-opacity">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full text-center">
-      <p id="popup-text" class="mb-4 text-gray-900 dark:text-gray-100"></p>
-      <button id="popup-ok"
-              class="mt-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-light transition">
-        OK
-      </button>
     </div>
-  </div>
 
-  <!-- Dark/Light Toggle -->
-  <button id="theme-toggle"
-          class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6 text-gray-800 dark:text-gray-200"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
+    <!-- Dark/Light Toggle -->
+    <button
+      id="theme-toggle"
+      class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition duration-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 text-gray-800 dark:text-gray-200"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 3v1m0 16v1m8.66-10h-1M4.34 12h-1
                m15.02 5.66l-.7-.7M6.34 6.34l-.7-.7
                m0 12.02l.7-.7M17.66 6.34l.7-.7
-               M12 5a7 7 0 100 14a7 7 0 000-14z"/>
-    </svg>
-  </button>
+               M12 5a7 7 0 100 14a7 7 0 000-14z"
+        />
+      </svg>
+    </button>
 
-  <!-- Scripts -->
-  <!-- 1) Auth.js com Auth.login() -->
-  <script src="assets/js/auth.js" defer></script>
-  <script>
-    // Modal helpers
-  const popupModal = document.getElementById('popup-modal');
-  const popupText  = document.getElementById('popup-text');
-  const popupOk    = document.getElementById('popup-ok');
-  function showPopup(msg) {
-    popupText.textContent = msg;
-    popupModal.classList.remove('opacity-0','pointer-events-none');
-  }
-  popupOk.addEventListener('click', () => {
-    popupModal.classList.add('opacity-0','pointer-events-none');
-  });
+    <
+    <!-- Scripts -->
+    <!-- 1) Auth.js com Auth.login() -->
+    <script src="assets/js/auth.js" defer></script>
+    <script>
+      Auth.guardPage("public");
+    </script>
+    <script>
+      // Modal helpers
+      const popupModal = document.getElementById("popup-modal");
+      const popupText = document.getElementById("popup-text");
+      const popupOk = document.getElementById("popup-ok");
+      function showPopup(msg) {
+        popupText.textContent = msg;
+        popupModal.classList.remove("opacity-0", "pointer-events-none");
+      }
+      popupOk.addEventListener("click", () => {
+        popupModal.classList.add("opacity-0", "pointer-events-none");
+      });
 
-  // 2) Tema dark/light
-  const btn2 = document.getElementById('theme-toggle');
-  const root2 = document.documentElement;
-  const saved2 = localStorage.getItem('theme') || 'light';
-  if (saved2 === 'dark') root2.classList.add('dark');
-  btn2.addEventListener('click', () => {
-    root2.classList.toggle('dark');
-    localStorage.setItem('theme', root2.classList.contains('dark') ? 'dark' : 'light');
-  });
+      // 2) Tema dark/light
+      const btn2 = document.getElementById("theme-toggle");
+      const root2 = document.documentElement;
+      const saved2 = localStorage.getItem("theme") || "light";
+      if (saved2 === "dark") root2.classList.add("dark");
+      btn2.addEventListener("click", () => {
+        root2.classList.toggle("dark");
+        localStorage.setItem(
+          "theme",
+          root2.classList.contains("dark") ? "dark" : "light"
+        );
+      });
 
-  // 3) Login — somente e-mail institucional (admin usa admin@admin.estacio.br)
-  document.getElementById('login-form').addEventListener('submit', async e => {
-    e.preventDefault();
+      // 3) Login — somente e-mail institucional (admin usa admin@admin.estacio.br)
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
+          const email = document
+            .getElementById("email")
+            .value.trim()
+            .toLowerCase();
+          const password = document.getElementById("password").value;
 
-    const estacioRegex = /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
+          const estacioRegex =
+            /^[\w.%+-]+@(alunos|professor|admin)\.estacio\.br$/i;
 
-    if (!estacioRegex.test(email)) {
-      return showPopup(
-        'Use um e-mail institucional válido:\n' +
-        '- Aluno: @alunos.estacio.br\n' +
-        '- Professor: @professor.estacio.br\n' +
-        '- Admin: admin@admin.estacio.br'
-      );
-    }
+          if (!estacioRegex.test(email)) {
+            return showPopup(
+              "Use um e-mail institucional válido:\n" +
+                "- Aluno: @alunos.estacio.br\n" +
+                "- Professor: @professor.estacio.br\n" +
+                "- Admin: admin@admin.estacio.br"
+            );
+          }
 
-    try {
-      await Auth.login(email, password); // Auth.login fará o redirect
-    } catch (err) {
-      showPopup(err.message || 'Falha no login.');
-    }
-  });
-  </script>
-</body>
+          try {
+            await Auth.login(email, password); // Auth.login fará o redirect
+          } catch (err) {
+            showPopup(err.message || "Falha no login.");
+          }
+        });
+    </script>
+  </body>
 </html>
