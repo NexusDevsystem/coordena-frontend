@@ -3,60 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Administração</title>
+  <title>Painel de Administração – Coordena+</title>
 
   <!-- Bootstrap / Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-  <!-- CSS do admin -->
+  <!-- CSS do admin (tema Coordena) -->
   <link rel="stylesheet" href="/assets/css/admin.css" />
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-surface">
 
   <!-- Proteção de rota (apenas admin) + shim de token -->
   <script>
-    // Lê usuário/token priorizando chaves de admin
     const rawAdminUser = localStorage.getItem('admin_user') || localStorage.getItem('user');
     const adminToken   = localStorage.getItem('admin_token') || localStorage.getItem('token');
 
     const LOGIN_PATH = '/pages/login.html';
     const HOME_PATH  = '/index.html';
 
-    // Sem sessão → login
     if (!rawAdminUser || !adminToken) {
       alert('Sessão expirada. Faça login novamente.');
       window.location.replace(LOGIN_PATH);
     }
 
-    // Valida objeto user e papel admin
     let adminUser;
-    try {
-      adminUser = JSON.parse(rawAdminUser || '{}');
-    } catch {
-      localStorage.removeItem('admin_user');
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.replace(LOGIN_PATH);
-    }
+    try { adminUser = JSON.parse(rawAdminUser || '{}'); } catch { adminUser = null; }
+    if (!adminUser || adminUser.role !== 'admin') window.location.replace(HOME_PATH);
 
-    if (!adminUser || adminUser.role !== 'admin') {
-      window.location.replace(HOME_PATH);
-    }
-
-    // SHIM: espelha em chaves genéricas para módulos legados (main.js/Api)
+    // SHIM p/ módulos legados (main.js / Api)
     localStorage.setItem('token', adminToken);
     localStorage.setItem('user', JSON.stringify(adminUser));
 
-    // Base da API (global)
     const BASE_API = window.location.hostname.includes('localhost')
       ? 'http://localhost:10000'
       : 'https://coordena-backend.onrender.com';
     window.API_BASE = BASE_API;
 
-    // Fetch helper com Authorization
     window.api = async function(path, options = {}) {
       const res = await fetch(`${BASE_API}${path}`, {
         ...options,
@@ -66,7 +50,6 @@
           'Authorization': `Bearer ${adminToken}`
         }
       });
-
       if (res.status === 401 || res.status === 403) {
         alert('Sem permissão ou token inválido. Faça login novamente.');
         localStorage.removeItem('admin_user');
@@ -80,144 +63,171 @@
     };
   </script>
 
-  <!-- Container -->
-  <div class="container-fluid py-4 px-2 px-md-4">
-    <!-- Cabeçalho -->
-    <div
-      class="bg-primary text-white rounded-3 p-3 p-md-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
-    >
-      <div class="w-100 w-md-auto">
-        <h1 class="h4 mb-1"><i class="fas fa-user-shield me-2"></i>Painel de Administração</h1>
-        <p class="mb-0 small">Gerencie solicitações de usuários e reservas</p>
+  <!-- Topbar -->
+  <header class="topbar shadow-sm">
+    <div class="container-fluid d-flex align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="brand-badge">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div>
+          <h1 class="topbar-title mb-0">Painel de Administração</h1>
+          <p class="topbar-subtitle mb-0">Gerencie solicitações de usuários e reservas</p>
+        </div>
       </div>
 
-      <button id="admin-logout-btn" class="btn btn-outline-light me-2">
-        <i class="fas fa-sign-out-alt me-1"></i> Logout
-      </button>
-
-      <button id="btn-ativar-notificacoes" class="btn btn-outline-light">
-        <i class="fas fa-bell"></i> Ativar Notificações
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <button id="btn-ativar-notificacoes" class="btn btn-ghost">
+          <i class="fa-regular fa-bell me-1"></i> Notificações
+        </button>
+        <button id="admin-logout-btn" class="btn btn-primary">
+          <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- Abas -->
-    <div class="overflow-auto mb-3">
-      <ul class="nav nav-tabs flex-nowrap" id="adminTab" role="tablist">
+  <main class="container-fluid py-4 px-2 px-md-4">
+
+    <!-- Tabs -->
+    <div class="tabs-wrapper sticky-top">
+      <ul class="nav nav-pills nav-fill gap-2 small fw-semibold" id="adminTab" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" aria-controls="usuarios" aria-selected="true">
-            <i class="fas fa-user"></i> Usuários Pendentes
+            <i class="fa-solid fa-user-clock me-1"></i> Usuários Pendentes
           </button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" aria-controls="reservas" aria-selected="false">
-            <i class="fas fa-calendar-alt"></i> Reservas Pendentes
+            <i class="fa-solid fa-calendar-check me-1"></i> Reservas Pendentes
           </button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" aria-controls="ativas" aria-selected="false">
-            <i class="fas fa-check-circle"></i> Reservas Ativas
+            <i class="fa-solid fa-circle-play me-1"></i> Reservas Ativas
           </button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" aria-controls="historico" aria-selected="false">
-            <i class="fas fa-history"></i> Histórico de Usuários
+            <i class="fa-solid fa-timeline me-1"></i> Histórico de Usuários
           </button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
-            <i class="fas fa-th-large"></i> Ocupação
+            <i class="fa-solid fa-grid-2 me-1"></i> Ocupação
           </button>
         </li>
       </ul>
     </div>
 
     <div class="tab-content" id="adminTabContent">
-      <!-- ABA 1: Usuários Pendentes -->
-      <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-        <div class="row mb-3 gx-2">
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input type="text" id="busca-usuarios" class="form-control ps-4 w-100" placeholder="Buscar usuário por nome ou email..." />
-              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
+
+      <!-- Usuários Pendentes -->
+      <section class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
+        <div class="card card-ghost">
+          <div class="card-body">
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-12 col-md-8">
+                <div class="input-icon">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="busca-usuarios" class="form-control" placeholder="Buscar usuário por nome ou e-mail..." />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <select id="ordenacao-usuarios" class="form-select">
+                  <option value="createdAt">Ordem de Chegada</option>
+                  <option value="name">Nome (A–Z)</option>
+                  <option value="email">E-mail (A–Z)</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="lista-pendentes-usuarios" class="list-area"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reservas Pendentes -->
+      <section class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
+        <div class="card card-ghost">
+          <div class="card-body">
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-12 col-md-8">
+                <div class="input-icon">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="busca-reservas" class="form-control" placeholder="Buscar reserva por sala/lab ou requisitante..." />
+                </div>
+              </div>
+              <div class="col-12 col-md-4 d-flex gap-2">
+                <input type="date" id="filtro-data-reservas" class="form-control" />
+                <select id="ordenacao-reservas" class="form-select">
+                  <option value="date">Data</option>
+                  <option value="responsible">Requisitante (A–Z)</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="lista-pendentes-reservas" class="list-area"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reservas Ativas -->
+      <section class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
+        <div class="card card-ghost">
+          <div class="card-body">
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-12 col-md-8">
+                <div class="input-icon">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="busca-ativas" class="form-control" placeholder="Buscar sala/lab ou requisitante..." />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <input type="date" id="filtro-data-ativas" class="form-control" />
+              </div>
+            </div>
+
+            <div id="lista-ativas" class="row g-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
+        <div class="card card-ghost">
+          <div class="card-body">
+            <h5 class="section-title"><i class="fa-solid fa-history me-2"></i>Histórico de Usuários</h5>
+            <div class="row g-2 mb-3">
+              <div class="col-12 col-md-4">
+                <input type="date" id="filtro-data-historico" class="form-control" />
+              </div>
+            </div>
+            <div id="lista-historico-usuarios" class="text-muted">Aqui aparecerá o histórico de usuários (aprovados/rejeitados).</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ocupação -->
+      <section class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
+        <div class="card card-ghost">
+          <div class="card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-12 col-md-4">
+                <label for="occupancy-date-admin" class="form-label fw-semibold">Data de Consulta</label>
+                <input type="date" id="occupancy-date-admin" class="form-control" value="" />
+              </div>
+            </div>
+
+            <div class="table-responsive soft-border">
+              <table id="occupancy-table-admin" class="table table-sm table-borderless align-middle text-center mb-0"></table>
             </div>
           </div>
-          <div class="col-12 col-md-4">
-            <select id="ordenacao-usuarios" class="form-select w-100">
-              <option value="createdAt">Ordem de Chegada</option>
-              <option value="name">Nome (A-Z)</option>
-              <option value="email">Email (A-Z)</option>
-            </select>
-          </div>
         </div>
-        <div id="lista-pendentes-usuarios"></div>
-      </div>
+      </section>
 
-      <!-- ABA 2: Reservas Pendentes -->
-      <div class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
-        <div class="row mb-3 gx-2">
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input type="text" id="busca-reservas" class="form-control ps-4 w-100" placeholder="Buscar reserva por lab ou requisitante..." />
-              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
-            </div>
-          </div>
-          <div class="col-12 col-md-4">
-            <input type="date" id="filtro-data-reservas" class="form-control mb-2 w-100" placeholder="Data" />
-            <select id="ordenacao-reservas" class="form-select w-100">
-              <option value="date">Data</option>
-              <option value="responsible">Requisitante (A-Z)</option>
-            </select>
-          </div>
-        </div>
-        <div id="lista-pendentes-reservas"></div>
-      </div>
-
-      <!-- ABA 3: Reservas Ativas -->
-      <div class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
-        <div class="row mb-3 gx-2">
-          <div class="col-12 col-md-8">
-            <div class="search-box position-relative">
-              <input type="text" id="busca-ativas" class="form-control ps-4 w-100" placeholder="Buscar lab ou requisitante nas aprovadas..." />
-              <i class="fas fa-search position-absolute" style="top:50%; right:15px; transform: translateY(-50%); color:#6c757d;"></i>
-            </div>
-          </div>
-          <div class="col-12 col-md-4">
-            <input type="date" id="filtro-data-ativas" class="form-control mb-2 w-100" placeholder="Data" />
-          </div>
-        </div>
-        <div id="lista-ativas" class="row g-3"></div>
-      </div>
-
-      <!-- ABA 4: Histórico -->
-      <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
-        <div class="row mb-3 gx-2">
-          <div class="col-12">
-            <h5 class="mb-3"><i class="fas fa-history me-2"></i> Histórico de Usuários</h5>
-            <div class="mb-3">
-              <input type="date" id="filtro-data-historico" class="form-control w-100" placeholder="Selecionar período..." />
-            </div>
-          </div>
-        </div>
-        <div id="lista-historico-usuarios">
-          <p class="text-muted">Aqui aparecerá o histórico de usuários (ex: usuários já aprovados, rejeitados ou removidos).</p>
-        </div>
-      </div>
-
-      <!-- ABA 5: Ocupação -->
-      <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
-        <div class="row mb-3 gx-2">
-          <div class="col-12 col-md-4">
-            <label for="occupancy-date-admin" class="form-label">Data de Consulta:</label>
-            <input type="date" id="occupancy-date-admin" class="form-control" value="" />
-          </div>
-        </div>
-
-        <div class="overflow-auto border rounded">
-          <table id="occupancy-table-admin" class="table table-sm table-bordered text-center mb-0"></table>
-        </div>
-      </div>
     </div>
-  </div>
+  </main>
 
   <!-- Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
@@ -233,183 +243,28 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/main.js"></script>
 
-  <!-- Script da aba Ocupação (usa Api de main.js e token já espelhado) -->
+  <!-- Script Ocupação (usa Api do main.js) -->
   <script>
-    // Executa quando main.js estiver pronto
     onReady(async () => {
-      // Carrega horários fixos
-      try {
-        window.fixedSlots = await Api.fetchFixedSchedules();
-      } catch (err) {
-        console.error("Falha ao buscar fixedSchedules no admin:", err);
-        window.fixedSlots = [];
-      }
+      try { window.fixedSlots = await Api.fetchFixedSchedules(); }
+      catch (err) { console.error("Falha ao buscar fixedSchedules no admin:", err); window.fixedSlots = []; }
 
       const dateInput = document.getElementById("occupancy-date-admin");
       dateInput.value = new Date().toISOString().slice(0, 10);
 
-      const tabOcupacao = document.getElementById("ocupacao-tab");
-      tabOcupacao.addEventListener("shown.bs.tab", () => {
+      document.getElementById("ocupacao-tab").addEventListener("shown.bs.tab", () => {
         safeBuildOccupancyTableAdmin(dateInput.value);
       });
+      dateInput.addEventListener("change", () => safeBuildOccupancyTableAdmin(dateInput.value));
 
-      dateInput.addEventListener("change", () => {
-        safeBuildOccupancyTableAdmin(dateInput.value);
-      });
-
-      const activeTab = document.querySelector(".nav-link.active")?.id;
-      if (activeTab === "ocupacao-tab") {
+      if (document.querySelector(".nav-link.active")?.id === "ocupacao-tab") {
         safeBuildOccupancyTableAdmin(dateInput.value);
       }
     });
 
     async function safeBuildOccupancyTableAdmin(filterDate) {
-      try {
-        await buildOccupancyTableAdmin(filterDate);
-      } catch (err) {
-        console.error("Erro na tabela de ocupação (admin):", err);
-      }
-    }
-
-    async function buildOccupancyTableAdmin(filterDate) {
-      const table = document.getElementById("occupancy-table-admin");
-      if (!table) return console.error("#occupancy-table-admin não encontrado");
-      table.innerHTML = "";
-
-      // 1) Busca eventos aprovados
-      let approvedEvents = [];
-      try {
-        approvedEvents = await Api.fetchEvents();
-      } catch (err) {
-        console.error("Erro ao buscar reservas aprovadas para admin:", err);
-      }
-      approvedEvents = approvedEvents.filter(e => e.status === "approved");
-
-      // 2) Data alvo
-      const dateStr = filterDate || new Date().toISOString().slice(0, 10);
-      const [Y, M, D] = dateStr.split("-").map(Number);
-      const weekday = new Date(Y, M - 1, D).getDay();
-
-      // 3) Filtra do dia
-      const dayEvents = approvedEvents.filter(e => e.date === dateStr);
-
-      // 4) Slots fixos do dia
-      const fixedTodaySlots = (window.fixedSlots || []).filter(s => s.dayOfWeek === weekday);
-
-      // Helpers de hora
-      function toDateObj(Y, M, D, hm) {
-        const [h, m] = hm.split(":").map(Number);
-        return new Date(Y, M - 1, D, h, m);
-      }
-      function padHM(d) {
-        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      }
-
-      // 5) Intervalos 50min (08:00–22:00)
-      const slotStart = toDateObj(Y, M, D, "08:00");
-      const slotEnd   = toDateObj(Y, M, D, "22:00");
-      const timeRanges = [];
-      let cursor = new Date(slotStart);
-      while (cursor < slotEnd) {
-        const next = new Date(cursor);
-        next.setMinutes(cursor.getMinutes() + 50);
-        timeRanges.push(`${padHM(cursor)}-${padHM(next)}`);
-        cursor = next;
-      }
-
-      // 6) Labs envolvidos
-      const labs = Array.from(new Set([
-        ...fixedTodaySlots.map(s => s.lab),
-        ...dayEvents.map(e => e.sala || e.resource),
-      ]));
-
-      if (!timeRanges.length || !labs.length) {
-        const emptyRow = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = timeRanges.length + 1;
-        td.className = "text-center py-3 text-muted";
-        td.textContent = "Sem dados para exibir";
-        emptyRow.appendChild(td);
-        table.appendChild(emptyRow);
-        return;
-      }
-
-      // 7) Thead
-      const thead = document.createElement("thead");
-      const trHead = document.createElement("tr");
-      trHead.className = "table-secondary";
-      const thFirst = document.createElement("th");
-      thFirst.scope = "col";
-      thFirst.textContent = "Sala / Horário";
-      trHead.appendChild(thFirst);
-      timeRanges.forEach(r => {
-        const th = document.createElement("th");
-        th.scope = "col";
-        th.className = "text-center text-nowrap";
-        th.style.fontSize = "0.75rem";
-        th.textContent = r;
-        trHead.appendChild(th);
-      });
-      thead.appendChild(trHead);
-      table.appendChild(thead);
-
-      // 8) Tbody
-      const tbody = document.createElement("tbody");
-      labs.forEach(lab => {
-        const tr = document.createElement("tr");
-
-        const tdLab = document.createElement("td");
-        tdLab.className = "fw-semibold align-middle";
-        tdLab.textContent = lab;
-        tr.appendChild(tdLab);
-
-        timeRanges.forEach(range => {
-          const [start, end] = range.split("-");
-          const cellStart = toDateObj(Y, M, D, start);
-          const cellEnd   = toDateObj(Y, M, D, end);
-
-          const hasReservation = dayEvents.some(ev => {
-            if ((ev.sala || ev.resource) !== lab) return false;
-            const evStart = toDateObj(Y, M, D, ev.start);
-            const evEnd   = toDateObj(Y, M, D, ev.end);
-            return evStart < cellEnd && evEnd > cellStart;
-          });
-
-          const fixedSlot = fixedTodaySlots.find(fs => {
-            if (fs.lab !== lab) return false;
-            const fsStart = toDateObj(Y, M, D, fs.startTime);
-            const fsEnd   = toDateObj(Y, M, D, fs.endTime);
-            return fsStart < cellEnd && fsEnd > cellStart;
-          });
-
-          let bgColor = "", label = "";
-          if (hasReservation) {
-            bgColor = "rgba(220,38,38,0.8)"; // ocupado (vermelho)
-            label   = "ocupado";
-          } else if (fixedSlot) {
-            const turnoColors = {
-              Matutino:  "rgba(59,130,246,0.8)",
-              Vespertino:"rgba(234,179,8,0.8)",
-              Noturno:   "rgba(220,38,38,0.8)"
-            };
-            bgColor = turnoColors[fixedSlot.turno] || "rgba(107,114,128,0.5)";
-            label   = fixedSlot.turno;
-          } else {
-            bgColor = "rgba(16,185,129,0.8)"; // livre (verde)
-            label   = "livre";
-          }
-
-          const td = document.createElement("td");
-          td.className = "text-white text-nowrap align-middle";
-          td.style.backgroundColor = bgColor;
-          td.style.fontSize = "0.7rem";
-          td.textContent = label;
-          tr.appendChild(td);
-        });
-
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
+      try { await buildOccupancyTableAdmin(filterDate); }
+      catch (err) { console.error("Erro na tabela de ocupação (admin):", err); }
     }
   </script>
 </body>
