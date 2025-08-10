@@ -37,13 +37,27 @@
 
     <!-- Auth logic -->
     <script src="assets/js/auth.js"></script>
-    <script>Auth.guardPage('user'); Auth.remember();</script>
     <script>
-      // Home é pública. Se o último estado/sessão indica admin, redireciona.
-      Auth.redirectIfAdminOnHome();
+      // Protege a Home para sessão ativa (user OU admin) e registra a última rota
+      Auth.guardPage('user');
+      Auth.remember();
 
-      // Opcional: pega usuário (se existir) só pra exibir nome no menu etc.
-      window.user = Auth.getCurrentUser();
+      // Se estiver logado como admin e a última rota salva for o painel, redireciona
+      (function () {
+        try {
+          const raw = localStorage.getItem('last_path'); // salvo pelo Auth.remember()
+          const last = raw ? JSON.parse(raw) : null;
+          const wasAdmin = last && last.path === '/pages/admin.html';
+          if (Auth.isAdminLogged && Auth.isAdminLogged() && wasAdmin) {
+            location.replace('/pages/admin.html');
+            return;
+          }
+        } catch (_) {}
+        // expõe o usuário para o menu (com fallback se o helper não existir)
+        window.user = (typeof Auth.getCurrentUser === 'function')
+          ? Auth.getCurrentUser()
+          : (JSON.parse(localStorage.getItem('user') || 'null'));
+      })();
     </script>
   </head>
 
@@ -51,7 +65,7 @@
     class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500"
   >
     <!-- =========================== -->
-    <!-- Off-Canvas Menu (igual ao agendamento.html, mas sem o bloco de topo com nome e e-mail) -->
+    <!-- Off-Canvas Menu -->
     <!-- =========================== -->
     <header class="offcanvas-menu">
       <input type="checkbox" id="toggle-menu" />
@@ -72,146 +86,44 @@
         <!-- Botão de fechar (X) -->
         <label for="toggle-menu" class="toggle-close"></label>
 
-        <!-- Lista de navegação (“Teste 1…Teste 6”) -->
+        <!-- Lista de navegação -->
         <ul class="menu-list py-2 space-y-2 list-none px-0">
-          <li>
-            <a
-              href="#home"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 1
-            </a>
-          </li>
-          <li>
-            <a
-              href="#user"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 2
-            </a>
-          </li>
-          <li>
-            <a
-              href="#contact"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 3
-            </a>
-          </li>
-          <li>
-            <a
-              href="#map"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 4
-            </a>
-          </li>
-          <li>
-            <a
-              href="#settings"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 5
-            </a>
-          </li>
-          <li>
-            <a
-              href="#search"
-              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
-            >
-              Teste 6
-            </a>
-          </li>
+          <li><a href="#home" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 1</a></li>
+          <li><a href="#user" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 2</a></li>
+          <li><a href="#contact" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 3</a></li>
+          <li><a href="#map" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 4</a></li>
+          <li><a href="#settings" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 5</a></li>
+          <li><a href="#search" class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500">Teste 6</a></li>
         </ul>
 
-        <!-- ******************************************************* -->
-        <!-- Bloco Inferior: Nome Completo, Cargo, Tema e Logout -->
+        <!-- Bloco Inferior: Nome, Cargo, Tema e Logout -->
         <div class="mt-auto px-4 pb-6">
-          <div
-            class="flex items-center justify-between bg-gray-800 rounded-lg p-3"
-          >
-            <!-- Nome completo e cargo (lado esquerdo) -->
+          <div class="flex items-center justify-between bg-gray-800 rounded-lg p-3">
             <div class="flex flex-col">
-              <div id="menu-user-fullname" class="text-gray-100 font-medium">
-                —
-              </div>
+              <div id="menu-user-fullname" class="text-gray-100 font-medium">—</div>
               <div id="menu-user-role" class="text-gray-400 text-sm">—</div>
             </div>
 
-            <!-- Ícones Tema e Logout (lado direito) -->
             <div class="flex space-x-4">
               <!-- Botão de alternar tema -->
-              <button
-                id="menu-theme-btn"
-                class="text-yellow-400 hover:text-yellow-300"
-                aria-label="Alternar tema"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <!-- Ícone de Sol (modo claro) -->
+              <button id="menu-theme-btn" class="text-yellow-400 hover:text-yellow-300" aria-label="Alternar tema">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="5" class="icon-sun" />
                   <line x1="12" y1="1" x2="12" y2="3" class="icon-sun" />
                   <line x1="12" y1="21" x2="12" y2="23" class="icon-sun" />
-                  <line
-                    x1="4.22"
-                    y1="4.22"
-                    x2="5.64"
-                    y2="5.64"
-                    class="icon-sun"
-                  />
-                  <line
-                    x1="18.36"
-                    y1="18.36"
-                    x2="19.78"
-                    y2="19.78"
-                    class="icon-sun"
-                  />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" class="icon-sun" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" class="icon-sun" />
                   <line x1="1" y1="12" x2="3" y2="12" class="icon-sun" />
                   <line x1="21" y1="12" x2="23" y2="12" class="icon-sun" />
-                  <line
-                    x1="4.22"
-                    y1="19.78"
-                    x2="5.64"
-                    y2="18.36"
-                    class="icon-sun"
-                  />
-                  <line
-                    x1="18.36"
-                    y1="5.64"
-                    x2="19.78"
-                    y2="4.22"
-                    class="icon-sun"
-                  />
-                  <!-- Ícone de Lua (modo escuro) -->
-                  <path
-                    d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z"
-                    class="icon-moon"
-                  />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" class="icon-sun" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" class="icon-sun" />
+                  <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 21a9 9 0 009-8.21z" class="icon-moon" />
                 </svg>
               </button>
 
               <!-- Botão de logout -->
-              <button
-                id="menu-logout-btn"
-                class="text-red-500 hover:text-red-400"
-                aria-label="Sair"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+              <button id="menu-logout-btn" class="text-red-500 hover:text-red-400" aria-label="Sair">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                   <polyline points="16 17 21 12 16 7" />
                   <line x1="21" y1="12" x2="9" y2="12" />
@@ -220,17 +132,12 @@
             </div>
           </div>
         </div>
-        <!-- ******************************************************* -->
       </nav>
     </header>
-    <!-- =========================== -->
     <!-- /Off-Canvas Menu -->
-    <!-- =========================== -->
 
     <!-- Main content da página -->
-    <main
-      class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12"
-    >
+    <main class="flex flex-col items-center justify-center min-h-screen px-4 space-y-12">
       <h1 class="text-4xl font-bold">Coordena+</h1>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
         <!-- Agendamento -->
@@ -239,20 +146,10 @@
           class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transform transition duration-200 text-center"
         >
           <div class="mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 dark:text-blue-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7V3M16 7V3M3 11h18
-                     M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z"
-              />
+                   M5 21h14a2 2 0 002-2V11H3v8a2 2 0 002 2z" />
             </svg>
           </div>
           <h2 class="text-2xl font-semibold mb-2">Agendamento</h2>
@@ -260,46 +157,21 @@
             Agende laboratórios, salas e auditórios.
           </p>
         </a>
+
         <!-- Placeholders -->
-        <div
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center"
-        >
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
           <div class="mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-gray-400 mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 8h16M4 16h16"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
             </svg>
           </div>
           <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
           <p class="text-gray-400">Funcionalidade futura</p>
         </div>
-        <div
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center"
-        >
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 opacity-50 cursor-not-allowed text-center">
           <div class="mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-gray-400 mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 8h16M4 16h16"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
             </svg>
           </div>
           <h2 class="text-2xl font-semibold text-gray-400 mb-2">Em breve</h2>
@@ -312,57 +184,38 @@
       Copyright© 2025 – Nexus Devsystem – Todos os direitos reservados.
     </footer>
 
-    <!-- =========================== -->
     <!-- Script do menu e ações -->
-    <!-- =========================== -->
     <script>
-      
-      // Quando a página carrega, preenche rodapé do menu (fullname + role)
+      // Preenche rodapé do menu (fullname + role)
       document.addEventListener("DOMContentLoaded", () => {
         if (!window.user) return;
 
-        // Nome completo no rodapé
-        document.getElementById("menu-user-fullname").textContent =
-          window.user.name;
+        document.getElementById("menu-user-fullname").textContent = window.user.name || '—';
 
-        // Traduz o user.role para texto legível
         let papel = "";
         switch (window.user.role) {
-          case "admin":
-            papel = "Administrador";
-            break;
-          case "professor":
-            papel = "Professor";
-            break;
-          case "student":
-            papel = "Aluno";
-            break;
-          default:
-            papel = window.user.role || "";
+          case "admin": papel = "Administrador"; break;
+          case "professor": papel = "Professor"; break;
+          case "student": papel = "Aluno"; break;
+          default: papel = window.user.role || "";
         }
-        document.getElementById("menu-user-role").textContent = papel;
+        document.getElementById("menu-user-role").textContent = papel || '—';
       });
 
       // Dark/Light Toggle interno ao menu
-      document
-        .getElementById("menu-theme-btn")
-        .addEventListener("click", () => {
-          document.documentElement.classList.toggle("dark");
-          localStorage.setItem(
-            "theme",
-            document.documentElement.classList.contains("dark")
-              ? "dark"
-              : "light"
-          );
-        });
+      document.getElementById("menu-theme-btn").addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem(
+          "theme",
+          document.documentElement.classList.contains("dark") ? "dark" : "light"
+        );
+      });
 
       // Logout interno ao menu
-      document
-        .getElementById("menu-logout-btn")
-        .addEventListener("click", () => {
-          Auth.logout();
-          window.location.href = "login.html";
-        });
+      document.getElementById("menu-logout-btn").addEventListener("click", () => {
+        Auth.logout();
+        window.location.href = "login.html";
+      });
     </script>
   </body>
 </html>
