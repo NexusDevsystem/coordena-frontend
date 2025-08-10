@@ -1,46 +1,28 @@
 // ======================================
-// assets/js/auth.js
-// Sessão, login e guard robusto
+// assets/js/auth.js (HARDENED)
 // ======================================
-
 const Auth = (() => {
-  const API_BASE = window.location.hostname.includes('localhost')
-    ? 'http://localhost:10000/api/auth'
-    : 'https://coordena-backend.onrender.com/api/auth';
+  const API = window.location.hostname.includes("localhost")
+    ? "http://localhost:10000/api/auth"
+    : "https://coordena-backend.onrender.com/api/auth";
 
-  // Chaves de storage (sem fallback cruzado!)
+  // ---- Storage keys (sem fallback cruzado) ----
   const KEYS = {
-    USER: 'user',
-    TOKEN: 'token',
-    ADMIN_USER: 'admin_user',
-    ADMIN_TOKEN: 'admin_token',
+    USER: "user",
+    TOKEN: "token",
+    ADMIN_USER: "admin_user",
+    ADMIN_TOKEN: "admin_token",
   };
 
-  // MIGRAÇÃO: remove chaves antigas que causam login automático/errado
-  (function purgeBadFallbacks() {
-    try {
-      const ra = localStorage.getItem('rawAdminUser');
-      if (ra) localStorage.removeItem('rawAdminUser');
-
-      // Se por algum motivo existem admin_user/admin_token sem role admin, limpa
-      const auser = safeParse(localStorage.getItem(KEYS.ADMIN_USER));
-      if (auser && auser.role && auser.role !== 'admin') {
-        localStorage.removeItem(KEYS.ADMIN_USER);
-        localStorage.removeItem(KEYS.ADMIN_TOKEN);
-      }
-    } catch (_) {}
-  })();
-
-  function safeParse(s) {
-    try { return JSON.parse(s); } catch { return null; }
-  }
+  // ---- Utils ----
+  const jparse = (s) => { try { return JSON.parse(s); } catch { return null; } };
 
   function saveSession({ user, token }) {
     localStorage.setItem(KEYS.USER, JSON.stringify(user));
     localStorage.setItem(KEYS.TOKEN, token);
 
-    // Só salva chaves de admin se REALMENTE for admin
-    if (user?.role === 'admin') {
+    // Somente se for admin, mantém cópia admin_*
+    if (user?.role === "admin") {
       localStorage.setItem(KEYS.ADMIN_USER, JSON.stringify(user));
       localStorage.setItem(KEYS.ADMIN_TOKEN, token);
     } else {
@@ -56,87 +38,170 @@ const Auth = (() => {
     localStorage.removeItem(KEYS.ADMIN_TOKEN);
   }
 
-  function getToken() {
-    return localStorage.getItem(KEYS.TOKEN) || '';
-  }
+  function getUser() { return jparse(localStorage.getItem(KEYS.USER)); }
+  function getToken() { return localStorage.getItem(KEYS.TOKEN) || ""; }
 
-  function getUser() {
-    return safeParse(localStorage.getItem(KEYS.USER));
-  }
-
-  async function login(email, password) {
-    const res = await fetch(`${API_BASE}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Falha no login');
+  // ---- MIGRAÇÃO/limpeza de resíduos que causam login automático ----
+  (function purgeWeirdState() {
+    const au = jparse(localStorage.getItem(KEYS.ADMIN_USER));
+    const at = localStorage.getItem(KEYS.ADMIN_TOKEN);
+    // Se tem admin_* mas não tem token normal, ou role inválida -> limpa
+    if ((au && au.role !== "admin") || (at && !localStorage.getItem(KEYS.TOKEN))) {
+      localStorage.removeItem(KEYS.ADMIN_USER);
+      localStorage.removeItem(KEYS.ADMIN_TOKEN);
     }
-    const data = await res.json();
-    // Espera { user, token }
-    saveSession(data);
-    return data;
+  })();
+
+  // --------------------------------------------------
+  // LOGIN (email ou username)
+  // --------------------------------------------------
+  async function login(identifier, password) {
+    const id = (identifier || "").trim();
+    const pw = password || "";
+    if (!id || !pw) throw new Error("Preencha usuário e senha.");
+
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
+    const body = isEmail ? { email: id.toLowerCase(), password: pw }
+                         : { username: id, password: pw };
+
+    let res;
+    try {
+      res = await fetch(`${API}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      console.error("[Auth.login] Fetch error:", err);
+      throw new Error("Falha ao conectar com o servidor.");
+    }
+
+    let data;
+    try { data = await res.json(); }
+    catch { throw new Error("Resposta inválida do servidor."); }
+
+    if (!res.ok) {
+      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
+      throw new Error(msg);
+    }
+
+    const { user, token } = data || {};
+    if (!user || !token) throw new Error("Resposta inesperada do servidor.");
+
+    // Exemplo para bloquear pendente:
+    // if (user.status === "pending") throw new Error("Sua conta está pendente de aprovação.");
+
+    saveSession({ user, token });
+
+    // Redireciona só após login bem-sucedido
+    if (user.role === "admin") window.location.assign("/pages/admin.html");
+    else window.location.assign("/index.html");
+
+    return token;
   }
 
+  // --------------------------------------------------
+  // REGISTER
+  // --------------------------------------------------
+  async function register(data) {
+    const payload = {
+      name: (data?.name || "").trim(),
+      matricula: (data?.matricula || "").trim(),
+      password: data?.password || "",
+    };
+    if (data?.email) payload.email = data.email.trim().toLowerCase();
+
+    if (!payload.name || !payload.matricula || !payload.password)
+      throw new Error("Preencha nome, matrícula e senha.");
+    if (payload.password.length < 6)
+      throw new Error("A senha deve ter pelo menos 6 caracteres.");
+
+    let res;
+    try {
+      res = await fetch(`${API}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("[Auth.register] Fetch error:", err);
+      throw new Error("Falha ao conectar com o servidor.");
+    }
+
+    let result;
+    try { result = await res.json(); }
+    catch { throw new Error("Resposta inválida do servidor."); }
+
+    if (!res.ok) {
+      const msg = result?.error || result?.message || `Erro no cadastro (${res.status}).`;
+      throw new Error(msg);
+    }
+    return result; // { ok, message, user }
+  }
+
+  // --------------------------------------------------
+  // /me -> valida sessão no backend (evita “login automático”)
+  // --------------------------------------------------
   async function me() {
     const token = getToken();
     if (!token) return null;
-    const res = await fetch(`${API_BASE}/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.status === 401 || res.status === 403) {
+
+    const res = await fetch(`${API}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => null);
+
+    if (!res || res.status === 401 || res.status === 403) {
       clearSession();
       return null;
     }
     if (!res.ok) return null;
-    return res.json(); // { user }
+
+    const data = await res.json().catch(() => null);
+    if (!data?.user) return null;
+
+    // Re-sincroniza storage (caso role/claims tenham mudado)
+    saveSession({ user: data.user, token });
+    return data.user;
   }
 
+  // --------------------------------------------------
+  // GUARD de página
+  // - requiredRole: 'admin' para páginas de admin; null para apenas exigir login
+  // --------------------------------------------------
+  async function guardPage(requiredRole = null) {
+    const u = getUser();
+    const t = getToken();
+    if (!u || !t) {
+      // sem sessão local -> login
+      window.location.assign("/pages/login.html");
+      return;
+    }
+    // Confirma com o backend
+    const serverUser = await me();
+    if (!serverUser) {
+      window.location.assign("/pages/login.html");
+      return;
+    }
+    if (requiredRole && serverUser.role !== requiredRole) {
+      // Sem permissão -> manda pra home pública
+      window.location.assign("/index.html");
+      return;
+    }
+  }
+
+  // --------------------------------------------------
+  // LOGOUT
+  // --------------------------------------------------
   function logout() {
     clearSession();
-    location.href = '/pages/login.html';
+    window.location.assign("/pages/login.html");
   }
 
-  // Guard genérico: exige login e (opcional) role
-  async function guardPage(requiredRole = null) {
-    const sessionUser = getUser();
-    const token = getToken();
+  // Getters (sem role cross)
+  function getCurrentUser() { return getUser(); }
+  function getCurrentToken() { return getToken(); }
 
-    if (!token || !sessionUser) {
-      // Não está logado -> manda pro login
-      location.href = '/pages/login.html';
-      return;
-    }
-
-    // Confirma no backend (evita “login automático” por storage podre)
-    const server = await me();
-    if (!server || !server.user) {
-      location.href = '/pages/login.html';
-      return;
-    }
-
-    // Se exigiu role e não bate, volta pra Home (ou login)
-    if (requiredRole && server.user.role !== requiredRole) {
-      // opção: enviar para home pública
-      location.href = '/index.html';
-      return;
-    }
-
-    // Atualiza storage com payload conferido
-    saveSession({ user: server.user, token });
-  }
-
-  return {
-    login,
-    logout,
-    me,
-    guardPage,
-    getUser,
-    getToken,
-    clearSession,
-  };
+  return { login, register, logout, me, guardPage, getCurrentUser, getCurrentToken };
 })();
 
 window.Auth = Auth;
