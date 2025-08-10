@@ -1,3 +1,261 @@
+/* ==================================================
+   Admin – Coordena+ (minimal, dark-friendly)
+   ================================================== */
+
+/* Font */
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap");
+
+:root {
+  --brand: #2563eb; /* azul Coordena */
+  --brand-600: #1d4ed8;
+  --brand-50: #eff6ff;
+  --surface: #0b1020; /* fundo escuro azulado */
+  --card: #0f152b;
+  --muted: #94a3b8;
+  --line: rgba(148, 163, 184, 0.12);
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --radius: 16px;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  font-family: "Lato", system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+    Arial, sans-serif;
+}
+body.bg-surface {
+  background: radial-gradient(
+      1200px 800px at -10% -20%,
+      rgba(37, 99, 235, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 800px at 110% -10%,
+      rgba(16, 185, 129, 0.08),
+      transparent 55%
+    ),
+    var(--surface);
+  color: #e5e7eb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.85),
+    rgba(15, 23, 42, 0.7)
+  );
+  backdrop-filter: blur(8px);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.brand-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--brand), var(--brand-600));
+  color: #fff;
+  font-size: 18px;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35);
+}
+.topbar-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.topbar-subtitle {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-600);
+  --bs-btn-hover-border-color: var(--brand-600);
+  --bs-btn-color: #fff;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+}
+.btn-ghost {
+  color: #e5e7eb;
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 12px;
+  padding: 0.55rem 0.9rem;
+  font-weight: 600;
+}
+.btn-ghost:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+/* ---------- Tabs (pills) ---------- */
+.tabs-wrapper {
+  background: transparent;
+  padding-top: 12px;
+  top: 64px;
+}
+.nav-pills .nav-link {
+  border-radius: 999px;
+  color: #cbd5e1;
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.nav-pills .nav-link:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+.nav-pills .nav-link.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-600));
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+  border-color: transparent;
+}
+
+/* ---------- Cards ---------- */
+.card-ghost {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+}
+.card-ghost .card-body {
+  padding: 18px;
+}
+
+/* ---------- Inputs ---------- */
+.input-icon {
+  position: relative;
+}
+.input-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.input-icon .form-control {
+  padding-left: 36px;
+  background: #0b1120;
+  border: 1px solid var(--line);
+  color: #e5e7eb;
+  border-radius: 12px;
+}
+.form-select,
+.form-control {
+  background: #0b1120;
+  border: 1px solid var(--line);
+  color: #e5e7eb;
+  border-radius: 12px;
+}
+.form-select:focus,
+.form-control:focus {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+/* ---------- List/Grid area (cards das listas) ---------- */
+.list-area .card {
+  background: #0b1120;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: #e5e7eb;
+}
+.list-area .card:hover {
+  border-color: rgba(148, 163, 184, 0.28);
+}
+.badge.bg-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+}
+
+/* ---------- Table (Ocupação) ---------- */
+.soft-border {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.table thead tr {
+  background: #0b1120;
+  color: #cbd5e1;
+}
+.table td,
+.table th {
+  border-color: var(--line) !important;
+}
+.table td {
+  text-transform: lowercase;
+}
+
+/* ---------- Empty states ---------- */
+.empty {
+  text-align: center;
+  padding: 48px 12px;
+  color: var(--muted);
+}
+.empty i {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* ---------- Utilities ---------- */
+.section-title {
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.shadow-sm {
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.25) !important;
+}
+
+/* ---------- Paginação (aplica no Bootstrap nativo) ---------- */
+.pagination .page-link {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0b1120;
+  color: #cbd5e1;
+}
+.pagination .page-link:hover {
+  background: rgba(148, 163, 184, 0.08);
+  color: #fff;
+}
+.pagination .page-item.active .page-link {
+  background: linear-gradient(135deg, var(--brand), var(--brand-600));
+  border-color: transparent;
+  color: #fff;
+}
+
+/* ---------- Estados coloridos opcionais ---------- */
+.bg-state-danger {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  color: #fecaca !important;
+}
+.bg-state-success {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+  color: #bbf7d0 !important;
+}
+.bg-state-warning {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #fde68a !important;
+}
+
 /* ================================================
    Background & Scroll Lock para Mobile/Desktop
    ================================================ */
@@ -54,16 +312,16 @@ body {
    VARIÁVEIS DE TEMA COORDENA+
    ================================================ */
 :root {
-  --primary-color: #4e73df;      /* Azul principal */
-  --secondary-color: #2e59d9;    /* Azul escuro */
-  --accent-color: #1cc88a;       /* Verde claro */
-  --danger-color:  #e74a3b;      /* Vermelho */
-  --warning-color: #f6c23e;      /* Amarelo */
-  --background: #F7FAFC;         /* Cinza suave */
-  --card-bg: #FFFFFF;            /* Branco puro para cards */
-  --text-color: #2C3E50;         /* Azul escuro para textos */
-  --text-light: #7F8C8D;         /* Cinza médio */
-  --border-color: #E0E6ED;       /* Bordas sutis */
+  --primary-color: #4e73df; /* Azul principal */
+  --secondary-color: #2e59d9; /* Azul escuro */
+  --accent-color: #1cc88a; /* Verde claro */
+  --danger-color: #e74a3b; /* Vermelho */
+  --warning-color: #f6c23e; /* Amarelo */
+  --background: #f7fafc; /* Cinza suave */
+  --card-bg: #ffffff; /* Branco puro para cards */
+  --text-color: #2c3e50; /* Azul escuro para textos */
+  --text-light: #7f8c8d; /* Cinza médio */
+  --border-color: #e0e6ed; /* Bordas sutis */
   --shadow-light: rgba(0, 0, 0, 0.05);
   --shadow-strong: rgba(0, 0, 0, 0.1);
   --radius: 0.75rem;
@@ -112,12 +370,12 @@ body {
   justify-content: center;
   border: 2px solid rgba(229, 231, 235);
   background: currentColor;
-  transition: border-color .2s, box-shadow .2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .notification-btn:hover,
 .notification-btn:focus {
-  border-color: #3B82F6;
+  border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
 }
 
@@ -151,7 +409,7 @@ body {
   height: 0.25rem;
   background: #fff;
   margin: 0.3rem 0;
-  transition: transform .3s;
+  transition: transform 0.3s;
 }
 
 /* animação de X */
@@ -346,7 +604,8 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 0.5rem;
   color: #fff;
-  transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s,
+    box-shadow 0.2s;
   cursor: pointer;
 }
 
@@ -388,22 +647,46 @@ body {
   opacity: 1;
 }
 
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(1) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(1) {
   transition-delay: 0.1s;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(2) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(2) {
   transition-delay: 0.2s;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(3) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(3) {
   transition-delay: 0.3s;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(4) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(4) {
   transition-delay: 0.4s;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(5) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(5) {
   transition-delay: 0.5s;
 }
-.offcanvas-menu input[type="checkbox"]:checked ~ nav .menu-list li:nth-child(6) {
+.offcanvas-menu
+  input[type="checkbox"]:checked
+  ~ nav
+  .menu-list
+  li:nth-child(6) {
   transition-delay: 0.6s;
 }
 
@@ -456,7 +739,11 @@ body {
 
 /* Cabeçalho do painel – gradiente suave e bordas arredondadas */
 .admin-header {
-  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color) 0%,
+    var(--primary-color) 100%
+  );
   color: #fff;
   padding: 1.75rem 2rem;
   border-radius: var(--radius);
@@ -473,7 +760,7 @@ body {
 }
 .admin-header p {
   margin: 0;
-  color: #E5E7EB;
+  color: #e5e7eb;
   font-size: 1rem;
 }
 .admin-header .btn-update {
@@ -736,7 +1023,7 @@ body {
   position: sticky;
   top: 0;
   background: #1f2937; /* gray-800 */
-  color: #f9fafb;      /* gray-50 */
+  color: #f9fafb; /* gray-50 */
   z-index: 2;
 }
 
@@ -746,7 +1033,7 @@ body {
   position: sticky;
   left: 0;
   background: #111827; /* gray-900 */
-  color: #f9fafb;      /* gray-50 */
+  color: #f9fafb; /* gray-50 */
   z-index: 3;
 }
 
