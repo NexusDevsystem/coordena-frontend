@@ -141,15 +141,6 @@ const Auth = (() => {
   }
 
   // --------------------------------------------------
-  // LOGIN (email ou username)
-  // --------------------------------------------------
-  function extractUsername(id) {
-    if (!id) return "";
-    const at = id.indexOf("@");
-    return at > 0 ? id.slice(0, at) : id.trim();
-  }
-
-  // --------------------------------------------------
   // LOGIN robusto (tenta email, username e matrícula)
   // --------------------------------------------------
   async function login(identifier, password) {
@@ -182,8 +173,9 @@ const Auth = (() => {
     async function doRequest(body) {
       let res;
       try {
-        res = await fetch(`${API}/login`, {
-          method: "POST",
+        const loginUrl = API.endsWith("/auth") ? `${API}/login` : `${API}/auth/login`;
+        res = await fetch(loginUrl, {
+          method: "POST", 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
