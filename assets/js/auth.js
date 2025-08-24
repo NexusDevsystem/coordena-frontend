@@ -10,6 +10,12 @@ const Auth = (() => {
     ? "http://localhost:10000/api/auth"
     : "https://coordena-backend.onrender.com/api/auth";
 
+  // extrai somente os dígitos de uma string
+  function onlyDigits(str) {
+    const digits = (str || "").replace(/\D/g, "");
+    return digits ? digits : null;
+  }
+
   // ---- Storage keys (mantidos do projeto) ----
   const KEYS = {
     USER: "user",
@@ -64,6 +70,15 @@ const Auth = (() => {
     }
   };
   const now = () => Date.now();
+
+  function extractUsername(id) {
+    if (!id) return "";
+    const at = id.indexOf("@");
+    return at > 0 ? id.slice(0, at).trim() : id.trim();
+  }
+  function onlyDigits(s) {
+    return (s || "").replace(/\D+/g, "");
+  }
 
   // ---- Sessão ----
   function saveSession({ user, token }) {
@@ -135,7 +150,7 @@ const Auth = (() => {
   }
 
   // --------------------------------------------------
-  // LOGIN (email ou username) com tentativas e mensagens claras
+  // LOGIN robusto (tenta email, username e matrícula)
   // --------------------------------------------------
   async function login(identifier, password) {
     const idRaw = (identifier || "").trim();
@@ -143,14 +158,26 @@ const Auth = (() => {
     if (!idRaw || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(idRaw);
-    const email = isEmail ? idRaw.toLowerCase() : null;
-    const uFromEmail = isEmail ? extractUsername(idRaw) : null;
+    const emailNorm = isEmail ? idRaw.toLowerCase() : null;
+    const userFromEmail = isEmail ? extractUsername(idRaw) : null;
+    const matriculaGuess = onlyDigits(isEmail ? userFromEmail : idRaw); // ex.: "202302450921"
 
-    // fila de tentativas (evita duplicadas/strings vazias)
+    // Monta fila de tentativas (sem duplicar, sem vazios)
     const attempts = [];
-    if (email) attempts.push({ email, password: pw, label: "email" });
-    if (uFromEmail) attempts.push({ username: uFromEmail, password: pw, label: "username@local" });
-    attempts.push({ username: idRaw, password: pw, label: "username@raw" }); // caso digite só a matrícula
+    const pushAttempt = (body, label) => {
+      if (!body) return;
+      const key = JSON.stringify(body);
+      if (!attempts.find(a => a.key === key)) attempts.push({ key, body, label });
+    };
+
+    // 1) e-mail (como digitado)
+    if (emailNorm) pushAttempt({ email: emailNorm, password: pw }, "email");
+    // 2) username: parte antes de @ (se for e-mail)
+    if (userFromEmail) pushAttempt({ username: userFromEmail, password: pw }, "username@local");
+    // 3) username: identificador cru (se não for e-mail)
+    if (!isEmail) pushAttempt({ username: idRaw, password: pw }, "username@raw");
+    // 4) matrícula (somente dígitos) — muitos backends aceitam
+    if (matriculaGuess) pushAttempt({ matricula: matriculaGuess, password: pw }, "matricula");
 
     async function doRequest(body) {
       let res;
@@ -169,9 +196,10 @@ const Auth = (() => {
       return { res, data };
     }
 
-    let lastErr = null;
+    let saw401 = false, saw403 = false, saw404 = false;
+    let lastMsg = null;
 
-    for (const body of attempts) {
+    for (const { body, label } of attempts) {
       const { res, data } = await doRequest(body);
       if (res.ok) {
         const { user, token } = data || {};
@@ -188,29 +216,21 @@ const Auth = (() => {
         return token;
       }
 
-      // guarda a melhor mensagem de erro para o final
-      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
-      lastErr = { status: res.status, msg, labelTried: body.label };
+      // guarda status para decidir a melhor mensagem no fim
+      lastMsg = data?.error || data?.message || `Falha no login (${res.status}).`;
+      if (res.status === 401) saw401 = true;
+      if (res.status === 403) saw403 = true;
+      if (res.status === 404) saw404 = true;
 
-      // Se for 401/404 continua tentando as outras opções.
-      // Se for 403 (pendente), ainda tenta as demais; só para quando acabar a fila.
+      console.warn(`[Auth.login] tentativa falhou (${label}) -> ${res.status}`);
+      // continua tentando as demais variações
     }
 
-    // Mensagens finais mais úteis
-    if (lastErr) {
-      if (lastErr.status === 403) {
-        throw new Error("Sua conta está pendente. Aguarde até 24h para aprovação.");
-      }
-      if (lastErr.status === 401) {
-        throw new Error("E-mail/usuário ou senha inválidos.");
-      }
-      if (lastErr.status === 404) {
-        throw new Error("Usuário não encontrado.");
-      }
-      throw new Error(lastErr.msg);
-    }
-
-    throw new Error("Falha no login.");
+    // prioridade de mensagens mais úteis
+    if (saw403) throw new Error("Sua conta está pendente. Aguarde até 24h para aprovação.");
+    if (saw401) throw new Error("E-mail/usuário ou senha inválidos.");
+    if (saw404) throw new Error("Usuário não encontrado.");
+    throw new Error(lastMsg || "Falha no login.");
   }
 
   // --------------------------------------------------
