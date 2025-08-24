@@ -239,7 +239,7 @@ const FormModule = (() => {
     selectors.fields.materia.disabled = true;
     selectors.fields.resp.removeAttribute("readonly");
 
-    const user = (typeof Auth !== "undefined" && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+    const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute("readonly", "readonly");
@@ -440,7 +440,7 @@ const DetailModule = (() => {
     f.status.textContent = `Status: ${ev.status}`;
     f.desc.textContent = ev.description || "Sem descrição";
 
-    const currentUser = (typeof Auth !== "undefined" && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+    const currentUser = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
     const isOwner = currentUser && ev.responsible === currentUser.name;
     selectors.btnDelete.style.display = isOwner ? "inline-block" : "none";
     selectors.btnEdit.style.display = isOwner ? "inline-block" : "none";
@@ -587,7 +587,7 @@ async function initOccupancyUpdates() {
 // --------------------------------------------------
 onReady(async () => {
   // user atual
-  const storedUser = (typeof Auth !== "undefined" && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+  const storedUser = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
   if (storedUser && !window.user) window.user = storedUser;
 
   // notificações

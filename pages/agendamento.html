@@ -56,7 +56,7 @@
   <!-- Proteção de rota / define window.user e oculta botões conforme role -->
   <script>
     // 1) Recupera o usuário do localStorage
-    const user = Auth.getCurrentUser();
+    const user = Auth.getUser();
     // 2) Se não existir, redireciona para login
     if (!user) {
       window.location.href = '../login.html';
