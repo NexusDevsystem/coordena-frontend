@@ -7,8 +7,8 @@
 // ======================================
 const Auth = (() => {
   const API = window.location.hostname.includes("localhost")
-    ? "http://localhost:10000/api/auth"
-    : "https://coordena-backend.onrender.com/api/auth";
+    ? "http://localhost:10000"
+    : "https://coordena-backend.onrender.com";
 
   // extrai somente os dígitos de uma string
   function onlyDigits(str) {
@@ -173,9 +173,8 @@ const Auth = (() => {
     async function doRequest(body) {
       let res;
       try {
-        const loginUrl = API.endsWith("/auth") ? `${API}/login` : `${API}/auth/login`;
-        res = await fetch(loginUrl, {
-          method: "POST", 
+        res = await fetch(`${API}/api/auth/login`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
@@ -292,7 +291,7 @@ const Auth = (() => {
     }
 
     // 3) Chama /me apenas quando necessário
-    const res = await fetch(`${API}/me`, {
+    const res = await fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     }).catch(() => null);
 
