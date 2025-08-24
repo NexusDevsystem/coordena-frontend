@@ -128,32 +128,78 @@ const Auth = (() => {
   // --------------------------------------------------
   // LOGIN (email ou username)
   // --------------------------------------------------
+  function extractUsername(id) {
+    if (!id) return "";
+    const at = id.indexOf("@");
+    return at > 0 ? id.slice(0, at) : id;
+  }
+
+  // --------------------------------------------------
+  // LOGIN (email ou username) com fallback inteligente
+  // --------------------------------------------------
   async function login(identifier, password) {
     const id = (identifier || "").trim();
     const pw = password || "";
     if (!id || !pw) throw new Error("Preencha usuário e senha.");
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const body = isEmail
+    const primaryBody = isEmail
       ? { email: id.toLowerCase(), password: pw }
       : { username: id, password: pw };
 
-    let res;
-    try {
-      res = await fetch(`${API}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-    } catch (err) {
-      console.error("[Auth.login] Fetch error:", err);
-      throw new Error("Falha ao conectar com o servidor.");
+    // se vier e-mail, tentaremos também pelo username (antes do @)
+    const altBody = isEmail
+      ? { username: extractUsername(id), password: pw }
+      : null;
+
+    async function doRequest(body) {
+      let res;
+      try {
+        res = await fetch(`${API}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } catch (err) {
+        console.error("[Auth.login] Fetch error:", err);
+        throw new Error("Falha ao conectar com o servidor.");
+      }
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      return { res, data };
     }
 
-    const data = await res.json().catch(() => ({}));
+    // 1ª tentativa (como digitado)
+    let { res, data } = await doRequest(primaryBody);
+
+    // Se falhou, tenta rota alternativa (ex.: username extraído do e-mail)
+    if (!res.ok && altBody && altBody.username) {
+      // Re-tenta apenas em casos típicos de bloqueio/usuário não encontrado
+      if (res.status === 401 || res.status === 403 || res.status === 404) {
+        console.warn("[Auth.login] Tentativa alternativa via username:", altBody.username);
+        const retry = await doRequest(altBody);
+        if (retry.res.ok) {
+          res = retry.res;
+          data = retry.data;
+        } else {
+          // mantém a melhor mensagem de erro
+          const msg = retry.data?.error || retry.data?.message ||
+                      data?.error || data?.message ||
+                      `Falha no login (${retry.res.status}).`;
+          throw new Error(msg);
+        }
+      } else {
+        const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
+        throw new Error(msg);
+      }
+    }
+
     if (!res.ok) {
-      const msg =
-        data?.error || data?.message || `Falha no login (${res.status}).`;
+      const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
       throw new Error(msg);
     }
 
@@ -163,11 +209,11 @@ const Auth = (() => {
     saveSession({ user, token });
 
     // Pós-login: respeita última página (se não for admin), senão cai no padrão
-    const last = getLastPath();
+    const last = getLastPath && getLastPath();
     if (user.role === "admin") {
       go(PATH.admin);
     } else {
-      if (last && !last.endsWith("/pages/admin.html")) go(last);
+      if (last && !String(last).endsWith("/pages/admin.html")) go(last);
       else go(PATH.home);
     }
 
