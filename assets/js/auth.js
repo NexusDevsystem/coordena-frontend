@@ -131,26 +131,26 @@ const Auth = (() => {
   function extractUsername(id) {
     if (!id) return "";
     const at = id.indexOf("@");
-    return at > 0 ? id.slice(0, at) : id;
+    return at > 0 ? id.slice(0, at) : id.trim();
   }
 
   // --------------------------------------------------
-  // LOGIN (email ou username) com fallback inteligente
+  // LOGIN (email ou username) com tentativas e mensagens claras
   // --------------------------------------------------
   async function login(identifier, password) {
-    const id = (identifier || "").trim();
+    const idRaw = (identifier || "").trim();
     const pw = password || "";
-    if (!id || !pw) throw new Error("Preencha usuário e senha.");
+    if (!idRaw || !pw) throw new Error("Preencha usuário e senha.");
 
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id);
-    const primaryBody = isEmail
-      ? { email: id.toLowerCase(), password: pw }
-      : { username: id, password: pw };
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(idRaw);
+    const email = isEmail ? idRaw.toLowerCase() : null;
+    const uFromEmail = isEmail ? extractUsername(idRaw) : null;
 
-    // se vier e-mail, tentaremos também pelo username (antes do @)
-    const altBody = isEmail
-      ? { username: extractUsername(id), password: pw }
-      : null;
+    // fila de tentativas (evita duplicadas/strings vazias)
+    const attempts = [];
+    if (email) attempts.push({ email, password: pw, label: "email" });
+    if (uFromEmail) attempts.push({ username: uFromEmail, password: pw, label: "username@local" });
+    attempts.push({ username: idRaw, password: pw, label: "username@raw" }); // caso digite só a matrícula
 
     async function doRequest(body) {
       let res;
@@ -165,59 +165,52 @@ const Auth = (() => {
         throw new Error("Falha ao conectar com o servidor.");
       }
       let data;
-      try {
-        data = await res.json();
-      } catch {
-        data = {};
-      }
+      try { data = await res.json(); } catch { data = {}; }
       return { res, data };
     }
 
-    // 1ª tentativa (como digitado)
-    let { res, data } = await doRequest(primaryBody);
+    let lastErr = null;
 
-    // Se falhou, tenta rota alternativa (ex.: username extraído do e-mail)
-    if (!res.ok && altBody && altBody.username) {
-      // Re-tenta apenas em casos típicos de bloqueio/usuário não encontrado
-      if (res.status === 401 || res.status === 403 || res.status === 404) {
-        console.warn("[Auth.login] Tentativa alternativa via username:", altBody.username);
-        const retry = await doRequest(altBody);
-        if (retry.res.ok) {
-          res = retry.res;
-          data = retry.data;
+    for (const body of attempts) {
+      const { res, data } = await doRequest(body);
+      if (res.ok) {
+        const { user, token } = data || {};
+        if (!user || !token) throw new Error("Resposta inesperada do servidor.");
+        saveSession({ user, token });
+
+        const last = (typeof getLastPath === "function") ? getLastPath() : null;
+        if (user.role === "admin") {
+          go(PATH.admin);
         } else {
-          // mantém a melhor mensagem de erro
-          const msg = retry.data?.error || retry.data?.message ||
-                      data?.error || data?.message ||
-                      `Falha no login (${retry.res.status}).`;
-          throw new Error(msg);
+          if (last && !String(last).endsWith("/pages/admin.html")) go(last);
+          else go(PATH.home);
         }
-      } else {
-        const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
-        throw new Error(msg);
+        return token;
       }
-    }
 
-    if (!res.ok) {
+      // guarda a melhor mensagem de erro para o final
       const msg = data?.error || data?.message || `Falha no login (${res.status}).`;
-      throw new Error(msg);
+      lastErr = { status: res.status, msg, labelTried: body.label };
+
+      // Se for 401/404 continua tentando as outras opções.
+      // Se for 403 (pendente), ainda tenta as demais; só para quando acabar a fila.
     }
 
-    const { user, token } = data || {};
-    if (!user || !token) throw new Error("Resposta inesperada do servidor.");
-
-    saveSession({ user, token });
-
-    // Pós-login: respeita última página (se não for admin), senão cai no padrão
-    const last = getLastPath && getLastPath();
-    if (user.role === "admin") {
-      go(PATH.admin);
-    } else {
-      if (last && !String(last).endsWith("/pages/admin.html")) go(last);
-      else go(PATH.home);
+    // Mensagens finais mais úteis
+    if (lastErr) {
+      if (lastErr.status === 403) {
+        throw new Error("Sua conta está pendente. Aguarde até 24h para aprovação.");
+      }
+      if (lastErr.status === 401) {
+        throw new Error("E-mail/usuário ou senha inválidos.");
+      }
+      if (lastErr.status === 404) {
+        throw new Error("Usuário não encontrado.");
+      }
+      throw new Error(lastErr.msg);
     }
 
-    return token;
+    throw new Error("Falha no login.");
   }
 
   // --------------------------------------------------
