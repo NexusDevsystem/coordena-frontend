@@ -379,6 +379,7 @@ const Auth = (() => {
     isAdminLogged,
     getToken,
     getAdminToken,
+    getUser,
   };
 })();
 

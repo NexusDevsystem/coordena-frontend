@@ -270,6 +270,13 @@ const FormModule = (() => {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
+    if (!user || !user._id) {
+        alert("Erro: Usuário não autenticado. Faça o login novamente.");
+        return;
+    }
+
     const f = selectors.fields;
     const payload = {
       date: f.data.value,
@@ -285,6 +292,7 @@ const FormModule = (() => {
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains("hidden") ? f.type.value : `${f.type.value} - ${f.sala.value}`,
+      user: user._id, // Adiciona o ID do usuário ao payload
     };
     try {
       if (currentId) {
