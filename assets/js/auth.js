@@ -1,58 +1,58 @@
 // ======================================
-// assets/js/auth.js
-// Fluxo de guarda: 'public' | 'user' | 'admin'
-// - public (login): se logado → volta p/ última página ou padrão
-// - user (home/agendamentos): exige token (user OU admin). Senão → /login.html
-// - admin (painel): exige admin_token. Senão → /login.html
+// assets/js/main.js
 // ======================================
-const Auth = (() => {
-  const API = window.location.hostname.includes("localhost")
-    ? "http://localhost:10000"
-    : "https://coordena-backend.onrender.com";
 
-  // extrai somente os dígitos de uma string
-  function onlyDigits(str) {
-    const digits = (str || "").replace(/\D/g, "");
-    return digits ? digits : null;
+// --------------------------------------------------
+// FORMULÁRIO DE RESERVA
+// --------------------------------------------------
+const FormModule = (() => {
+  let currentId = null;
+  const selectors = {};
+  let isInitialized = false; // Flag para controlar a inicialização
+
+  function $id(id) { return document.getElementById(id); }
+
+  // Busca os elementos do DOM
+  function cacheSelectors() {
+    selectors.modal = $id("form-modal");
+    selectors.form = $id("agendamento-form");
+    selectors.btnClose = $id("form-close");
+    selectors.fields = {
+      data: $id("data"),
+      start: $id("start"),
+      end: $id("end"),
+      recurso: $id("recurso"),
+      salaContainer: $id("sala-container"),
+      sala: $id("sala"),
+      type: $id("tipo-evento"),
+      resp: $id("responsavel"),
+      dept: $id("departamento"),
+      materia: $id("curso"),
+      status: $id("status"),
+      desc: $id("descricao"),
+    };
   }
 
-  // ---- Storage keys (mantidos do projeto) ----
-  const KEYS = {
-    USER: "user",
-    TOKEN: "token",
-    ADMIN_USER: "admin_user",
-    ADMIN_TOKEN: "admin_token",
-    LAST_PATH: "last_path", // lembrar última página segura
-  };
+  // Configura os event listeners do formulário
+  function setupListeners() {
+    selectors.btnClose?.addEventListener("click", close);
+    selectors.form?.addEventListener("submit", handleSubmit);
 
-  // ---- Rotas canônicas ----
-  const PATH = {
-    home: "/index.html",
-    login: "/login.html",
-    admin: "/pages/admin.html",
-  };
+    // Lógica para mostrar/esconder o campo de sala
+    const salaOpts = {
+      Laboratório: ["Lab B401","Lab B402","Lab B403","Lab B404","Lab B405","Lab B406","Lab Imaginologia"],
+    };
+    selectors.fields.recurso?.addEventListener("change", () => {
+      const val = selectors.fields.recurso.value;
+      if (salaOpts[val]) {
+        selectors.fields.sala.innerHTML = salaOpts[val].map(s => `<option value="${s}">${s}</option>`).join('');
+        selectors.fields.salaContainer.classList.remove("hidden");
+      } else {
+        selectors.fields.salaContainer.classList.add("hidden");
+      }
+    });
 
-  // ---- Cache leve de sessão (em memória) ----
-  let __lastUserCache = null;
-  let __lastCheckedMs = 0;
-
-  // ---- JWT helpers: decodifica e checa expiração ----
-  function decodeJwtPayload(tk) {
-    try {
-      const base = tk.split(".")[1];
-      if (!base) return null;
-      const json = atob(base.replace(/-/g, "+").replace(/_/g, "/"));
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
-  }
-  function tokenExpMs(tk) {
-    const p = decodeJwtPayload(tk);
-    return p && typeof p.exp === "number" ? p.exp * 1000 : null;
-  }
-  function isTokenExpiringSoon(tk, marginSec = 120) {
-    const exp = tokenExpMs(tk);
+    // Lógica para carregar matérias baseadas no curso
     if (!exp) return false; // se não tem exp, tratamos como não expira "logo"
     return Date.now() + marginSec * 1000 >= exp;
   }

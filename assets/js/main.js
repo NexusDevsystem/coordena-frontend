@@ -202,206 +202,142 @@ const CalendarModule = (() => {
 })();
 
 // --------------------------------------------------
-// FORMULÁRIO DE RESERVA
+// MÓDULO DO FORMULÁRIO (Agendamento)
 // --------------------------------------------------
 const FormModule = (() => {
+  const sel = {
+    modal: "#agendamento-modal",
+    form: "#agendamento-form",
+    title: "#form-title",
+    id: "#agendamento-id",
+    date: "#agendamento-date",
+    lab: "#agendamento-lab",
+    time: "#agendamento-time",
+    start: "#agendamento-start",
+    end: "#agendamento-end",
+    titleField: "#agendamento-title",
+    deleteBtn: "#delete-agendamento",
+    closeBtn: ".close-modal",
+  };
+
+  const nodes = {};
   let currentId = null;
-  const selectors = {};
-  function $id(id) { return document.getElementById(id); }
+  let isInitialized = false; // Flag de inicialização
 
   function cacheSelectors() {
-    selectors.modal = $id("form-modal");
-    selectors.form = $id("agendamento-form");
-    selectors.btnOpen = $id("open-form-modal");
-    selectors.btnClose = $id("form-close");
-    selectors.fields = {
-      data: $id("data"),
-      start: $id("start"),
-      end: $id("end"),
-      recurso: $id("recurso"),
-      salaContainer: $id("sala-container"),
-      sala: $id("sala"),
-      type: $id("tipo-evento"),
-      resp: $id("responsavel"),
-      dept: $id("departamento"),
-      materia: $id("curso"),
-      status: $id("status"),
-      desc: $id("descricao"),
-    };
-  }
-
-  function open(id = null, evData = null) {
-    currentId = id;
-    selectors.form.reset();
-    selectors.fields.salaContainer.classList.add("hidden");
-    selectors.fields.dept.value = "";
-    selectors.fields.materia.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-    selectors.fields.materia.disabled = true;
-    selectors.fields.resp.removeAttribute("readonly");
-
-    const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
-    if (user?.name) {
-      selectors.fields.resp.value = user.name;
-      selectors.fields.resp.setAttribute("readonly", "readonly");
-    }
-
-    if (evData) {
-      const f = selectors.fields;
-      f.data.value = evData.date;
-      f.start.value = evData.start;
-      f.end.value = evData.end;
-      f.recurso.value = evData.resource;
-      f.recurso.dispatchEvent(new Event("change"));
-      f.sala.value = evData.sala || "";
-      f.type.value = evData.type;
-      if (evData.responsible) { f.resp.value = evData.responsible; f.resp.setAttribute("readonly", "readonly"); }
-      f.dept.value = evData.department;
-      f.status.value = evData.status;
-      f.desc.value = evData.description;
-      if (evData.materia) {
-        f.materia.innerHTML = `<option value="${evData.materia}">${evData.materia}</option>`;
-        f.materia.disabled = false;
+    for (const k in sel) {
+      nodes[k] = document.querySelector(sel[k]);
+      if (!nodes[k]) {
+        console.error(`Seletor não encontrado: ${sel[k]}`);
       }
     }
-    selectors.modal.classList.remove("hidden");
   }
 
-  function close() { selectors.modal.classList.add("hidden"); currentId = null; selectors.form.reset(); }
+  function setupListeners() {
+    if (!nodes.form) return; // Garante que o form existe
+    nodes.form.addEventListener("submit", handleSubmit);
+    nodes.deleteBtn.addEventListener("click", handleDelete);
+    nodes.closeBtn.addEventListener("click", close);
+    nodes.modal.addEventListener("click", (e) => {
+      if (e.target === nodes.modal) close();
+    });
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
-    const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
-    const userId = user?._id || user?.id; // Aceita tanto _id (do MongoDB) quanto id (do backend)
+    const user = Auth.getUser();
+    if (!user || !user.id) {
+      console.error("Usuário não autenticado ou ID do usuário não encontrado.");
+      alert("Erro de autenticação. Por favor, faça login novamente.");
+      return;
+    }
 
-    if (!userId) {
-        alert("Erro: Usuário não autenticado. Faça o login novamente.");
+    const data = {
+      date: nodes.date.value,
+      lab: nodes.lab.value,
+      time: nodes.time.value,
+      start: nodes.start.value,
+      end: nodes.end.value,
+      title: nodes.titleField.value,
+      user: user.id,
+    };
+
+    try {
+      if (currentId) {
+        await Api.updateEvent(currentId, data);
+        CalendarModule.update(currentId, { ...data, _id: currentId });
+        enviarNotificacao("Agendamento Atualizado", `Sua reserva para ${data.lab} foi atualizada.`);
+      } else {
+        const newEvent = await Api.createEvent(data);
+        CalendarModule.add(newEvent);
+        enviarNotificacao("Agendamento Criado", `Você agendou ${data.lab} para ${data.date}.`);
+      }
+      close();
+      if (typeof buildOccupancyTable === "function") {
+        buildOccupancyTable(document.getElementById("occupancy-date")?.value);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar:", err);
+      alert(`Falha ao salvar agendamento: ${err.message}`);
+    }
+  }
+
+  async function handleDelete() {
+    if (!currentId || !confirm("Tem certeza que deseja excluir este agendamento?")) return;
+    try {
+      await Api.deleteEvent(currentId);
+      CalendarModule.remove(currentId);
+      enviarNotificacao("Agendamento Excluído", "Sua reserva foi removida.");
+      close();
+      if (typeof buildOccupancyTable === "function") {
+        buildOccupancyTable(document.getElementById("occupancy-date")?.value);
+      }
+    } catch (err) {
+      console.error("Erro ao excluir:", err);
+      alert(`Falha ao excluir agendamento: ${err.message}`);
+    }
+  }
+
+  function close() {
+    if (nodes.modal) nodes.modal.classList.add("hidden");
+  }
+
+  function open(options = {}) {
+    // Inicialização tardia (Lazy Initialization)
+    if (!isInitialized) {
+      cacheSelectors();
+      setupListeners();
+      isInitialized = true;
+    }
+
+    // Verifica se a inicialização foi bem sucedida
+    if (!nodes.modal) {
+        console.error("O modal de agendamento não foi encontrado no DOM.");
         return;
     }
 
-    const f = selectors.fields;
-    const payload = {
-      date: f.data.value,
-      start: f.start.value,
-      end: f.end.value,
-      resource: f.recurso.value,
-      sala: f.salaContainer.classList.contains("hidden") ? "" : f.sala.value,
-      type: f.type.value,
-      responsible: f.resp.value,
-      department: f.dept.value,
-      materia: f.materia.value,
-      status: "pending",
-      description: f.desc.value,
-      time: `${f.start.value}-${f.end.value}`,
-      title: f.salaContainer.classList.contains("hidden") ? f.type.value : `${f.type.value} - ${f.sala.value}`,
-      user: userId, // Adiciona o ID do usuário ao payload
-    };
-    try {
-      if (currentId) {
-        const updated = await Api.updateEvent(currentId, payload);
-        CalendarModule.update(currentId, updated);
-      } else {
-        await Api.createEvent(payload);
-        alert("✅ Reserva criada! Aguardando aprovação do administrador.");
+    currentId = options.id || null;
+    nodes.title.textContent = currentId ? "Editar Agendamento" : "Novo Agendamento";
+    nodes.deleteBtn.classList.toggle("hidden", !currentId);
+    nodes.form.reset();
+
+    if (options.date) nodes.date.value = options.date;
+    if (currentId) {
+      const event = CalendarModule.getEvents().find((e) => e._id === currentId);
+      if (event) {
+        nodes.date.value = event.date;
+        nodes.lab.value = event.lab;
+        nodes.time.value = event.time;
+        nodes.start.value = event.start;
+        nodes.end.value = event.end;
+        nodes.titleField.value = event.title;
       }
-      const dateValue = f.data.value;
-      safeBuildOccupancyTable(dateValue);
-      close();
-    } catch (err) {
-      alert("Erro ao criar/atualizar reserva: " + err.message);
     }
+    nodes.modal.classList.remove("hidden");
   }
 
-  function init() {
-    if (!document.getElementById("agendamento-form")) return;
-    cacheSelectors();
-
-    const user = (typeof Auth !== "undefined" && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
-    if (user?.name) { selectors.fields.resp.value = user.name; selectors.fields.resp.setAttribute("readonly", "readonly"); }
-
-    selectors.fields.start.addEventListener("change", () => {
-      const [hh, mm] = selectors.fields.start.value.split(":").map(Number);
-      const d = new Date(); d.setHours(hh, mm + 50);
-      selectors.fields.end.value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-    });
-
-    selectors.btnOpen?.addEventListener("click", () => open());
-    selectors.btnClose?.addEventListener("click", close);
-    selectors.form?.addEventListener("submit", handleSubmit);
-
-    const salaOpts = {
-      Laboratório: ["Lab B401","Lab B402","Lab B403","Lab B404","Lab B405","Lab B406","Lab Imaginologia"],
-    };
-    selectors.fields.recurso?.addEventListener("change", () => {
-      const tipo = selectors.fields.recurso.value;
-      if (salaOpts[tipo]) {
-        selectors.fields.salaContainer.classList.remove("hidden");
-        selectors.fields.sala.innerHTML = '<option value="">Selecione...</option>' + salaOpts[tipo].map((s) => `<option>${s}</option>`).join("");
-      } else selectors.fields.salaContainer.classList.add("hidden");
-    });
-
-    const courseMap = {
-      "Engenharia de Computação": [
-        "ARA0003 - PRINCÍPIOS DE GESTÃO",
-        "ARA0017 - INTRODUCAO A PROGRAMAÇÃO DE COMPUTADORES",
-        "ARA0039 - ARQUITETURA DE COMPUTADORES",
-        "ARA0045 - ENGENHARIA, SOCIEDADE E SUSTENTABILIDADE",
-        "ARA0015 - CÁLCULO DIFERENCIAL E INTEGRAL",
-        "ARA0020 - GEOMETRIA ANALÍTICA E ÁLGEBRA LINEAR",
-        "ARA0038 - REPRESENTAÇÃO GRÁFICA PARA PROJETO",
-        "ARA0048 - FÍSICA TEÓRICA EXPERIMENTAL - MECÂNICA",
-        "ARA1386 - SISTEMAS OPERACIONAIS",
-        "ARA0002 - PENSAMENTO COMPUTACIONAL",
-        "ARA0014 - ANÁLISE DE DADOS",
-        "ARA0018 - CÁLCULO DE MÚLTIPLAS VARIÁVEIS",
-        "ARA0044 - ELETRICIDADE E MAGNETISMO",
-        "ARA0047 - FÍSICA TEÓRICA EXPER. - FLUIDOS, CALOR, OSCILAÇÕES",
-        "ARA1398 - MECÂNICA DOS SÓLIDOS",
-        "ARA0029 - ELETRICIDADE APLICADA",
-        "ARA0030 - EQUAÇÕES DIFERENCIAIS",
-        "ARA0046 - FENÔMENOS DE TRANSPORTE",
-        "ARA0056 - QUÍMICA TECNOLÓGICA",
-        "ARA2042 - SISTEMAS DIGITAIS",
-        "ARA0079 - COMUNICAÇÕES DE DADOS E REDES DE COMPUTADORES",
-        "ARA0083 - ELETRÔNICA ANALÓGICA",
-        "ARA0125 - CONTROLADORES LÓGICOS PROGRAMÁVEIS",
-        "ARA1943 - MODELAGEM MATEMÁTICA",
-        "ARA0040 - BANCO DE DADOS",
-        "ARA0098 - ESTRUTURA DE DADOS",
-        "COMPILADORES",
-        "ARA2545 - SISTEMAS DISTRIBUÍDOS E COMPUTAÇÃO PARALELA",
-        "ARA0095 - DESENVOLVIMENTO RÁPIDO DE APLICAÇÕES EM PYTHON",
-        "ARA0141 - INSTRUMENTAÇÃO INDUSTRIAL",
-        "ARA0363 - PROGRAMAÇÃO DE SOFTWARE BÁSICO EM C",
-        "ARA2086 - ALGORITMOS EM GRAFOS",
-        "ARA0301 - PROGRAMAÇÃO DE MICROCONTROLADORES",
-        "ARA0309 - LINGUAGENS FORMAIS E AUTÔMATOS",
-        "ARA1879 - AUTOMAÇÃO INDUSTRIAL",
-        "ARA0085 - INTELIGÊNCIA ARTIFICIAL",
-        "ARA0115 - SISTEMAS EMBARCADOS",
-        "ARA1191 - SUP. DE ESTÁGIO E PRÉ-PROJETO EM ENG. DE COM.",
-        "ARA1518 - ALGORITMOS DE PROCESSAMENTO DE IMAGEM",
-        "ARA0026 - TÓPICOS EM LIBRAS: SURDEZ E INCLUSÃO",
-        "ARA0154 - PROCESSOS INDUSTRIAIS E ROBÓTICA",
-        "ARA0869 - INOVAÇÃO, EMPREENDE. E PROJETO FINAL - ENG DE COMP",
-        "ARA2074 - SEGURANÇA CIBERNÉTICA",
-      ],
-    };
-
-    selectors.fields.dept?.addEventListener("change", () => {
-      const lista = courseMap[selectors.fields.dept.value] || [];
-      const sel = selectors.fields.materia;
-      if (lista.length) {
-        sel.innerHTML = '<option value="">Selecione a matéria...</option>' + lista.map((m) => `<option value="${m}">${m}</option>`).join("");
-        sel.disabled = false;
-      } else {
-        sel.innerHTML = '<option value="">Selecione o curso primeiro</option>';
-        sel.disabled = true;
-      }
-    });
-  }
-
-  return { init, open };
+  // Não há mais init() aqui. A inicialização ocorre em open().
+  return { open };
 })();
 
 // --------------------------------------------------
@@ -626,7 +562,6 @@ onReady(async () => {
   }
 
   ThemeToggle.init();
-  FormModule.init();
   DetailModule.init();
 
   // botão tema no menu
