@@ -272,7 +272,9 @@ const FormModule = (() => {
     e.preventDefault();
     
     const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
-    if (!user || !user._id) {
+    const userId = user?._id || user?.id; // Aceita tanto _id (do MongoDB) quanto id (do backend)
+
+    if (!userId) {
         alert("Erro: Usuário não autenticado. Faça o login novamente.");
         return;
     }
@@ -292,7 +294,7 @@ const FormModule = (() => {
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains("hidden") ? f.type.value : `${f.type.value} - ${f.sala.value}`,
-      user: user._id, // Adiciona o ID do usuário ao payload
+      user: userId, // Adiciona o ID do usuário ao payload
     };
     try {
       if (currentId) {
