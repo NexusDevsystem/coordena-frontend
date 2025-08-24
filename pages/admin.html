@@ -32,9 +32,6 @@
 
     <script>
       (async () => {
-        // Já temos guard/remember acima. Aqui só preparamos a API e last route.
-        Auth.setLastRoute("/pages/admin.html", "admin");
-
         const BASE_API = window.location.hostname.includes("localhost")
           ? "http://localhost:10000"
           : "https://coordena-backend.onrender.com";
