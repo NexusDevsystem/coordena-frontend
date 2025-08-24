@@ -93,11 +93,11 @@ const Auth = (() => {
     }
   }
   function clearSession() {
-    localStorage.removeItem(KEYS.USER);
-    localStorage.removeItem(KEYS.TOKEN);
-    localStorage.removeItem(KEYS.ADMIN_USER);
-    localStorage.removeItem(KEYS.ADMIN_TOKEN);
-    // Mantemos LAST_PATH para restaurar pós-login (se quiser resetar, apague aqui)
+    // Limpa tudo para garantir que não haja dados de sessão conflitantes
+    localStorage.clear();
+    sessionStorage.clear();
+    __lastUserCache = null;
+    __lastCheckedMs = 0;
   }
   function getUser() {
     return jparse(localStorage.getItem(KEYS.USER));
