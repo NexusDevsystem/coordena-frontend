@@ -1,36 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Painel de Administração – Coordena+</title>
 
     <!-- Bootstrap / Font Awesome -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-    <!-- CSS do admin (tema Coordena) -->
-    <link rel="stylesheet" href="/assets/css/admin.css" />
-  </head>
+    <!-- CSS principal do sistema -->
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/img/logo.png" type="image/png" />
 
-  <body class="bg-surface">
-    <!-- Proteção de rota (apenas admin) + setup API via Auth -->
+    <!-- Proteção de rota e setup da API -->
     <script src="/assets/js/auth.js"></script>
     <script>
       Auth.guardPage("admin");
       Auth.remember();
-    </script>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="assets/img/logo.png" type="image/png" />
 
-    <script>
       (async () => {
         const BASE_API = window.location.hostname.includes("localhost")
           ? "http://localhost:10000"
@@ -38,10 +28,8 @@
 
         window.API_BASE = BASE_API;
 
-        // Wrapper compatível com código legado que espera window.api
-        // -> Sempre pega o token mais recente, evita usar variável stale
         window.api = async function (path, options = {}) {
-          const token = Auth.getAdminToken(); // pega do storage no momento da chamada
+          const token = Auth.getAdminToken();
           const res = await fetch(`${BASE_API}${path}`, {
             ...options,
             headers: {
@@ -52,7 +40,6 @@
           });
 
           if (res.status === 401 || res.status === 403) {
-            // Token inválido/expirado: encerra sessão e volta pro login
             Auth.logout();
             throw new Error("Unauthorized");
           }
@@ -60,308 +47,148 @@
         };
       })();
     </script>
+</head>
 
-    <!-- Topbar -->
-    <header class="topbar shadow-sm">
-      <div
-        class="container-fluid d-flex align-items-center justify-content-between gap-2"
-      >
-        <div class="d-flex align-items-center gap-2">
-          <div class="brand-badge">
-            <i class="fa-solid fa-bolt"></i>
-          </div>
-          <div>
-            <h1 class="topbar-title mb-0">Painel de Administração</h1>
-            <p class="topbar-subtitle mb-0">
-              Gerencie solicitações de usuários e reservas
-            </p>
-          </div>
-        </div>
+<body>
+    <div class="container-admin">
+        <!-- Cabeçalho do Painel -->
+        <header class="admin-header">
+            <div>
+                <h1>Painel de Administração</h1>
+                <p>Gerencie solicitações de usuários e reservas de laboratórios.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                 <button id="btn-ativar-notificacoes" class="btn btn-light">
+                    <i class="fa-regular fa-bell me-1"></i> Notificações
+                </button>
+                <button id="admin-logout-btn" class="btn btn-danger">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                </button>
+            </div>
+        </header>
 
-        <div class="d-flex align-items-center gap-2">
-          <button id="btn-ativar-notificacoes" class="btn btn-ghost">
-            <i class="fa-regular fa-bell me-1"></i> Notificações
-          </button>
-          <button id="admin-logout-btn" class="btn btn-primary">
-            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="container-fluid py-4 px-2 px-md-4">
-      <!-- Tabs -->
-      <div class="tabs-wrapper sticky-top">
-        <ul
-          class="nav nav-pills nav-fill gap-2 small fw-semibold"
-          id="adminTab"
-          role="tablist"
-        >
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link active"
-              id="usuarios-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#usuarios"
-              type="button"
-              role="tab"
-              aria-controls="usuarios"
-              aria-selected="true"
-            >
-              <i class="fa-solid fa-user-clock me-1"></i> Usuários Pendentes
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="reservas-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#reservas"
-              type="button"
-              role="tab"
-              aria-controls="reservas"
-              aria-selected="false"
-            >
-              <i class="fa-solid fa-calendar-check me-1"></i> Reservas Pendentes
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="ativas-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#ativas"
-              type="button"
-              role="tab"
-              aria-controls="ativas"
-              aria-selected="false"
-            >
-              <i class="fa-solid fa-circle-play me-1"></i> Reservas Ativas
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="historico-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#historico"
-              type="button"
-              role="tab"
-              aria-controls="historico"
-              aria-selected="false"
-            >
-              <i class="fa-solid fa-timeline me-1"></i> Histórico de Usuários
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="ocupacao-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#ocupacao"
-              type="button"
-              role="tab"
-              aria-controls="ocupacao"
-              aria-selected="false"
-            >
-              <i class="fa-solid fa-grid-2 me-1"></i> Ocupação
-            </button>
-          </li>
+        <!-- Abas de Navegação -->
+        <ul class="nav nav-tabs tab-coordena mb-4" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" aria-controls="usuarios" aria-selected="true">
+                    <i class="fa-solid fa-user-clock me-2"></i>Usuários Pendentes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" aria-controls="reservas" aria-selected="false">
+                    <i class="fa-solid fa-calendar-check me-2"></i>Reservas Pendentes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" aria-controls="ativas" aria-selected="false">
+                    <i class="fa-solid fa-circle-play me-2"></i>Reservas Ativas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" aria-controls="historico" aria-selected="false">
+                    <i class="fa-solid fa-timeline me-2"></i>Histórico de Usuários
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
+                    <i class="fa-solid fa-table-cells me-2"></i>Grade de Ocupação
+                </button>
+            </li>
         </ul>
-      </div>
 
-      <div class="tab-content" id="adminTabContent">
-        <!-- Usuários Pendentes -->
-        <section
-          class="tab-pane fade show active"
-          id="usuarios"
-          role="tabpanel"
-          aria-labelledby="usuarios-tab"
-        >
-          <div class="card card-ghost">
-            <div class="card-body">
-              <div class="row g-2 align-items-center mb-3">
-                <div class="col-12 col-md-8">
-                  <div class="input-icon">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input
-                      type="text"
-                      id="busca-usuarios"
-                      class="form-control"
-                      placeholder="Buscar usuário por nome ou e-mail..."
-                    />
-                  </div>
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="adminTabContent">
+            <!-- Usuários Pendentes -->
+            <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="busca-usuarios" class="form-control" placeholder="Buscar usuário por nome, e-mail ou matrícula...">
+                    </div>
+                    <select id="ordenacao-usuarios" class="form-select">
+                        <option value="createdAt">Mais Recentes</option>
+                        <option value="name">Nome (A–Z)</option>
+                        <option value="email">E-mail (A–Z)</option>
+                    </select>
                 </div>
-                <div class="col-12 col-md-4">
-                  <select id="ordenacao-usuarios" class="form-select">
-                    <option value="createdAt">Ordem de Chegada</option>
-                    <option value="name">Nome (A–Z)</option>
-                    <option value="email">E-mail (A–Z)</option>
-                  </select>
+                <div id="lista-pendentes-usuarios" class="row g-4">
+                    <!-- Cards de usuários pendentes serão inseridos aqui via JS -->
                 </div>
-              </div>
-
-              <div id="lista-pendentes-usuarios" class="list-area"></div>
             </div>
-          </div>
-        </section>
 
-        <!-- Reservas Pendentes -->
-        <section
-          class="tab-pane fade"
-          id="reservas"
-          role="tabpanel"
-          aria-labelledby="reservas-tab"
-        >
-          <div class="card card-ghost">
-            <div class="card-body">
-              <div class="row g-2 align-items-center mb-3">
-                <div class="col-12 col-md-8">
-                  <div class="input-icon">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input
-                      type="text"
-                      id="busca-reservas"
-                      class="form-control"
-                      placeholder="Buscar reserva por sala/lab ou requisitante..."
-                    />
-                  </div>
+            <!-- Reservas Pendentes -->
+            <div class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="busca-reservas" class="form-control" placeholder="Buscar por laboratório ou requisitante...">
+                    </div>
+                    <input type="date" id="filtro-data-reservas" class="form-control" style="max-width: 220px;">
+                    <select id="ordenacao-reservas" class="form-select">
+                        <option value="date">Data da Reserva</option>
+                        <option value="responsible">Requisitante (A–Z)</option>
+                    </select>
                 </div>
-                <div class="col-12 col-md-4 d-flex gap-2">
-                  <input
-                    type="date"
-                    id="filtro-data-reservas"
-                    class="form-control"
-                  />
-                  <select id="ordenacao-reservas" class="form-select">
-                    <option value="date">Data</option>
-                    <option value="responsible">Requisitante (A–Z)</option>
-                  </select>
+                <div id="lista-pendentes-reservas" class="row g-4">
+                    <!-- Cards de reservas pendentes serão inseridos aqui via JS -->
                 </div>
-              </div>
-
-              <div id="lista-pendentes-reservas" class="list-area"></div>
             </div>
-          </div>
-        </section>
 
-        <!-- Reservas Ativas -->
-        <section
-          class="tab-pane fade"
-          id="ativas"
-          role="tabpanel"
-          aria-labelledby="ativas-tab"
-        >
-          <div class="card card-ghost">
-            <div class="card-body">
-              <div class="row g-2 align-items-center mb-3">
-                <div class="col-12 col-md-8">
-                  <div class="input-icon">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input
-                      type="text"
-                      id="busca-ativas"
-                      class="form-control"
-                      placeholder="Buscar sala/lab ou requisitante..."
-                    />
-                  </div>
+            <!-- Reservas Ativas -->
+            <div class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="busca-ativas" class="form-control" placeholder="Buscar por laboratório ou requisitante...">
+                    </div>
+                    <input type="date" id="filtro-data-ativas" class="form-control" style="max-width: 220px;">
                 </div>
-                <div class="col-12 col-md-4">
-                  <input
-                    type="date"
-                    id="filtro-data-ativas"
-                    class="form-control"
-                  />
+                <div id="lista-ativas" class="row g-4">
+                    <!-- Cards de reservas ativas serão inseridos aqui via JS -->
                 </div>
-              </div>
-
-              <div id="lista-ativas" class="row g-3"></div>
             </div>
-          </div>
-        </section>
 
-        <!-- Histórico -->
-        <section
-          class="tab-pane fade"
-          id="historico"
-          role="tabpanel"
-          aria-labelledby="historico-tab"
-        >
-          <div class="card card-ghost">
-            <div class="card-body">
-              <h5 class="section-title">
-                <i class="fa-solid fa-history me-2"></i>Histórico de Usuários
-              </h5>
-              <div class="row g-2 mb-3">
-                <div class="col-12 col-md-4">
-                  <input
-                    type="date"
-                    id="filtro-data-historico"
-                    class="form-control"
-                  />
+            <!-- Histórico de Usuários -->
+            <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
+                 <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="busca-historico" class="form-control" placeholder="Buscar no histórico...">
+                    </div>
+                    <input type="date" id="filtro-data-historico" class="form-control" style="max-width: 220px;">
                 </div>
-              </div>
-              <div id="lista-historico-usuarios" class="text-muted">
-                Aqui aparecerá o histórico de usuários (aprovados/rejeitados).
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Ocupação -->
-        <section
-          class="tab-pane fade"
-          id="ocupacao"
-          role="tabpanel"
-          aria-labelledby="ocupacao-tab"
-        >
-          <div class="card card-ghost">
-            <div class="card-body">
-              <div class="row g-3 mb-3">
-                <div class="col-12 col-md-4">
-                  <label
-                    for="occupancy-date-admin"
-                    class="form-label fw-semibold"
-                    >Data de Consulta</label
-                  >
-                  <input
-                    type="date"
-                    id="occupancy-date-admin"
-                    class="form-control"
-                    value=""
-                  />
+                <div id="lista-historico-usuarios" class="row g-4">
+                    <!-- Histórico de usuários será inserido aqui -->
                 </div>
-              </div>
-
-              <div class="table-responsive soft-border">
-                <table
-                  id="occupancy-table-admin"
-                  class="table table-sm table-borderless align-middle text-center mb-0"
-                ></table>
-              </div>
             </div>
-          </div>
-        </section>
-      </div>
-    </main>
 
-    <!-- Toast -->
+            <!-- Grade de Ocupação -->
+            <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
+                <div class="card card-coordena">
+                    <div class="card-body">
+                        <div class="row g-3 mb-3 align-items-end">
+                            <div class="col-12 col-md-4">
+                                <label for="occupancy-date-admin" class="form-label fw-semibold">Selecione a Data</label>
+                                <input type="date" id="occupancy-date-admin" class="form-control" value="">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="occupancy-table-admin" class="table table-bordered">
+                                <!-- Tabela de ocupação será inserida aqui -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast para notificações -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
-      <div
-        id="toastNovoCadastro"
-        class="toast align-items-center text-white bg-dark border-0"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
+      <div id="toastNovoCadastro" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
           <div class="toast-body" id="meuToastBody"></div>
-          <button
-            type="button"
-            class="btn-close btn-close-white me-2 m-auto"
-            data-bs-dismiss="toast"
-            aria-label="Fechar"
-          ></button>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
         </div>
       </div>
     </div>
@@ -370,7 +197,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/main.js"></script>
 
-    <!-- Script Ocupação (usa Api do main.js) -->
+    <!-- Script específico da página Admin -->
     <script>
       onReady(async () => {
         try {
@@ -412,5 +239,5 @@
           Auth.logout();
         });
     </script>
-  </body>
+</body>
 </html>
