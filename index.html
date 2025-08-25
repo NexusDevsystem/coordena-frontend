@@ -21,44 +21,43 @@
       if (_theme === "dark") document.documentElement.classList.add("dark");
     </script>
 
-    <!-- Font Awesome (ajuste para o seu próprio KIT) -->
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
 
     <!-- Favicon -->
-    <link rel="icon" href="assets/img/logo.png" type="image/png" />
+    <link rel="icon" href="/assets/img/logo.png" type="image/png" />
 
     <!-- Estilos customizados -->
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
 
     <!-- Auth logic -->
-    <script src="assets/js/auth.js"></script>
+    <script src="/assets/js/auth.js"></script>
     <script>
-      // IMPORTANTe: primeiro verifica se é admin e já redireciona.
-      (function () {
-        try {
-          if (
-            typeof Auth !== "undefined" &&
-            Auth.isAdminLogged &&
-            Auth.isAdminLogged()
-          ) {
-            // Admin logado → manda direto pro painel, sem salvar a Home como last_path
-            location.replace("/pages/admin.html");
-            return;
-          }
-        } catch (_) {}
-        // Se não é admin, protege como página de usuário e só então registra last_path
-        Auth.guardPage("user");
-        Auth.remember();
+      if (!window.Auth) {
+        console.error('CRITICAL: Auth module failed to load.');
+        // Optional: redirect to an error page or show a message
+        // document.body.innerHTML = '<h1>Erro crítico. Por favor, recarregue a página.</h1>';
+      } else {
+        // IMPORTANTe: primeiro verifica se é admin e já redireciona.
+        (function () {
+          try {
+            if (Auth.isAdminLogged && Auth.isAdminLogged()) {
+              // Admin logado → manda direto pro painel, sem salvar a Home como last_path
+              location.replace("/pages/admin.html");
+              return;
+            }
+          } catch (_) {}
+          // Se não é admin, protege como página de usuário e só então registra last_path
+          Auth.guardPage("user");
+          Auth.remember();
 
-        // expõe o usuário para o menu (fallback via localStorage se precisar)
-        window.user =
-          typeof Auth.getCurrentUser === "function"
-            ? Auth.getCurrentUser()
-            : JSON.parse(localStorage.getItem("user") || "null");
-      })();
+          // expõe o usuário para o menu (fallback via localStorage se precisar)
+          window.user =
+            typeof Auth.getUser === "function"
+              ? Auth.getUser()
+              : JSON.parse(localStorage.getItem("user") || "null");
+        })();
+      }
     </script>
   </head>
 

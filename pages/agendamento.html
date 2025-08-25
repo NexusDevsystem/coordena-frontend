@@ -30,6 +30,7 @@
   </script>
 
   <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
 
   <!-- FullCalendar CSS & JS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
@@ -40,6 +41,11 @@
 
   <!-- Auth library -->
   <script src="../assets/js/auth.js"></script>
+  <script>
+    if (!window.Auth) {
+      console.error('CRITICAL: Auth module failed to load on agendamento page.');
+    }
+  </script>
 
   <!--
     Este bloco CSS garante que qualquer marcador automático (como “01”) em li::before
