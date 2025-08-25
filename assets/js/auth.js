@@ -53,8 +53,6 @@ const FormModule = (() => {
     });
 
     // Lógica para carregar matérias baseadas no curso
-    if (!exp) return false; // se não tem exp, tratamos como não expira "logo"
-    return Date.now() + marginSec * 1000 >= exp;
   }
   function shouldHitMe(lastCheckedMs, minIntervalMs = 60_000) {
     // evita flood em /me: no máximo 1x por minuto (ajuste fino)
