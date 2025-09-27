@@ -1,59 +1,44 @@
 // ======================================
-// assets/js/main.js
+// assets/js/auth.js
 // ======================================
 
-// --------------------------------------------------
-// FORMULÁRIO DE RESERVA
-// --------------------------------------------------
-const FormModule = (() => {
-  let currentId = null;
-  const selectors = {};
-  let isInitialized = false; // Flag para controlar a inicialização
+const Auth = (() => {
+  // ---- Constantes ----
+  const API = window.location.hostname.includes("localhost") 
+    ? "http://localhost:10000" 
+    : "https://coordena-backend.onrender.com";
+  
+  const KEYS = {
+    USER: "user",
+    TOKEN: "token",
+    ADMIN_USER: "admin_user",
+    ADMIN_TOKEN: "admin_token",
+    LAST_PATH: "last_path",
+  };
 
-  function $id(id) { return document.getElementById(id); }
+  const PATH = {
+    login: "/login.html",
+    home: "/index.html",
+    admin: "/pages/admin.html",
+  };
 
-  // Busca os elementos do DOM
-  function cacheSelectors() {
-    selectors.modal = $id("form-modal");
-    selectors.form = $id("agendamento-form");
-    selectors.btnClose = $id("form-close");
-    selectors.fields = {
-      data: $id("data"),
-      start: $id("start"),
-      end: $id("end"),
-      recurso: $id("recurso"),
-      salaContainer: $id("sala-container"),
-      sala: $id("sala"),
-      type: $id("tipo-evento"),
-      resp: $id("responsavel"),
-      dept: $id("departamento"),
-      materia: $id("curso"),
-      status: $id("status"),
-      desc: $id("descricao"),
-    };
+  // Cache para /me
+  let __lastUserCache = null;
+  let __lastCheckedMs = 0;
+
+  // Verificação de expiração de token (30 mins antes)
+  function isTokenExpiringSoon(token) {
+    if (!token) return true;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Date.now() / 1000;
+      const exp = payload.exp || 0;
+      return (exp - now) < 1800; // 30 minutes
+    } catch {
+      return true;
+    }
   }
 
-  // Configura os event listeners do formulário
-  function setupListeners() {
-    selectors.btnClose?.addEventListener("click", close);
-    selectors.form?.addEventListener("submit", handleSubmit);
-
-    // Lógica para mostrar/esconder o campo de sala
-    const salaOpts = {
-      Laboratório: ["Lab B401","Lab B402","Lab B403","Lab B404","Lab B405","Lab B406","Lab Imaginologia"],
-    };
-    selectors.fields.recurso?.addEventListener("change", () => {
-      const val = selectors.fields.recurso.value;
-      if (salaOpts[val]) {
-        selectors.fields.sala.innerHTML = salaOpts[val].map(s => `<option value="${s}">${s}</option>`).join('');
-        selectors.fields.salaContainer.classList.remove("hidden");
-      } else {
-        selectors.fields.salaContainer.classList.add("hidden");
-      }
-    });
-
-    // Lógica para carregar matérias baseadas no curso
-  }
   function shouldHitMe(lastCheckedMs, minIntervalMs = 60_000) {
     // evita flood em /me: no máximo 1x por minuto (ajuste fino)
     return Date.now() - lastCheckedMs >= minIntervalMs;
