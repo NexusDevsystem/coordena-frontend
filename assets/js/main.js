@@ -294,7 +294,6 @@ const FormModule = (() => {
       description: f.desc.value,
       time: `${f.start.value}-${f.end.value}`,
       title: f.salaContainer.classList.contains("hidden") ? f.type.value : `${f.type.value} - ${f.sala.value}`,
-      user: userId, // Adiciona o ID do usuário ao payload
     };
     try {
       if (currentId) {
@@ -316,7 +315,7 @@ const FormModule = (() => {
     if (!document.getElementById("agendamento-form")) return;
     cacheSelectors();
 
-    const user = (typeof Auth !== "undefined" && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+    const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
     if (user?.name) { selectors.fields.resp.value = user.name; selectors.fields.resp.setAttribute("readonly", "readonly"); }
 
     selectors.fields.start.addEventListener("change", () => {
