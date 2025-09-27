@@ -74,7 +74,7 @@ const Api = (() => {
   function authHeaders(isJson = false) {
     // token de usuário ou admin
     const userToken  = (typeof Auth !== "undefined" && Auth.getToken) ? Auth.getToken() : null;
-    const adminToken = localStorage.getItem("admin_token");
+    const adminToken = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
     const token = userToken || adminToken;
 
     const headers = {};
@@ -240,9 +240,12 @@ const FormModule = (() => {
     selectors.fields.resp.removeAttribute("readonly");
 
     const user = (typeof Auth !== "undefined" && Auth.getUser) ? Auth.getUser() : null;
+    
     if (user?.name) {
       selectors.fields.resp.value = user.name;
       selectors.fields.resp.setAttribute("readonly", "readonly");
+    } else {
+      selectors.fields.resp.value = "";
     }
 
     if (evData) {
@@ -601,7 +604,7 @@ onReady(async () => {
   const protectedIds = ["calendar","agendamento-form","reservations-container"];
   const isProtected = protectedIds.some((id) => document.getElementById(id));
   const userToken  = (typeof Auth !== "undefined" && Auth.getToken) ? Auth.getToken() : null;
-  const adminToken = localStorage.getItem("admin_token");
+  const adminToken = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
   if (isProtected && !(userToken || adminToken)) {
     const host = window.location.hostname;
     const path = window.location.pathname;
@@ -703,7 +706,7 @@ async function carregarHistoricoUsuarios() {
   if (!container) return console.error("#lista-historico-usuarios não encontrado");
   container.innerHTML = '<p class="text-center py-4">Carregando histórico...</p>';
   try {
-    const token = localStorage.getItem("admin_token");
+    const token = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
     const BASE_API = window.location.hostname.includes("localhost") ? "http://localhost:10000" : "https://coordena-backend.onrender.com";
     const res = await fetch(`${BASE_API}/api/admin/users-history`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -776,7 +779,7 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
 
   // fetch admin com token + erros
   async function adminFetch(url, options = {}) {
-    const token = localStorage.getItem("admin_token");
+    const token = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
     if (!token) {
       alert("Sessão do Admin expirada. Faça login novamente.");
       window.location.replace("/login.html");
@@ -789,10 +792,30 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
       });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          alert("Sem permissão ou token inválido. Faça login novamente.");
-          localStorage.removeItem("admin_token"); localStorage.removeItem("admin_user");
-          window.location.replace("/login.html");
-          return null;
+          try {
+            const errorData = await res.json();
+            
+            // Se o backend confirma que o token expirou ou é inválido
+            if (errorData.expired || errorData.invalid) {
+              alert("Sessão expirada. Faça login novamente.");
+              Auth.logout?.();
+              return null;
+            }
+            
+            // Caso contrário, pode ser erro de permissão, não de token
+            throw new Error(errorData.error || "Erro de autorização");
+          } catch (jsonErr) {
+            // Se não conseguir parsear JSON, verifica token localmente
+            const currentToken = Auth.getAdminToken?.() || Auth.getToken?.();
+            if (!currentToken || Auth.isTokenExpired?.(currentToken)) {
+              alert("Sessão expirada. Faça login novamente.");
+              Auth.logout?.();
+              return null;
+            } else {
+              console.warn("Erro de autorização, mas token ainda válido");
+              throw new Error("Erro de autorização temporário");
+            }
+          }
         }
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `HTTP ${res.status}`);

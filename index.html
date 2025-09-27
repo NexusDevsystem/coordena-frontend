@@ -55,11 +55,11 @@
           Auth.guardPage("user");
           Auth.remember();
 
-          // expõe o usuário para o menu (fallback via localStorage se precisar)
+          // expõe o usuário para o menu 
           window.user =
             typeof Auth.getUser === "function"
               ? Auth.getUser()
-              : JSON.parse(localStorage.getItem("user") || "null");
+              : null;
         })();
       }
     </script>
@@ -130,6 +130,13 @@
             >
           </li>
         </ul>
+
+        <!-- Status da Sessão -->
+        <div class="px-4 mb-2">
+          <div id="session-indicator" class="text-xs text-center rounded py-1 px-2">
+            <span id="session-text">●</span>
+          </div>
+        </div>
 
         <div class="mt-auto px-4 pb-6">
           <div
@@ -351,6 +358,25 @@
           // por segurança, força absoluto:
           window.location.replace("/login.html");
         });
+
+      // ====== STATUS SIMPLES DA SESSÃO ======
+      function updateSessionIndicator() {
+        const user = Auth.getUser();
+        const token = Auth.getToken();
+        const text = document.getElementById('session-text');
+        
+        if (user && token) {
+          text.innerHTML = '● Online';
+          text.className = 'text-green-400';
+        } else {
+          text.innerHTML = '● Offline';  
+          text.className = 'text-gray-400';
+        }
+      }
+
+      // Update inicial e periódico
+      updateSessionIndicator();
+      setInterval(updateSessionIndicator, 30000);
     </script>
   </body>
 </html>

@@ -43,8 +43,28 @@
             });
 
             if (res.status === 401 || res.status === 403) {
-              Auth.logout();
-              throw new Error("Unauthorized");
+              try {
+                const errorData = await res.json();
+                
+                // Se o backend confirma que o token expirou ou é inválido
+                if (errorData.expired || errorData.invalid) {
+                  console.log("Token confirmadamente inválido pelo servidor, fazendo logout...");
+                  Auth.logout();
+                  throw new Error("Sessão expirada. Faça login novamente.");
+                }
+                
+                // Caso contrário, pode ser erro de permissão, não de token
+                throw new Error(errorData.error || "Erro de autorização");
+              } catch (jsonErr) {
+                // Se não conseguir parsear JSON, trata como erro de token
+                const currentToken = Auth.getAdminToken();
+                if (!currentToken || Auth.isTokenExpired?.(currentToken)) {
+                  Auth.logout();
+                  throw new Error("Sessão expirada");
+                } else {
+                  throw new Error("Erro de autorização temporário");
+                }
+              }
             }
             return res;
           };
@@ -96,6 +116,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
                     <i class="fa-solid fa-table-cells me-2"></i>Grade de Ocupação
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sistema-tab" data-bs-toggle="tab" data-bs-target="#sistema" type="button" role="tab" aria-controls="sistema" aria-selected="false">
+                    <i class="fa-solid fa-cog me-2"></i>Configurações
                 </button>
             </li>
         </ul>
@@ -184,6 +209,44 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Configurações -->
+            <div class="tab-pane fade" id="sistema" role="tabpanel" aria-labelledby="sistema-tab">
+                <div class="row g-4">
+                    <!-- Informações da Sessão Admin -->
+                    <div class="col-12">
+                        <div class="card card-coordena">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa-solid fa-cog me-2"></i>Configurações do Sistema</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="mb-3"><i class="fa-solid fa-user-shield me-2"></i>Sessão Administrativa</h6>
+                                        <div id="admin-session-info" class="mb-3">
+                                            <small class="text-muted">Carregando informações...</small>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="refreshAdminInfo()">
+                                            <i class="fa-solid fa-refresh me-1"></i>Atualizar
+                                        </button>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="mb-3"><i class="fa-solid fa-info-circle me-2"></i>Sessões Independentes</h6>
+                                        <p class="small text-muted mb-2">
+                                            Cada aba/janela mantém sua própria sessão. Isso permite:
+                                        </p>
+                                        <ul class="small text-muted">
+                                            <li>Administrar o sistema em uma aba</li>
+                                            <li>Fazer reservas como usuário em outra</li>
+                                            <li>Logout independente por aba</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -242,6 +305,39 @@
         ?.addEventListener("click", () => {
           Auth.logout();
         });
+
+      // ====== FUNÇÕES DA ABA CONFIGURAÇÕES ======
+      function refreshAdminInfo() {
+        const user = Auth.getUser();
+        const adminToken = Auth.getAdminToken();
+        const infoDiv = document.getElementById('admin-session-info');
+        
+        if (user && adminToken) {
+          infoDiv.innerHTML = `
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa-solid fa-check-circle text-success me-2"></i>
+              <strong>Logado como:</strong> ${user.name || user.username}
+            </div>
+            <div class="small text-muted">
+              <i class="fa-solid fa-shield-alt me-1"></i> Perfil: ${user.role} | 
+              <i class="fa-solid fa-clock me-1"></i> ${new Date().toLocaleTimeString()}
+            </div>
+          `;
+        } else {
+          infoDiv.innerHTML = `
+            <div class="d-flex align-items-center text-warning">
+              <i class="fa-solid fa-exclamation-triangle me-2"></i>
+              <span>Sessão administrativa não encontrada</span>
+            </div>
+          `;
+        }
+      }
+
+      // Auto-refresh da aba configurações quando ativada
+      document.getElementById('sistema-tab')?.addEventListener('shown.bs.tab', refreshAdminInfo);
+      
+      // Refresh inicial
+      document.addEventListener('DOMContentLoaded', refreshAdminInfo);
     </script>
 </body>
 </html>

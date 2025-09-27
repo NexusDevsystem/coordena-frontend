@@ -39,6 +39,32 @@ const Auth = (() => {
     }
   }
 
+  // Verificação se token está completamente expirado
+  function isTokenExpired(token) {
+    if (!token) return true;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Date.now() / 1000;
+      const exp = payload.exp || 0;
+      return now >= exp;
+    } catch {
+      return true;
+    }
+  }
+
+  // Verifica se token é válido estruturalmente
+  function isTokenValid(token) {
+    if (!token) return false;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return false;
+      const payload = JSON.parse(atob(parts[1]));
+      return !!(payload.id && payload.role); // Deve ter id e role
+    } catch {
+      return false;
+    }
+  }
+
   function shouldHitMe(lastCheckedMs, minIntervalMs = 60_000) {
     // evita flood em /me: no máximo 1x por minuto (ajuste fino)
     return Date.now() - lastCheckedMs >= minIntervalMs;
@@ -63,55 +89,116 @@ const Auth = (() => {
     return (s || "").replace(/\D+/g, "");
   }
 
-  // ---- Sessão ----
+  // ---- Sessão (Agora usa sessionStorage para isolamento entre abas) ----
   function saveSession({ user, token }) {
-    localStorage.setItem(KEYS.USER, JSON.stringify(user));
-    localStorage.setItem(KEYS.TOKEN, token);
+    // Usa sessionStorage para isolamento entre abas
+    sessionStorage.setItem(KEYS.USER, JSON.stringify(user));
+    sessionStorage.setItem(KEYS.TOKEN, token);
     if (user?.role === "admin") {
-      localStorage.setItem(KEYS.ADMIN_USER, JSON.stringify(user));
-      localStorage.setItem(KEYS.ADMIN_TOKEN, token);
+      sessionStorage.setItem(KEYS.ADMIN_USER, JSON.stringify(user));
+      sessionStorage.setItem(KEYS.ADMIN_TOKEN, token);
     } else {
-      localStorage.removeItem(KEYS.ADMIN_USER);
-      localStorage.removeItem(KEYS.ADMIN_TOKEN);
+      sessionStorage.removeItem(KEYS.ADMIN_USER);
+      sessionStorage.removeItem(KEYS.ADMIN_TOKEN);
     }
+    
+    // Ainda mantém no localStorage para lembrar do último login (opcional)
+    localStorage.setItem('lastLoginUser', JSON.stringify({
+      username: user.username,
+      role: user.role,
+      timestamp: Date.now()
+    }));
   }
+  
   function clearSession() {
-    // Limpa tudo para garantir que não haja dados de sessão conflitantes
-    localStorage.clear();
-    sessionStorage.clear();
+    // Limpa apenas a sessão atual (aba atual)
+    sessionStorage.removeItem(KEYS.USER);
+    sessionStorage.removeItem(KEYS.TOKEN);
+    sessionStorage.removeItem(KEYS.ADMIN_USER);
+    sessionStorage.removeItem(KEYS.ADMIN_TOKEN);
     __lastUserCache = null;
     __lastCheckedMs = 0;
   }
+  
   function getUser() {
-    return jparse(localStorage.getItem(KEYS.USER));
+    return jparse(sessionStorage.getItem(KEYS.USER));
   }
   function getToken() {
-    return localStorage.getItem(KEYS.TOKEN) || "";
+    const token = sessionStorage.getItem(KEYS.TOKEN) || "";
+    // Verifica se token é válido antes de retornar
+    if (token && (isTokenExpired(token) || !isTokenValid(token))) {
+      console.warn("Token inválido ou expirado encontrado, limpando...");
+      clearSession();
+      return "";
+    }
+    return token;
   }
   function getAdminToken() {
-    return localStorage.getItem(KEYS.ADMIN_TOKEN) || "";
+    const token = sessionStorage.getItem(KEYS.ADMIN_TOKEN) || "";
+    // Verifica se token é válido antes de retornar
+    if (token && (isTokenExpired(token) || !isTokenValid(token))) {
+      console.warn("Token admin inválido ou expirado encontrado, limpando...");
+      clearSession();
+      return "";
+    }
+    return token;
   }
   function isLogged() {
-    return !!getToken();
+    const token = getToken();
+    return !!(token && isTokenValid(token) && !isTokenExpired(token));
   }
   function isAdminLogged() {
-    return !!getAdminToken();
+    const token = getAdminToken();
+    return !!(token && isTokenValid(token) && !isTokenExpired(token));
   }
 
-  // ---- Última página visitada (não salva login) ----
+  // ---- Função para sugerir login baseado na última sessão ----
+  function getLastLoginSuggestion() {
+    const lastLogin = jparse(localStorage.getItem('lastLoginUser'));
+    if (!lastLogin) return null;
+    
+    // Só sugere se foi nas últimas 24 horas
+    const hoursSinceLogin = (Date.now() - (lastLogin.timestamp || 0)) / (1000 * 60 * 60);
+    if (hoursSinceLogin > 24) {
+      localStorage.removeItem('lastLoginUser');
+      return null;
+    }
+    
+    return {
+      username: lastLogin.username,
+      role: lastLogin.role,
+      hoursAgo: Math.round(hoursSinceLogin)
+    };
+  }
+
+  // ---- Função para verificar se há sessão ativa em outra aba ----
+  function checkForActiveSession() {
+    // Esta função poderia ser usada para detectar sessões em outras abas
+    // Por enquanto, apenas retorna informações do último login
+    return getLastLoginSuggestion();
+  }
+
+  // ---- Última página visitada (por sessão) ----
   function remember() {
     const p = (window.location.pathname || "").toLowerCase();
     if (p.endsWith("/pages/login.html") || p.endsWith("/pages/login")) return;
-    localStorage.setItem(
+    // Usa sessionStorage para lembrar apenas na sessão atual
+    sessionStorage.setItem(
       KEYS.LAST_PATH,
       JSON.stringify({ path: window.location.pathname, ts: now() })
     );
   }
   function getLastPath() {
-    const obj = jparse(localStorage.getItem(KEYS.LAST_PATH));
+    // Primeiro tenta sessionStorage (sessão atual)
+    let obj = jparse(sessionStorage.getItem(KEYS.LAST_PATH));
+    if (!obj?.path) {
+      // Fallback para localStorage se não houver na sessão
+      obj = jparse(localStorage.getItem(KEYS.LAST_PATH));
+    }
     if (!obj?.path) return null;
     // (opcional) expirar em 7 dias
     if (obj?.ts && now() - obj.ts > 7 * 24 * 60 * 60 * 1000) {
+      sessionStorage.removeItem(KEYS.LAST_PATH);
       localStorage.removeItem(KEYS.LAST_PATH);
       return null;
     }
@@ -363,6 +450,12 @@ const Auth = (() => {
     getToken,
     getAdminToken,
     getUser,
+    getLastLoginSuggestion,
+    checkForActiveSession,
+    clearSession, // Disponibiliza para uso manual se necessário
+    isTokenValid,
+    isTokenExpired,
+    isTokenExpiringSoon,
   };
 })();
 
