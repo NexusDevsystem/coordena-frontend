@@ -1011,16 +1011,52 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
   async function aprovarReserva(id) {
     if (!id) return alert("ID inválido de reserva.");
     if (!confirm("Aprovar esta reserva?")) return;
-    const ok = await adminFetch(`${BASE_API}/api/admin/approve-reservation/${id}`, { method: "PATCH" });
-    if (ok !== null) { carregarReservasPendentes(); carregarReservasAtivas(); }
+    
+    try {
+      // Debug: verificar dados antes da requisição
+      const currentUser = Auth.getUser();
+      const currentToken = Auth.getAdminToken();
+      console.log("=== DEBUG APROVAR RESERVA ===");
+      console.log("User:", currentUser);
+      console.log("Token exists:", !!currentToken);
+      console.log("Token length:", currentToken?.length);
+      console.log("===============================");
+      
+      // Usa a API específica do painel admin que tem melhor tratamento de erros
+      const result = await window.api(`/api/admin/approve-reservation/${id}`, { method: "PATCH" });
+      if (result && result.ok) { 
+        carregarReservasPendentes(); 
+        carregarReservasAtivas(); 
+        alert("Reserva aprovada com sucesso!");
+      }
+    } catch (error) {
+      console.error("=== ERRO DETALHADO ===");
+      console.error("Erro ao aprovar reserva:", error);
+      console.error("Stack:", error.stack);
+      console.error("=====================");
+      alert("Erro ao aprovar reserva: " + error.message);
+    }
   }
 
   async function rejeitarReserva(id) {
     if (!id) return alert("ID inválido de reserva.");
     if (!confirm("Rejeitar esta reserva?")) return;
-    // IMPORTANTE: backend usa PATCH (não DELETE)
-    const ok = await adminFetch(`${BASE_API}/api/admin/reject-reservation/${id}`, { method: "PATCH", body: JSON.stringify({ reason: "" }) });
-    if (ok !== null) carregarReservasPendentes();
+    
+    try {
+      // Usa a API específica do painel admin que tem melhor tratamento de erros
+      const result = await window.api(`/api/admin/reject-reservation/${id}`, { 
+        method: "PATCH", 
+        body: JSON.stringify({ reason: "" }) 
+      });
+      if (result && result.ok) { 
+        carregarReservasPendentes(); 
+        carregarReservasAtivas(); 
+        alert("Reserva rejeitada com sucesso!");
+      }
+    } catch (error) {
+      console.error("Erro ao rejeitar reserva:", error);
+      alert("Erro ao rejeitar reserva: " + error.message);
+    }
   }
 
   window.aprovarReserva = aprovarReserva;
