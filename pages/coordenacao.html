@@ -432,13 +432,15 @@
       function agendarComCoordenador(coord) {
         // Armazena as informações do coordenador para usar na página de agendamento
         sessionStorage.setItem('coordenadorAgendamento', JSON.stringify({
+          id: coord._id,
           nome: coord.name,
           curso: coord.course,
-          email: coord.email
+          email: coord.email,
+          foto: coord.photo
         }));
         
-        // Redireciona para a página de agendamento
-        window.location.href = '/pages/agendamento.html';
+        // Redireciona para a nova página de agendamento com coordenadores
+        window.location.href = '/pages/agendamento-coordenador.html';
       }
 
       // Função para fechar o modal
