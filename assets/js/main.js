@@ -739,6 +739,41 @@ onReady(async () => {
   FormModule.init();
   DetailModule.init();
 
+  // Verificar se há informações de coordenação para pré-preencher o formulário
+  const coordenadorAgendamento = sessionStorage.getItem('coordenadorAgendamento');
+  if (coordenadorAgendamento && window.location.pathname.includes('/pages/agendamento.html')) {
+    try {
+      const coord = JSON.parse(coordenadorAgendamento);
+      // Pré-preencher os campos relevantes
+      const deptSelect = document.getElementById('departamento');
+      if (deptSelect && coord.curso) {
+        for (let i = 0; i < deptSelect.options.length; i++) {
+          if (deptSelect.options[i].text === coord.curso || deptSelect.options[i].value === coord.curso) {
+            deptSelect.selectedIndex = i;
+            deptSelect.dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+      }
+      
+      const respInput = document.getElementById('responsavel');
+      if (respInput && coord.nome) {
+        respInput.value = coord.nome;
+      }
+      
+      const descTextarea = document.getElementById('descricao');
+      if (descTextarea) {
+        const currentDesc = descTextarea.value;
+        descTextarea.value = currentDesc ? currentDesc + `\\nAgendamento com coordenador: ${coord.nome} (${coord.email})` : `Agendamento com coordenador: ${coord.nome} (${coord.email})`;
+      }
+      
+      // Limpar a informação após usar
+      sessionStorage.removeItem('coordenadorAgendamento');
+    } catch (e) {
+      console.error('Erro ao pré-preencher formulário com dados do coordenador:', e);
+    }
+  }
+
   // botão tema no menu
   const menuThemeBtn = document.getElementById("menu-theme-btn");
   if (menuThemeBtn) {
