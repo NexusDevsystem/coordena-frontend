@@ -523,15 +523,18 @@ async function buildOccupancyTable(filterDate) {
   }
 
   const thead = document.createElement("thead");
-  thead.innerHTML = `<tr><th class="px-2 py-1 border ${textClass}">Sala / Horário</th>${
-    timeRanges.map((r) => `<th class="px-2 py-1 border ${textClass} text-center">${r}</th>`).join("")
+  thead.className = "text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400";
+  thead.innerHTML = `<tr><th class="px-4 py-3 ${textClass}">Sala / Horário</th>${
+    timeRanges.map((r) => `<th class="px-4 py-3 ${textClass} text-center">${r}</th>`).join("")
   }</tr>`;
   table.appendChild(thead);
 
   const tbody = document.createElement("tbody");
+  tbody.className = "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-400";
   labs.forEach((lab) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="px-2 py-1 border font-semibold ${textClass}">${lab}</td>`;
+    tr.className = "border-b dark:border-gray-700";
+    tr.innerHTML = `<td class="px-4 py-3 font-semibold ${textClass}">${lab}</td>`;
 
     timeRanges.forEach((range) => {
       const [start, end] = range.split("-");
@@ -549,12 +552,117 @@ async function buildOccupancyTable(filterDate) {
         toDate(Y, M, D, fs.endTime) > cellStart
       );
 
-      let style = "", label = "";
-      if (hasReservation) { style = "background-color: rgba(220,38,38,0.8);"; label = "ocupado"; }
-      else if (fixed) { const c = turnoColors[fixed.turno] || "rgba(107,114,128,0.5)"; style = `background-color: ${c};`; label = fixed.turno; }
-      else { style = "background-color: rgba(16,185,129,0.8);"; label = "livre"; }
+      let bgClass = "", label = "";
+      if (hasReservation) { 
+        bgClass = "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"; 
+        label = "ocupado"; 
+      }
+      else if (fixed) { 
+        const c = turnoColors[fixed.turno] || "#9ca3af"; 
+        bgClass = "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"; 
+        label = fixed.turno; 
+      }
+      else { 
+        bgClass = "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"; 
+        label = "livre"; 
+      }
 
-      tr.innerHTML += `<td class="px-2 py-1 border ${textClass} text-center" style="${style}">${label}</td>`;
+      tr.innerHTML += `<td class="px-4 py-3 text-center ${bgClass}">${label}</td>`;
+    });
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+// Função específica para a tabela de ocupação no admin
+async function buildOccupancyTableAdmin(filterDate) {
+  const table = document.getElementById("occupancy-table-admin");
+  if (!table) return console.error("#occupancy-table-admin não encontrado");
+  table.innerHTML = "";
+
+  const isDark = document.documentElement.classList.contains("dark");
+  const textClass = isDark ? "text-white" : "text-gray-900";
+
+  // Tenta obter os eventos, mas se falhar, continua com uma mensagem de erro
+  let allEvents = [];
+  try {
+    allEvents = CalendarModule.getEvents();
+  } catch (e) {
+    console.error("Erro ao obter eventos para ocupação admin:", e);
+    table.innerHTML = `<tr><td class="p-4 text-center ${textClass}">Erro ao carregar dados de ocupação</td></tr>`;
+    return;
+  }
+
+  const dateStr = filterDate || new Date().toISOString().slice(0, 10);
+  const [Y, M, D] = dateStr.split("-").map(Number);
+  const weekday = new Date(Y, M - 1, D).getDay();
+  const dayEvents = allEvents.filter((e) => e.date === dateStr);
+  const fixedTodaySlots = fixedSlots.filter((s) => s.dayOfWeek === weekday);
+
+  // grade 50 min 08:00–22:00
+  const slotStart = toDate(Y, M, D, "08:00"), slotEnd = toDate(Y, M, D, "22:00");
+  const timeRanges = [];
+  let cur = new Date(slotStart);
+  while (cur < slotEnd) {
+    const next = new Date(cur); next.setMinutes(cur.getMinutes() + 50);
+    timeRanges.push(`${padHM(cur)}-${padHM(next)}`);
+    cur = next;
+  }
+
+  const labs = Array.from(new Set([...fixedTodaySlots.map((s) => s.lab), ...dayEvents.map((e) => e.sala || e.resource)]));
+
+  if (!timeRanges.length || !labs.length) {
+    table.innerHTML = `<tr><td class="p-4 text-center ${textClass}">Sem dados para exibir</td></tr>`;
+    return;
+  }
+
+  const thead = document.createElement("thead");
+  thead.className = "text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400";
+  thead.innerHTML = `<tr><th class="px-4 py-3 ${textClass}">Sala / Horário</th>${
+    timeRanges.map((r) => `<th class="px-4 py-3 ${textClass} text-center">${r}</th>`).join("")
+  }</tr>`;
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  tbody.className = "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-400";
+  labs.forEach((lab) => {
+    const tr = document.createElement("tr");
+    tr.className = "border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700";
+    tr.innerHTML = `<td class="px-4 py-3 font-semibold ${textClass}">${lab}</td>`;
+
+    timeRanges.forEach((range) => {
+      const [start, end] = range.split("-");
+      const cellStart = toDate(Y, M, D, start), cellEnd = toDate(Y, M, D, end);
+
+      const hasReservation = dayEvents.some((ev) => {
+        if ((ev.sala || ev.resource) !== lab) return false;
+        const evStart = toDate(Y, M, D, ev.start), evEnd = toDate(Y, M, D, ev.end);
+        return evStart < cellEnd && evEnd > cellStart;
+      });
+
+      const fixed = fixedTodaySlots.find((fs) =>
+        fs.lab === lab &&
+        toDate(Y, M, D, fs.startTime) < cellEnd &&
+        toDate(Y, M, D, fs.endTime) > cellStart
+      );
+
+      let bgClass = "", label = "";
+      if (hasReservation) { 
+        bgClass = "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"; 
+        label = "ocupado"; 
+      }
+      else if (fixed) { 
+        const c = turnoColors[fixed.turno] || "#9ca3af"; 
+        bgClass = "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"; 
+        label = fixed.turno; 
+      }
+      else { 
+        bgClass = "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"; 
+        label = "livre"; 
+      }
+
+      tr.innerHTML += `<td class="px-4 py-3 text-center ${bgClass}">${label}</td>`;
     });
 
     tbody.appendChild(tr);
@@ -704,7 +812,7 @@ document.querySelectorAll("button.toggle-password").forEach((btn) => {
 async function carregarHistoricoUsuarios() {
   const container = document.getElementById("lista-historico-usuarios");
   if (!container) return console.error("#lista-historico-usuarios não encontrado");
-  container.innerHTML = '<p class="text-center py-4">Carregando histórico...</p>';
+  container.innerHTML = '<p class="text-center py-10 text-gray-500 dark:text-gray-400">Carregando histórico...</p>';
   try {
     const token = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
     const BASE_API = window.location.hostname.includes("localhost") ? "http://localhost:10000" : "https://coordena-backend.onrender.com";
@@ -712,37 +820,56 @@ async function carregarHistoricoUsuarios() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const historico = await res.json();
     if (!historico.length) {
-      container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fas fa-user-clock fa-3x mb-3"></i><h5>Nenhum usuário aprovado ou rejeitado ainda</h5><p>Ainda não há histórico de usuários.</p></div>`;
+      container.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">
+        <i class="fas fa-user-clock text-5xl mb-4 text-gray-400"></i>
+        <h5 class="text-lg font-medium mb-2">Nenhum usuário aprovado ou rejeitado ainda</h5>
+        <p>Ainda não há histórico de usuários.</p>
+      </div>`;
       return;
     }
 
-    const termoBusca = document.getElementById("busca-historico-usuarios")?.value.trim().toLowerCase() || "";
-    const ordenacao = document.getElementById("ordenacao-historico-usuarios")?.value || "updatedAt";
+    const termoBusca = document.getElementById("busca-historico")?.value.trim().toLowerCase() || "";
+    const filtroData = document.getElementById("filtro-data-historico")?.value || "";
 
-    let filtrados = historico.filter((u) => (((u.name || "") + " " + (u.email || "")).toLowerCase().includes(termoBusca)));
-    filtrados.sort((a, b) =>
-      ordenacao === "updatedAt" ? new Date(b.updatedAt) - new Date(a.updatedAt)
-      : ordenacao === "status" ? (a.status || "").localeCompare(b.status || "")
-      : (a[ordenacao] || "").localeCompare(b[ordenacao] || "")
-    );
-
-    let html = '<div class="row gx-3 gy-4">';
-    filtrados.forEach((u) => {
-      html += `<div class="col-12 col-md-6 col-lg-4"><div class="card shadow-sm h-100"><div class="card-body">
-        <h5 class="card-title mb-1">${u.name}</h5>
-        <p class="card-text text-secondary mb-1">${u.email}</p>
-        <p class="card-text mb-1"><small>Função: <strong>${u.role}</strong></small></p>
-        <p class="card-text mb-2"><small>Status: ${
-          u.status === "approved" ? '<span class="badge bg-success">Aprovado</span>' : '<span class="badge bg-danger">Rejeitado</span>'
-        }</small></p>
-        <p class="card-text text-muted small">Data de cadastro: ${new Date(u.createdAt).toLocaleDateString("pt-BR")}<br>Última atualização: ${new Date(u.updatedAt).toLocaleDateString("pt-BR")} às ${new Date(u.updatedAt).toLocaleTimeString("pt-BR")}</p>
-      </div></div></div>`;
+    let filtrados = historico.filter((u) => {
+      const txt = ((u.name || "") + " " + (u.email || "")).toLowerCase();
+      if (termoBusca && !txt.includes(termoBusca)) return false;
+      if (filtroData && u.createdAt.split('T')[0] !== filtroData) return false;
+      return true;
     });
-    html += "</div>";
+
+    filtrados.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    let html = '';
+    filtrados.forEach((u) => {
+      html += `<div class="admin-card">
+        <div class="p-5">
+          <h5 class="text-lg font-bold text-gray-900 dark:text-white mb-2">${u.name}</h5>
+          <p class="text-gray-600 dark:text-gray-300 mb-3">${u.email}</p>
+          <div class="space-y-2 mb-3">
+            <div class="text-sm text-gray-600 dark:text-gray-300">
+              Função: <strong>${u.role}</strong>
+            </div>
+            <div class="text-sm">
+              Status: ${
+                u.status === "approved" ? '<span class="admin-badge badge-approved">Aprovado</span>' : '<span class="admin-badge badge-rejected">Rejeitado</span>'
+              }
+            </div>
+          </div>
+          <div class="text-sm text-gray-500">
+            <p>Data de cadastro: ${new Date(u.createdAt).toLocaleDateString("pt-BR")}</p>
+            <p>Última atualização: ${new Date(u.updatedAt).toLocaleDateString("pt-BR")} às ${new Date(u.updatedAt).toLocaleTimeString("pt-BR")}</p>
+          </div>
+        </div>
+      </div>`;
+    });
     container.innerHTML = html;
   } catch (e) {
     console.error("Histórico usuários:", e);
-    container.innerHTML = `<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Não foi possível carregar o histórico de usuários.</p></div>`;
+    container.innerHTML = `<div class="text-center py-10 text-red-500">
+      <i class="fas fa-exclamation-triangle text-3xl mb-4"></i>
+      <p>Não foi possível carregar o histórico de usuários.</p>
+    </div>`;
   }
 }
 document.getElementById("historico-tab")?.addEventListener("shown.bs.tab", carregarHistoricoUsuarios);
@@ -845,6 +972,12 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
         if (podeNotificar) enviarNotificacao("🔔 Nova(s) Solicitação(ões) de Usuário", `${diff} novo(s) usuário(s) aguardando aprovação.`);
       }
 
+      // Atualizar contador de usuários pendentes
+      const countElement = document.getElementById("count-usuarios");
+      if (countElement) {
+        countElement.textContent = dados.length;
+      }
+
       ultimoCountUsuarios = dados.length;
       usuariosPendentes = dados;
       renderizarUsuariosPendentes();
@@ -866,36 +999,47 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
     const exibidos = filtrados.slice(inicio, inicio + 6);
 
     if (!filtrados.length) {
-      container.innerHTML = `<div class="text-center py-5 text-light"><i class="fas fa-user-clock fa-3x mb-3"></i><h4>Nenhuma solicitação de usuário pendente</h4><p>Não há novos usuários aguardando aprovação.</p></div>`;
+      container.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">
+        <i class="fas fa-user-clock text-5xl mb-4 text-gray-400"></i>
+        <h4 class="text-xl font-semibold mb-2">Nenhuma solicitação de usuário pendente</h4>
+        <p>Não há novos usuários aguardando aprovação.</p>
+      </div>`;
       return;
     }
 
-    let html = '<div class="row gx-3 gy-4">';
+    let html = '';
     exibidos.forEach((u) => {
       const id = u._id || u.id;
-      html += `<div class="col-md-6 col-lg-4"><div class="card card-coordena shadow-sm"><div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div><h5 class="card-title mb-1">${u.name}</h5><h6 class="card-subtitle mb-1">${u.email}</h6></div>
-          <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+      html += `<div class="admin-card">
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h5 class="text-lg font-bold text-gray-900 dark:text-white mb-1">${u.name}</h5>
+              <h6 class="text-gray-600 dark:text-gray-300 mb-3">${u.email}</h6>
+            </div>
+            <span class="admin-badge badge-pending">Pendente</span>
+          </div>
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-user-tag me-2"></i>
+              <strong>Tipo:</strong> ${u.role}
+            </div>
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-calendar-alt me-2"></i>
+              <strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString("pt-BR")}
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button class="admin-btn-approve" onclick="aprovarUsuario('${id}')">
+              <i class="fas fa-check me-1"></i> Aprovar
+            </button>
+            <button class="admin-btn-reject" onclick="rejeitarUsuario('${id}')">
+              <i class="fas fa-times me-1"></i> Rejeitar
+            </button>
+          </div>
         </div>
-        <p class="mb-1"><i class="fas fa-user-tag me-1"></i><strong>Tipo:</strong> ${u.role}</p>
-        <p class="mb-3"><i class="fas fa-calendar-alt me-1"></i><strong>Criado em:</strong> ${new Date(u.createdAt).toLocaleString("pt-BR")}</p>
-        <div class="d-flex gap-2">
-          <button class="btn btn-success flex-grow-1" onclick="aprovarUsuario('${id}')"><i class="fas fa-check me-1"></i> Aprovar</button>
-          <button class="btn btn-danger flex-grow-1" onclick="rejeitarUsuario('${id}')"><i class="fas fa-times me-1"></i> Rejeitar</button>
-        </div>
-      </div></div></div>`;
+      </div>`;
     });
-    html += "</div>";
-
-    if (totalPag > 1) {
-      html += `<nav aria-label="Paginação de Usuários" class="mt-4"><ul class="pagination justify-content-center">
-        <li class="page-item ${paginaAtualUsuarios === 1 ? "disabled" : ""}"><a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios - 1})">&laquo;</a></li>`;
-      for (let p = 1; p <= totalPag; p++)
-        html += `<li class="page-item ${paginaAtualUsuarios === p ? "active" : ""}"><a class="page-link" href="#" onclick="mudarPaginaUsuarios(${p})">${p}</a></li>`;
-      html += `<li class="page-item ${paginaAtualUsuarios === totalPag ? "disabled" : ""}"><a class="page-link" href="#" onclick="mudarPaginaUsuarios(${paginaAtualUsuarios + 1})">&raquo;</a></li>
-      </ul></nav>`;
-    }
     container.innerHTML = html;
   }
 
@@ -939,6 +1083,12 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
         if (podeNotificar) enviarNotificacao("🔔 Nova(s) Solicitação(ões) de Reserva", `${diff} nova(s) reserva(s) aguardando aprovação.`);
       }
 
+      // Atualizar contador de reservas pendentes
+      const countElement = document.getElementById("count-reservas");
+      if (countElement) {
+        countElement.textContent = dados.length;
+      }
+
       ultimoCountReservas = dados.length;
       reservasPendentes = dados;
       renderizarReservasPendentes();
@@ -967,38 +1117,55 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
     const exibidos = filtrados.slice(inicio, inicio + 6);
 
     if (!filtrados.length) {
-      container.innerHTML = `<div class="text-center py-5 text-light"><i class="fas fa-calendar-times fa-3x mb-3"></i><h4>Nenhuma solicitação de reserva pendente</h4><p>Não há novas solicitações de reserva.</p></div>`;
+      container.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">
+        <i class="fas fa-calendar-times text-5xl mb-4 text-gray-400"></i>
+        <h4 class="text-xl font-semibold mb-2">Nenhuma solicitação de reserva pendente</h4>
+        <p>Não há novas solicitações de reserva.</p>
+      </div>`;
       return;
     }
 
-    let html = '<div class="row gx-3 gy-4">';
+    let html = '';
     exibidos.forEach((r) => {
       const id = r._id || r.id;
-      html += `<div class="col-md-6 col-lg-4"><div class="card card-coordena shadow-sm"><div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div><h5 class="card-title mb-1">${r.resource}${r.sala ? " – " + r.sala : ""}</h5><h6 class="card-subtitle mb-1">${new Date(r.date).toLocaleDateString("pt-BR")}</h6></div>
-          <span class="badge bg-warning text-dark rounded-pill">Pendente</span>
+      html += `<div class="admin-card">
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h5 class="text-lg font-bold text-gray-900 dark:text-white mb-1">${r.resource}${r.sala ? " – " + r.sala : ""}</h5>
+              <h6 class="text-gray-600 dark:text-gray-300 mb-3">${new Date(r.date).toLocaleDateString("pt-BR")}</h6>
+            </div>
+            <span class="admin-badge badge-pending">Pendente</span>
+          </div>
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-clock me-2"></i>
+              <strong>Horário:</strong> ${r.start} – ${r.end}
+            </div>
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-user me-2"></i>
+              <strong>Requisitante:</strong> ${r.responsible}
+            </div>
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-building me-2"></i>
+              <strong>Depto.:</strong> ${r.department}
+            </div>
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Tipo:</strong> ${r.type}
+            </div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="admin-btn-approve" onclick="aprovarReserva('${id}')">
+              <i class="fas fa-check me-1"></i> Aprovar
+            </button>
+            <button class="admin-btn-reject" onclick="rejeitarReserva('${id}')">
+              <i class="fas fa-times me-1"></i> Rejeitar
+            </button>
+          </div>
         </div>
-        <p class="mb-1"><i class="fas fa-clock me-1"></i><strong>Horário:</strong> ${r.start} – ${r.end}</p>
-        <p class="mb-1"><i class="fas fa-user me-1"></i><strong>Requisitante:</strong> ${r.responsible}</p>
-        <p class="mb-1"><i class="fas fa-building me-1"></i><strong>Depto.:</strong> ${r.department}</p>
-        <p class="mb-1"><i class="fas fa-info-circle me-1"></i><strong>Tipo:</strong> ${r.type}</p>
-        <div class="d-flex gap-2 mt-3">
-          <button class="btn btn-success flex-grow-1" onclick="aprovarReserva('${id}')"><i class="fas fa-check me-1"></i> Aprovar</button>
-          <button class="btn btn-danger flex-grow-1" onclick="rejeitarReserva('${id}')"><i class="fas fa-times me-1"></i> Rejeitar</button>
-        </div>
-      </div></div></div>`;
+      </div>`;
     });
-    html += "</div>";
-
-    if (totalPag > 1) {
-      html += `<nav aria-label="Paginação de Reservas" class="mt-4"><ul class="pagination justify-content-center">
-      <li class="page-item ${paginaAtualReservas === 1 ? "disabled" : ""}"><a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas - 1})">&laquo;</a></li>`;
-      for (let p = 1; p <= totalPag; p++)
-        html += `<li class="page-item ${paginaAtualReservas === p ? "active" : ""}"><a class="page-link" href="#" onclick="mudarPaginaReservas(${p})">${p}</a></li>`;
-      html += `<li class="page-item ${paginaAtualReservas === totalPag ? "disabled" : ""}"><a class="page-link" href="#" onclick="mudarPaginaReservas(${paginaAtualReservas + 1})">&raquo;</a></li>
-      </ul></nav>`;
-    }
     container.innerHTML = html;
   }
 
@@ -1115,6 +1282,13 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
     const container = document.getElementById("lista-ativas");
     if (!container) return;
     container.innerHTML = "";
+    
+    // Atualizar contador de reservas ativas
+    const countElement = document.getElementById("count-ativas");
+    if (countElement) {
+      countElement.textContent = reservas.length;
+    }
+    
     const agora = new Date();
     reservas.forEach((r) => {
       const inicio = new Date(`${r.date}T${r.start}:00`);
@@ -1124,20 +1298,27 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
       else if (agora > fim) perc = 100;
       else perc = ((agora - inicio) / (fim - inicio)) * 100;
 
-      const col = document.createElement("div"); col.className = "col-12 col-md-6 col-lg-4";
-      const card = document.createElement("div"); card.className = "card shadow-sm h-100";
-      const body = document.createElement("div"); body.className = "card-body";
-      body.innerHTML = `
-        <h5 class="card-title mb-1">${r.sala || r.resource || ""}</h5>
-        <p class="card-text text-secondary mb-2">${r.responsible || ""}</p>
-        <p class="card-text text-muted small">${inicio.toLocaleDateString("pt-BR")} &nbsp;|&nbsp; ${r.start} – ${r.end}</p>
-        <div class="progress mt-3" style="height:8px;"><div class="progress-bar bg-success" role="progressbar" style="width:${perc}%;" aria-valuenow="${perc.toFixed(2)}" aria-valuemin="0" aria-valuemax="100"></div></div>
-        <p class="text-end text-sm mt-1"><small>${perc.toFixed(0)}%</small></p>`;
-      card.appendChild(body); col.appendChild(card); container.appendChild(col);
+      const card = document.createElement("div");
+      card.className = "admin-card";
+      card.innerHTML = `
+        <div class="p-5">
+          <h5 class="text-lg font-bold text-gray-900 dark:text-white mb-2">${r.sala || r.resource || ""}</h5>
+          <p class="text-gray-600 dark:text-gray-300 mb-3">${r.responsible || ""}</p>
+          <p class="text-gray-500 text-sm mb-4">${inicio.toLocaleDateString("pt-BR")} &nbsp;|&nbsp; ${r.start} – ${r.end}</p>
+          <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+            <div class="bg-green-600 h-2.5 rounded-full" style="width:${perc}%"></div>
+          </div>
+          <p class="text-right text-sm text-gray-500"><small>${perc.toFixed(0)}%</small></p>
+        </div>`;
+      container.appendChild(card);
     });
 
     if (!reservas.length) {
-      container.innerHTML = `<div class="text-center py-5 text-light w-100"><i class="fas fa-calendar-check fa-3x mb-3"></i><h4>Não há reservas aprovadas para exibir</h4><p>Ou ainda não existe reserva aprovada para o critério selecionado.</p></div>`;
+      container.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400 w-100">
+        <i class="fas fa-calendar-check text-5xl mb-4 text-gray-400"></i>
+        <h4 class="text-xl font-semibold mb-2">Não há reservas aprovadas para exibir</h4>
+        <p>Ou ainda não existe reserva aprovada para o critério selecionado.</p>
+      </div>`;
     }
   }
 

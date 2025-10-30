@@ -851,7 +851,7 @@ body {
   color: var(--text-color);
 }
 
-/* Cards genéricos – aparência “flutuante” */
+/* Cards genéricos – aparência "flutuante" */
 .card-coordena {
   background-color: var(--card-bg);
   border: none;
@@ -988,6 +988,127 @@ body {
   .card-coordena .btn-reject {
     width: 100%;
   }
+}
+
+/* Estilos específicos para abas do admin com Tailwind */
+.admin-tab-content {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+.admin-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s, box-shadow 0.3s;
+  border-left: 4px solid #2563eb;
+  overflow: hidden;
+}
+
+.admin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.admin-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.badge-pending {
+  background-color: #f59e0b;
+  color: #fff;
+}
+
+.badge-approved {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.badge-rejected {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.admin-btn-approve {
+  background-color: #10b981;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  width: 100%;
+}
+
+.admin-btn-approve:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-btn-reject {
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  width: 100%;
+}
+
+.admin-btn-reject:hover {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.admin-search-box input {
+  padding-left: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  height: 3rem;
+  font-size: 1rem;
+  color: #374151;
+  background: #fff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.admin-search-box i {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 1.125rem;
+}
+
+.admin-form-select {
+  max-width: 220px;
+  height: 3rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  color: #374151;
 }
 
 /* ================================================

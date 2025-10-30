@@ -5,8 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Painel de Administração – Coordena+</title>
 
-    <!-- Bootstrap / Font Awesome -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Tailwind CSS e Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: "#2563eb", light: "#60A5FA" },
+                        surface: "#0b1020",
+                        card: "#0f152b",
+                        muted: "#94a3b8",
+                        brand: "#2563eb",
+                        'brand-600': "#1d4ed8",
+                        'brand-50': "#eff6ff",
+                        line: "rgba(148, 163, 184, 0.12)",
+                        success: "#10b981",
+                        danger: "#ef4444",
+                        warning: "#f59e0b",
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
 
     <!-- CSS principal do sistema -->
@@ -73,176 +95,228 @@
     </script>
 </head>
 
-<body>
-    <div class="container-admin">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Cabeçalho do Painel -->
-        <header class="admin-header">
-            <div>
-                <h1>Painel de Administração</h1>
-                <p>Gerencie solicitações de usuários e reservas de laboratórios.</p>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                 <button id="btn-ativar-notificacoes" class="btn btn-light">
-                    <i class="fa-regular fa-bell me-1"></i> Notificações
-                </button>
-                <button id="admin-logout-btn" class="btn btn-danger">
-                    <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-                </button>
+        <header class="bg-gradient-to-r from-primary to-primary-600 text-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Painel de Administração</h1>
+                    <p class="text-primary-100">Gerencie solicitações de usuários e reservas de laboratórios.</p>
+                </div>
+                <div class="flex gap-3 mt-4 md:mt-0">
+                    <button id="btn-ativar-notificacoes" class="bg-white text-primary px-4 py-2 rounded-xl font-medium hover:bg-gray-100 transition">
+                        <i class="fa-regular fa-bell me-1"></i> Notificações
+                    </button>
+                    <button id="admin-logout-btn" class="bg-red-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-700 transition">
+                        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                    </button>
+                </div>
             </div>
         </header>
 
         <!-- Abas de Navegação -->
-        <ul class="nav nav-tabs tab-coordena mb-4" id="adminTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" aria-controls="usuarios" aria-selected="true">
-                    <i class="fa-solid fa-user-clock me-2"></i>Usuários Pendentes
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" aria-controls="reservas" aria-selected="false">
-                    <i class="fa-solid fa-calendar-check me-2"></i>Reservas Pendentes
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" aria-controls="ativas" aria-selected="false">
-                    <i class="fa-solid fa-circle-play me-2"></i>Reservas Ativas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" aria-controls="historico" aria-selected="false">
-                    <i class="fa-solid fa-timeline me-2"></i>Histórico de Usuários
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" aria-controls="ocupacao" aria-selected="false">
-                    <i class="fa-solid fa-table-cells me-2"></i>Grade de Ocupação
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="sistema-tab" data-bs-toggle="tab" data-bs-target="#sistema" type="button" role="tab" aria-controls="sistema" aria-selected="false">
-                    <i class="fa-solid fa-cog me-2"></i>Configurações
-                </button>
-            </li>
-        </ul>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6 p-4">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="adminTab" role="tablist">
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group active" 
+                            id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab" 
+                            aria-controls="usuarios" aria-selected="true">
+                        <i class="fa-solid fa-user-clock me-2"></i> Usuários Pendentes
+                        <span id="count-usuarios" class="ms-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full"></span>
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:border-gray-600 group"
+                            id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab" 
+                            aria-controls="reservas" aria-selected="false">
+                        <i class="fa-solid fa-calendar-check me-2"></i>Reservas Pendentes
+                        <span id="count-reservas" class="ms-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full"></span>
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:border-gray-600 group"
+                            id="ativas-tab" data-bs-toggle="tab" data-bs-target="#ativas" type="button" role="tab" 
+                            aria-controls="ativas" aria-selected="false">
+                        <i class="fa-solid fa-circle-play me-2"></i>Reservas Ativas
+                        <span id="count-ativas" class="ms-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full"></span>
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:border-gray-600 group"
+                            id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" 
+                            aria-controls="historico" aria-selected="false">
+                        <i class="fa-solid fa-timeline me-2"></i>Histórico de Usuários
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:border-gray-600 group"
+                            id="ocupacao-tab" data-bs-toggle="tab" data-bs-target="#ocupacao" type="button" role="tab" 
+                            aria-controls="ocupacao" aria-selected="false">
+                        <i class="fa-solid fa-table-cells me-2"></i>Grade de Ocupação
+                    </button>
+                </li>
+                <li class="me-2" role="presentation">
+                    <button class="inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:border-gray-600 group"
+                            id="sistema-tab" data-bs-toggle="tab" data-bs-target="#sistema" type="button" role="tab" 
+                            aria-controls="sistema" aria-selected="false">
+                        <i class="fa-solid fa-cog me-2"></i>Configurações
+                    </button>
+                </li>
+            </ul>
+        </div>
 
         <!-- Conteúdo das Abas -->
         <div class="tab-content" id="adminTabContent">
             <!-- Usuários Pendentes -->
             <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="busca-usuarios" class="form-control" placeholder="Buscar usuário por nome, e-mail ou matrícula...">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-user-clock text-primary me-2"></i> Usuários Pendentes</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="busca-usuarios" class="block w-full p-3 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar usuário por nome, e-mail ou matrícula...">
+                            </div>
+                            <select id="ordenacao-usuarios" class="block w-full md:w-auto p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <option value="createdAt">Mais Recentes</option>
+                                <option value="name">Nome (A–Z)</option>
+                                <option value="email">E-mail (A–Z)</option>
+                            </select>
+                        </div>
                     </div>
-                    <select id="ordenacao-usuarios" class="form-select">
-                        <option value="createdAt">Mais Recentes</option>
-                        <option value="name">Nome (A–Z)</option>
-                        <option value="email">E-mail (A–Z)</option>
-                    </select>
-                </div>
-                <div id="lista-pendentes-usuarios" class="row g-4">
-                    <!-- Cards de usuários pendentes serão inseridos aqui via JS -->
+                    <div id="lista-pendentes-usuarios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cards de usuários pendentes serão inseridos aqui via JS -->
+                    </div>
                 </div>
             </div>
 
             <!-- Reservas Pendentes -->
             <div class="tab-pane fade" id="reservas" role="tabpanel" aria-labelledby="reservas-tab">
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="busca-reservas" class="form-control" placeholder="Buscar por laboratório ou requisitante...">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-calendar-check text-primary me-2"></i> Reservas Pendentes</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="busca-reservas" class="block w-full p-3 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar por laboratório ou requisitante...">
+                            </div>
+                            <input type="date" id="filtro-data-reservas" class="block w-full md:w-48 p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            <select id="ordenacao-reservas" class="block w-full md:w-auto p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <option value="date">Data da Reserva</option>
+                                <option value="responsible">Requisitante (A–Z)</option>
+                            </select>
+                        </div>
                     </div>
-                    <input type="date" id="filtro-data-reservas" class="form-control" style="max-width: 220px;">
-                    <select id="ordenacao-reservas" class="form-select">
-                        <option value="date">Data da Reserva</option>
-                        <option value="responsible">Requisitante (A–Z)</option>
-                    </select>
-                </div>
-                <div id="lista-pendentes-reservas" class="row g-4">
-                    <!-- Cards de reservas pendentes serão inseridos aqui via JS -->
+                    <div id="lista-pendentes-reservas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cards de reservas pendentes serão inseridos aqui via JS -->
+                    </div>
                 </div>
             </div>
 
             <!-- Reservas Ativas -->
             <div class="tab-pane fade" id="ativas" role="tabpanel" aria-labelledby="ativas-tab">
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="busca-ativas" class="form-control" placeholder="Buscar por laboratório ou requisitante...">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-circle-play text-primary me-2"></i> Reservas Ativas</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="busca-ativas" class="block w-full p-3 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar por laboratório ou requisitante...">
+                            </div>
+                            <input type="date" id="filtro-data-ativas" class="block w-full md:w-48 p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        </div>
                     </div>
-                    <input type="date" id="filtro-data-ativas" class="form-control" style="max-width: 220px;">
-                </div>
-                <div id="lista-ativas" class="row g-4">
-                    <!-- Cards de reservas ativas serão inseridos aqui via JS -->
+                    <div id="lista-ativas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cards de reservas ativas serão inseridos aqui via JS -->
+                    </div>
                 </div>
             </div>
 
             <!-- Histórico de Usuários -->
             <div class="tab-pane fade" id="historico" role="tabpanel" aria-labelledby="historico-tab">
-                 <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="busca-historico" class="form-control" placeholder="Buscar no histórico...">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-timeline text-primary me-2"></i> Histórico de Usuários</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="busca-historico" class="block w-full p-3 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar no histórico...">
+                            </div>
+                            <input type="date" id="filtro-data-historico" class="block w-full md:w-48 p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        </div>
                     </div>
-                    <input type="date" id="filtro-data-historico" class="form-control" style="max-width: 220px;">
-                </div>
-                <div id="lista-historico-usuarios" class="row g-4">
-                    <!-- Histórico de usuários será inserido aqui -->
+                    <div id="lista-historico-usuarios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Histórico de usuários será inserido aqui -->
+                    </div>
                 </div>
             </div>
 
             <!-- Grade de Ocupação -->
             <div class="tab-pane fade" id="ocupacao" role="tabpanel" aria-labelledby="ocupacao-tab">
-                <div class="card card-coordena">
-                    <div class="card-body">
-                        <div class="row g-3 mb-3 align-items-end">
-                            <div class="col-12 col-md-4">
-                                <label for="occupancy-date-admin" class="form-label fw-semibold">Selecione a Data</label>
-                                <input type="date" id="occupancy-date-admin" class="form-control" value="">
-                            </div>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-table-cells text-primary me-2"></i> Grade de Ocupação</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <label for="occupancy-date-admin" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Selecione a Data</label>
+                            <input type="date" id="occupancy-date-admin" class="block w-full md:w-48 p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                         </div>
-                        <div class="table-responsive">
-                            <table id="occupancy-table-admin" class="table table-bordered">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="occupancy-table-admin" class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <!-- Tabela de ocupação será inserida aqui -->
-                            </table>
-                        </div>
+                            </thead>
+                            <tbody>
+                                <!-- Tabela de ocupação será inserida aqui -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- Configurações -->
             <div class="tab-pane fade" id="sistema" role="tabpanel" aria-labelledby="sistema-tab">
-                <div class="row g-4">
-                    <!-- Informações da Sessão Admin -->
-                    <div class="col-12">
-                        <div class="card card-coordena">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="fa-solid fa-cog me-2"></i>Configurações do Sistema</h5>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6"><i class="fa-solid fa-cog text-primary me-2"></i> Configurações do Sistema</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Informações da Sessão Admin -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-user-shield me-2"></i> Sessão Administrativa</h3>
+                            <div id="admin-session-info" class="mb-4">
+                                <p class="text-sm text-gray-600 dark:text-gray-300">Carregando informações...</p>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <h6 class="mb-3"><i class="fa-solid fa-user-shield me-2"></i>Sessão Administrativa</h6>
-                                        <div id="admin-session-info" class="mb-3">
-                                            <small class="text-muted">Carregando informações...</small>
-                                        </div>
-                                        <button class="btn btn-outline-secondary btn-sm" onclick="refreshAdminInfo()">
-                                            <i class="fa-solid fa-refresh me-1"></i>Atualizar
-                                        </button>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <h6 class="mb-3"><i class="fa-solid fa-info-circle me-2"></i>Sessões Independentes</h6>
-                                        <p class="small text-muted mb-2">
-                                            Cada aba/janela mantém sua própria sessão. Isso permite:
-                                        </p>
-                                        <ul class="small text-muted">
-                                            <li>Administrar o sistema em uma aba</li>
-                                            <li>Fazer reservas como usuário em outra</li>
-                                            <li>Logout independente por aba</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                            <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition" onclick="refreshAdminInfo()">
+                                <i class="fa-solid fa-refresh me-1"></i>Atualizar
+                            </button>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-info-circle me-2"></i> Sessões Independentes</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                Cada aba/janela mantém sua própria sessão. Isso permite:
+                            </p>
+                            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fa-solid fa-check text-green-500 mt-0.5 me-2"></i>
+                                    <span>Administrar o sistema em uma aba</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa-solid fa-check text-green-500 mt-0.5 me-2"></i>
+                                    <span>Fazer reservas como usuário em outra</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa-solid fa-check text-green-500 mt-0.5 me-2"></i>
+                                    <span>Logout independente por aba</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -251,16 +325,16 @@
     </div>
 
     <!-- Toast para notificações -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
-      <div id="toastNovoCadastro" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="fixed bottom-4 right-4 z-50">
+      <div id="toastNovoCadastro" class="toast align-items-center text-white bg-dark border-0 rounded-lg shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
-          <div class="toast-body" id="meuToastBody"></div>
+          <div class="toast-body p-4" id="meuToastBody"></div>
           <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
         </div>
       </div>
     </div>
 
-    <!-- JS -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/main.js"></script>
 
