@@ -812,7 +812,7 @@ document.querySelectorAll("button.toggle-password").forEach((btn) => {
 async function carregarHistoricoUsuarios() {
   const container = document.getElementById("lista-historico-usuarios");
   if (!container) return console.error("#lista-historico-usuarios não encontrado");
-  container.innerHTML = '<p class="text-center py-10 text-gray-500 dark:text-gray-400">Carregando histórico...</p>';
+  container.innerHTML = '<div class="text-center py-5 text-gray-500 dark:text-gray-400"><i class="fas fa-spinner fa-spin me-2"></i> Carregando histórico...</div>';
   try {
     const token = (typeof Auth !== "undefined" && Auth.getAdminToken) ? Auth.getAdminToken() : "";
     const BASE_API = window.location.hostname.includes("localhost") ? "http://localhost:10000" : "https://coordena-backend.onrender.com";
@@ -821,7 +821,7 @@ async function carregarHistoricoUsuarios() {
     const historico = await res.json();
     if (!historico.length) {
       container.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">
-        <i class="fas fa-user-clock text-5xl mb-4 text-gray-400"></i>
+        <i class="fas fa-user-clock text-3xl mb-4 text-gray-400"></i>
         <h5 class="text-lg font-medium mb-2">Nenhum usuário aprovado ou rejeitado ainda</h5>
         <p>Ainda não há histórico de usuários.</p>
       </div>`;
@@ -840,35 +840,30 @@ async function carregarHistoricoUsuarios() {
 
     filtrados.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
-    let html = '';
+    let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nome</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Função</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data Cadastro</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Última Atualização</th></tr></thead><tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">';
     filtrados.forEach((u) => {
-      html += `<div class="admin-card">
-        <div class="p-5">
-          <h5 class="text-lg font-bold text-gray-900 dark:text-white mb-2">${u.name}</h5>
-          <p class="text-gray-600 dark:text-gray-300 mb-3">${u.email}</p>
-          <div class="space-y-2 mb-3">
-            <div class="text-sm text-gray-600 dark:text-gray-300">
-              Função: <strong>${u.role}</strong>
-            </div>
-            <div class="text-sm">
-              Status: ${
-                u.status === "approved" ? '<span class="admin-badge badge-approved">Aprovado</span>' : '<span class="admin-badge badge-rejected">Rejeitado</span>'
-              }
-            </div>
-          </div>
-          <div class="text-sm text-gray-500">
-            <p>Data de cadastro: ${new Date(u.createdAt).toLocaleDateString("pt-BR")}</p>
-            <p>Última atualização: ${new Date(u.updatedAt).toLocaleDateString("pt-BR")} às ${new Date(u.updatedAt).toLocaleTimeString("pt-BR")}</p>
-          </div>
-        </div>
-      </div>`;
+      html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${u.name}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${u.email}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${u.role}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm">
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            u.status === "approved" ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+          }">
+            ${u.status === "approved" ? 'Aprovado' : 'Rejeitado'}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${new Date(u.createdAt).toLocaleDateString("pt-BR")}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${new Date(u.updatedAt).toLocaleDateString("pt-BR")} ${new Date(u.updatedAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}</td>
+      </tr>`;
     });
+    html += '</tbody></table></div>';
     container.innerHTML = html;
   } catch (e) {
     console.error("Histórico usuários:", e);
     container.innerHTML = `<div class="text-center py-10 text-red-500">
-      <i class="fas fa-exclamation-triangle text-3xl mb-4"></i>
-      <p>Não foi possível carregar o histórico de usuários.</p>
+      <i class="fas fa-exclamation-triangle text-xl mb-2"></i>
+      <p class="text-sm">Não foi possível carregar o histórico de usuários.</p>
     </div>`;
   }
 }

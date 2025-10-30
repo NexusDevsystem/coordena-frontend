@@ -1111,6 +1111,48 @@ body {
   color: #374151;
 }
 
+/* Estilos para a tabela de histórico de usuários */
+.admin-table {
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-table .status-approved {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.admin-table .status-rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
 /* ================================================
    Grade de Ocupação Estilo “Mini-Calendário”
    ================================================ */
