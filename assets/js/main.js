@@ -873,8 +873,8 @@ async function carregarHistoricoUsuarios() {
   }
 }
 document.getElementById("historico-tab")?.addEventListener("shown.bs.tab", carregarHistoricoUsuarios);
-document.getElementById("busca-historico-usuarios")?.addEventListener("input", carregarHistoricoUsuarios);
-document.getElementById("ordenacao-historico-usuarios")?.addEventListener("change", carregarHistoricoUsuarios);
+document.getElementById("busca-historico")?.addEventListener("input", carregarHistoricoUsuarios);
+document.getElementById("filtro-data-historico")?.addEventListener("change", carregarHistoricoUsuarios);
 
 // ==================================================
 // PAINEL DE ADMINISTRAÇÃO
