@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Coordenadores - Coordena+</title>
+
+    <!-- Tailwind + Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: "class" };
+    </script>
+
+    <!-- Aplica imediatamente o tema salvo (evita flash) -->
+    <script>
+      const _theme = localStorage.getItem("theme") || "light";
+      document.documentElement.classList.remove("light");
+      if (_theme === "dark") document.documentElement.classList.add("dark");
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/img/logo.png" type="image/png" />
+
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+
+    <!-- Auth logic -->
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      if (!window.Auth) {
+        console.error('CRITICAL: Auth module failed to load.');
+      } else {
+        // Verifica se é admin e redireciona se necessário
+        (function () {
+          try {
+            if (Auth.isAdminLogged && Auth.isAdminLogged()) {
+              location.replace("/pages/admin.html");
+              return;
+            }
+          } catch (_) {}
+          // Protege como página de usuário
+          Auth.guardPage("user");
+          Auth.remember();
+
+          // expõe o usuário para o menu 
+          window.user = typeof Auth.getUser === "function" ? Auth.getUser() : null;
+        })();
+      }
+    </script>
+  </head>
+
+  <body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-500"
+  >
+    <!-- =========================== -->
+    <!-- Off-Canvas Menu -->
+    <!-- =========================== -->
+    <header class="offcanvas-menu">
+      <input type="checkbox" id="toggle-menu" />
+      <label for="toggle-menu" class="toggle-open"></label>
+
+      <nav class="flex flex-col h-full">
+        <div class="pt-12 pb-3">
+          <img
+            src="/assets/img/icons/letreiro.png"
+            alt="Letreiro Coordena+"
+            class="mx-auto h-50 w-auto"
+          />
+        </div>
+
+        <label for="toggle-menu" class="toggle-close"></label>
+
+        <ul class="menu-list py-2 space-y-2 list-none px-0">
+          <li>
+            <a
+              href="/index.html"
+              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
+            >
+              <i class="fas fa-home me-2"></i>Início
+            </a>
+          </li>
+          <li>
+            <a
+              href="/pages/agendamento.html"
+              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
+            >
+              <i class="fas fa-calendar me-2"></i>Agendamento
+            </a>
+          </li>
+          <li>
+            <a
+              href="/pages/meus-agendamentos.html"
+              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500"
+            >
+              <i class="fas fa-list me-2"></i>Meus Agendamentos
+            </a>
+          </li>
+          <li>
+            <a
+              href="/pages/coordenacao.html"
+              class="block text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-500 bg-blue-100 dark:bg-blue-900 rounded-lg px-3 py-2"
+            >
+              <i class="fas fa-users me-2"></i>Coordenadores
+            </a>
+          </li>
+        </ul>
+
+        <!-- Status da Sessão -->
+        <div class="px-4 mb-2">
+          <div id="session-indicator" class="text-xs text-center rounded py-1 px-2">
+            <span id="session-text">●</span>
+          </div>
+        </div>
+
+        <div class="mt-auto px-4 pb-6">
+          <div
+            class="flex items-center justify-between bg-gray-800 rounded-lg p-3"
+          >
+            <div class="flex flex-col">
+              <div id="menu-user-fullname" class="text-gray-100 font-medium">
+                —
+              </div>
+              <div id="menu-user-role" class="text-gray-400 text-sm">—</div>
+            </div>
+
+            <div class="flex space-x-4">
+              <button
+                id="menu-theme-btn"
+                class="text-yellow-400 hover:text-yellow-300"
+                aria-label="Alternar tema"
+              >
+                <i class="fas fa-moon"></i>
+              </button>
+
+              <button
+                id="menu-logout-btn"
+                class="text-red-500 hover:text-red-400"
+                aria-label="Sair"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <!-- /Off-Canvas Menu -->
+
+    <main class="min-h-screen px-4 py-8">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Coordenadores</h1>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">
+              Conheça os coordenadores dos cursos da faculdade
+            </p>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              id="busca-coordenadores"
+              class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Buscar coordenador ou curso..."
+            />
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          <select 
+            id="filtro-curso" 
+            class="block p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="">Todos os cursos</option>
+            <option value="engenharia-computacao">Engenharia de Computação</option>
+            <option value="ciencia-computacao">Ciência da Computação</option>
+            <option value="sistema-informacao">Sistemas de Informação</option>
+            <option value="engenharia-software">Engenharia de Software</option>
+          </select>
+          
+          <select 
+            id="filtro-status" 
+            class="block p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="">Todos os status</option>
+            <option value="presente">Presente na Faculdade</option>
+            <option value="ausente">Ausente da Faculdade</option>
+          </select>
+        </div>
+
+        <!-- Lista de Coordenadores -->
+        <div id="lista-coordenadores" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Coordenadores serão carregados aqui -->
+          <div class="text-center py-10 text-gray-500 dark:text-gray-400">
+            <i class="fas fa-spinner fa-spin text-3xl mb-4 text-gray-400"></i>
+            <p>Carregando coordenadores...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal de Detalhes do Coordenador -->
+    <div id="modal-coordenador" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="fixed inset-0 bg-black bg-opacity-50" onclick="fecharModal()"></div>
+      <div class="relative w-full max-w-2xl max-h-screen overflow-y-auto mx-auto my-20">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+          <div class="flex justify-between items-start mb-4">
+            <h3 id="modal-nome" class="text-xl font-bold text-gray-900 dark:text-white"></h3>
+            <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+              <i class="fas fa-times text-2xl"></i>
+            </button>
+          </div>
+          
+          <div class="flex items-center mb-6">
+            <div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden mr-6">
+              <img id="modal-foto" src="" alt="Foto do Coordenador" class="w-full h-full object-cover" onerror="this.src='/assets/img/default-avatar.png';">
+            </div>
+            <div>
+              <p class="text-lg text-gray-600 dark:text-gray-300 mb-1"><span id="modal-curso"></span></p>
+              <div class="flex items-center">
+                <div id="modal-status-indicator" class="w-3 h-3 rounded-full mr-2"></div>
+                <span id="modal-status-text" class="font-medium"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-6">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Horários de Atendimento</h4>
+            <div id="modal-horarios" class="space-y-2">
+              <!-- Horários serão inseridos aqui -->
+            </div>
+          </div>
+          
+          <div class="flex justify-end">
+            <button onclick="fecharModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Função para converter status do backend para o frontend
+      function convertStatus(status) {
+        return status === 'present' ? 'presente' : 'ausente';
+      }
+
+      // Função para converter status para exibição
+      function displayStatus(status) {
+        return convertStatus(status) === 'presente' ? 'Presente na Faculdade' : 'Ausente da Faculdade';
+      }
+
+      // Função para obter os coordenadores do backend
+      async function carregarCoordenadores() {
+        try {
+          const token = Auth.getToken();
+          const BASE_API = window.location.hostname.includes("localhost") 
+            ? "http://localhost:10000" 
+            : "https://coordena-backend.onrender.com";
+            
+          const response = await fetch(`${BASE_API}/api/coordinators`, {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          
+          const dados = await response.json();
+          
+          // Converter os dados para o formato esperado pela UI e armazenar para filtragem
+          todosCoordenadores = dados.map(coord => ({
+            id: coord._id,
+            nome: coord.name,
+            foto: coord.photo || '/assets/img/default-avatar.png',
+            curso: coord.course,
+            status: convertStatus(coord.status),
+            horarios: coord.officeHours || []
+          }));
+          
+          renderizarCoordenadores(todosCoordenadores);
+        } catch (error) {
+          console.error('Erro ao carregar coordenadores:', error);
+          document.getElementById('lista-coordenadores').innerHTML = `
+            <div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-exclamation-triangle text-3xl mb-4 text-red-500"></i>
+              <h3 class="text-xl font-medium mb-2">Erro ao carregar coordenadores</h3>
+              <p>Tente novamente mais tarde</p>
+            </div>
+          `;
+        }
+      }
+
+      // Função para renderizar os cards dos coordenadores
+      function renderizarCoordenadores(lista) {
+        const container = document.getElementById('lista-coordenadores');
+        
+        if (!lista || lista.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-user-friends text-5xl mb-4 text-gray-400"></i>
+              <h3 class="text-xl font-medium mb-2">Nenhum coordenador encontrado</h3>
+              <p>Tente ajustar os filtros de busca</p>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        lista.forEach(coord => {
+          const statusClass = coord.status === 'presente' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 
+                                           'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+          const statusTexto = displayStatus(coord.status);
+          const statusIcone = coord.status === 'presente' ? 'fa-door-open' : 'fa-door-closed';
+          
+          html += `
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
+                 onclick="abrirModal('${coord.id}')">
+              <div class="flex items-start">
+                <div class="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden mr-4">
+                  <img src="${coord.foto}" alt="${coord.nome}" class="w-full h-full object-cover" onerror="this.src='/assets/img/default-avatar.png';">
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-lg font-bold text-gray-900 dark:text-white">${coord.nome}</h3>
+                  <p class="text-gray-600 dark:text-gray-300 text-sm mb-2">${coord.curso}</p>
+                  <div class="flex items-center mb-3">
+                    <i class="fas ${statusIcone} text-sm mr-1 ${coord.status === 'presente' ? 'text-green-500' : 'text-red-500'}"></i>
+                    <span class="text-xs font-medium ${statusClass} px-2 py-1 rounded-full">
+                      ${statusTexto}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Horários de Atendimento:</h4>
+                <div class="space-y-1">
+                  ${coord.horarios.map(horario => 
+                    `<div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                      <span>${horario.dayOfWeek}</span>
+                      <span>${horario.startTime} - ${horario.endTime}</span>
+                    </div>`
+                  ).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      }
+
+      // Função para abrir o modal com os detalhes do coordenador
+      async function abrirModal(id) {
+        try {
+          const token = Auth.getToken();
+          const BASE_API = window.location.hostname.includes("localhost") 
+            ? "http://localhost:10000" 
+            : "https://coordena-backend.onrender.com";
+            
+          const response = await fetch(`${BASE_API}/api/coordinators/${id}`, {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          
+          const coord = await response.json();
+          
+          document.getElementById('modal-nome').textContent = coord.name;
+          document.getElementById('modal-curso').textContent = coord.course;
+          document.getElementById('modal-foto').src = coord.photo || '/assets/img/default-avatar.png';
+          
+          const statusIndicator = document.getElementById('modal-status-indicator');
+          const statusText = document.getElementById('modal-status-text');
+          
+          const status = convertStatus(coord.status);
+          if (status === 'presente') {
+            statusIndicator.className = 'w-3 h-3 rounded-full bg-green-500 mr-2';
+            statusText.textContent = 'Presente na Faculdade';
+            statusText.className = 'font-medium text-green-600 dark:text-green-400';
+          } else {
+            statusIndicator.className = 'w-3 h-3 rounded-full bg-red-500 mr-2';
+            statusText.textContent = 'Ausente da Faculdade';
+            statusText.className = 'font-medium text-red-600 dark:text-red-400';
+          }
+          
+          const horariosContainer = document.getElementById('modal-horarios');
+          horariosContainer.innerHTML = (coord.officeHours || []).map(horario => 
+            `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+              <span class="font-medium">${horario.dayOfWeek}:</span>
+              <span>${horario.startTime} - ${horario.endTime}</span>
+            </div>`
+          ).join('');
+          
+          document.getElementById('modal-coordenador').classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        } catch (error) {
+          console.error('Erro ao carregar detalhes do coordenador:', error);
+          alert('Erro ao carregar detalhes do coordenador');
+        }
+      }
+
+      // Função para fechar o modal
+      function fecharModal() {
+        document.getElementById('modal-coordenador').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+
+      // Função para filtrar os coordenadores
+      function filtrarCoordenadores() {
+        const busca = document.getElementById('busca-coordenadores').value.toLowerCase();
+        const curso = document.getElementById('filtro-curso').value;
+        const status = document.getElementById('filtro-status').value;
+        
+        let filtrados = coordenadores.filter(coord => {
+          const matchesBusca = coord.nome.toLowerCase().includes(busca) || 
+                              coord.curso.toLowerCase().includes(busca);
+          const matchesCurso = !curso || coord.curso.toLowerCase().includes(curso.replace('-', ' '));
+          const matchesStatus = !status || coord.status === status;
+          
+          return matchesBusca && matchesCurso && matchesStatus;
+        });
+        
+        renderizarCoordenadores(filtrados);
+      }
+
+      // Função para filtrar os coordenadores localmente
+      let todosCoordenadores = []; // Armazenar todos os coordenadores carregados
+
+      function filtrarCoordenadores() {
+        const busca = document.getElementById('busca-coordenadores').value.toLowerCase();
+        const curso = document.getElementById('filtro-curso').value;
+        const status = document.getElementById('filtro-status').value;
+        
+        let filtrados = todosCoordenadores.filter(coord => {
+          const matchesBusca = coord.nome.toLowerCase().includes(busca) || 
+                              coord.curso.toLowerCase().includes(busca);
+          const matchesCurso = !curso || coord.curso.toLowerCase().includes(curso.replace('-', ' '));
+          const matchesStatus = !status || coord.status === status;
+          
+          return matchesBusca && matchesCurso && matchesStatus;
+        });
+        
+        renderizarCoordenadores(filtrados);
+      }
+
+      // Event listeners para os filtros
+      document.addEventListener('DOMContentLoaded', () => {
+        // Carrega os coordenadores do backend
+        carregarCoordenadores().then(() => {
+          // Após carregar, armazenar os dados para filtragem
+          // Isso será feito internamente na função carregarCoordenadores
+          // Vamos reescrever a função para armazenar os dados antes de renderizar
+        });
+        
+        // Eventos de filtro
+        document.getElementById('busca-coordenadores').addEventListener('input', filtrarCoordenadores);
+        document.getElementById('filtro-curso').addEventListener('change', filtrarCoordenadores);
+        document.getElementById('filtro-status').addEventListener('change', filtrarCoordenadores);
+        
+        // Preenche informações do usuário no menu
+        if (window.user) {
+          document.getElementById("menu-user-fullname").textContent = window.user.name || "—";
+          let papel = "";
+          switch (window.user.role) {
+            case "admin": papel = "Administrador"; break;
+            case "professor": papel = "Professor"; break;
+            case "student": papel = "Aluno"; break;
+            default: papel = window.user.role || "";
+          }
+          document.getElementById("menu-user-role").textContent = papel || "—";
+        }
+        
+        // Atualiza status da sessão
+        function updateSessionIndicator() {
+          const user = Auth.getUser();
+          const token = Auth.getToken();
+          const text = document.getElementById('session-text');
+          
+          if (user && token) {
+            text.innerHTML = '● Online';
+            text.className = 'text-green-400';
+          } else {
+            text.innerHTML = '● Offline';  
+            text.className = 'text-gray-400';
+          }
+        }
+        
+        updateSessionIndicator();
+        setInterval(updateSessionIndicator, 30000);
+      });
+
+      // Eventos para o menu
+      document.getElementById("menu-theme-btn")?.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem(
+          "theme",
+          document.documentElement.classList.contains("dark") ? "dark" : "light"
+        );
+      });
+
+      document.getElementById("menu-logout-btn")?.addEventListener("click", () => {
+        Auth.logout();
+        window.location.replace("/login.html");
+      });
+    </script>
+  </body>
+</html>
