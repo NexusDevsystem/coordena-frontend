@@ -93,7 +93,7 @@ const Api = (() => {
     fetchEvents: () => fetchJson(BASE, { headers: authHeaders() }),
     fetchFixedSchedules: () => fetchJson(FIXED, { headers: authHeaders() }),
     createEvent: (data) => fetchJson(BASE, { method: "POST", headers: authHeaders(true), body: JSON.stringify(data) }),
-    updateEvent: (id, data) => fetchJson(`${BASE}/${id}`, { method: "PUT", headers: authHeaders(true), body: JSON.stringify(data) }),
+    updateEvent: (id, data) => fetchJson(`${BASE}/${id}`, { method: "PATCH", headers: authHeaders(true), body: JSON.stringify(data) }),
     deleteEvent: (id) => fetchJson(`${BASE}/${id}`, { method: "DELETE", headers: authHeaders() }),
   };
 })();
@@ -1018,8 +1018,22 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
       const currentToken = Auth.getAdminToken();
       console.log("=== DEBUG APROVAR RESERVA ===");
       console.log("User:", currentUser);
+      console.log("User Role:", currentUser?.role);
+      console.log("User Name:", currentUser?.name);
       console.log("Token exists:", !!currentToken);
       console.log("Token length:", currentToken?.length);
+      
+      // Decodificar token para ver o conteúdo
+      if (currentToken) {
+        try {
+          const tokenPayload = JSON.parse(atob(currentToken.split('.')[1]));
+          console.log("Token Role:", tokenPayload.role);
+          console.log("Token Name:", tokenPayload.name);
+          console.log("Token ID:", tokenPayload.id);
+        } catch (e) {
+          console.log("Erro ao decodificar token:", e);
+        }
+      }
       console.log("===============================");
       
       // Usa a API específica do painel admin que tem melhor tratamento de erros
@@ -1066,7 +1080,7 @@ document.getElementById("ordenacao-historico-usuarios")?.addEventListener("chang
   // ---- RESERVAS ATIVAS
   async function concluirReservation(id) {
     try {
-      await adminFetch(`${BASE_API}/api/reservations/${id}`, { method: "PUT", body: JSON.stringify({ status: "concluido" }) });
+      await adminFetch(`${BASE_API}/api/reservations/${id}`, { method: "PATCH", body: JSON.stringify({ status: "concluido" }) });
     } catch (e) { console.error(`concluir ${id}:`, e); }
   }
 
